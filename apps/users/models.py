@@ -54,3 +54,10 @@ class User(AbstractUser):
     @property
     def is_active_account(self):
         return self.status == Status.ACTIVE
+
+    def save(self, *args, **kwargs):
+        if self.role not in Role.values:
+            raise ValueError(f"Rol invalido: {self.role}")
+        if self.status not in Status.values:
+            raise ValueError(f"Estado invalido: {self.status}")
+        super().save(*args, **kwargs)

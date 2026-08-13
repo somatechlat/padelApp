@@ -25,7 +25,7 @@
 **Container network:** service names as hostnames (`db`, `redis`) — no host IPs, no env vars. DB/Redis credentials come from the volume-mounted `secrets.py` (SRS C2/C3).
 
 **Key compose settings:**
-- `backend`/`worker`: bind-mount `./` → `/app`, `docker/backend/secrets.py` → `/app/padel/settings/secrets.py` (read-only), named volume for `.venv` and media.
+- `backend`/`worker`: bind-mount `./` → `/app`, and `./docker/backend` → `/app/runsecrets` (read-only). `base.py` imports `runsecrets.secrets`. NOTE: single-file bind mounts fail on Docker Desktop (virtiofs), so the whole secrets directory is mounted.
 - `backend` command: `python manage.py runserver 0.0.0.0:8000` (Django autoreload).
 - `worker` command: `celery -A padel worker -l info`.
 - `flutter` bind-mount `./mobile` → `/mobile`; HOME set to a named volume (pub cache persists).
@@ -127,8 +127,8 @@ EXPOSE 8000
 CMD ["python", "manage.py", "runserver", "0.0.0.0:8000"]
 ```
 
-**Step 3: Secrets (volume-mounted, no env vars)**
-- Create `docker/backend/secrets.py` (git-ignored, chmod 600) from `secrets.example.py`:
+**Step 3: Secrets (volume-mounted directory, no env vars)**
+- Create `docker/backend/secrets.py` (git-ignored, chmod 600) from `secrets.example.py`. The directory `docker/backend` is mounted at `/app/runsecrets` in the containers and `base.py` imports `runsecrets.secrets`:
 ```python
 # docker/backend/secrets.py  (NOT committed)
 SECRET_KEY = "dev-only-secret-do-not-use"
@@ -141,7 +141,7 @@ REDIS_URL = "redis://redis:6379/0"
 STRIPE_SECRET_KEY = "sk_test_..."     # test key
 STRIPE_PUBLISHABLE_KEY = "pk_test_..."
 ```
-- `base.py` imports DB/REDIS/STRIPE from `secrets.py`; `prod.py` adds a boot-time check that fails fast if `SECRET_KEY` starts with `dev-only-` or any value is blank (SRS NFR-0008).
+- `base.py` imports DB/REDIS/STRIPE from `runsecrets.secrets`; `prod.py` adds a boot-time check that fails fast if `SECRET_KEY` starts with `dev-only-` or any value is blank (SRS NFR-0008).
 
 **Step 4: Build + verify infra**
 ```bash
