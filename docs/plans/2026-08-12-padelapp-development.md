@@ -410,7 +410,9 @@ git add -A && git commit -m "feat: reports, events, tournaments, news"
 
 ---
 
-## Phase 10 — i18n + Security Hardening (M16, M12, M13)
+## Phase 10 — i18n + Security Hardening (M16, M12, M13) ✅ DONE (commit 51edbaf)
+
+> 166 tests green; lint (ruff/flake8/bandit) clean in container; catalogs es/en/pt/ca compiled, translations verified via API (Accept-Language).
 
 **Files:**
 - Create: `locale/es/LC_MESSAGES/django.po` (+en/pt/ca), `locale/*/django.mo`
