@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% block title %}Panel - Andes Padel{% endblock %}
+{% block content %}
+<h1>Panel de control</h1>
+<div class="cards">
+  <div class="card"><strong>{{ bookings_today }}</strong><span>Reservas de hoy</span></div>
+  <div class="card"><strong>{{ occupancy_pct }}%</strong><span>Ocupacion de hoy</span></div>
+  <div class="card"><strong>${{ revenue_today }}</strong><span>Ingresos de hoy</span></div>
+</div>
+<h2>Alertas</h2>
+<ul>
+  <li>Mantenimientos hoy: {{ alerts.mantenimiento_hoy }}</li>
+  <li>Transferencias pendientes: {{ alerts.transferencias_pendientes }}</li>
+  <li>Reservas sin pagar: {{ alerts.reservas_sin_pagar }}</li>
+</ul>
+<h2>Proximas reservas</h2>
+<table>
+  <tr><th>Cliente</th><th>Cancha</th><th>Inicio</th><th>Estado</th></tr>
+  {% for b in bookings_list %}
+  <tr>
+    <td>{{ b.user.email }}</td>
+    <td>{{ b.court.name }}</td>
+    <td>{{ b.start_time }}</td>
+    <td>{{ b.get_status_display }}</td>
+  </tr>
+  {% empty %}
+  <tr><td colspan="4">Sin reservas para hoy.</td></tr>
+  {% endfor %}
+</table>
+{% endblock %}

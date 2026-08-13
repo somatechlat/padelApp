@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>{% block title %}Andes Padel{% endblock %}</title>
+<style>
+  body { font-family: system-ui, sans-serif; margin: 0; }
+  nav { background: #1a6d3a; color: #fff; padding: 10px 20px; }
+  nav a { color: #fff; margin-right: 16px; text-decoration: none; }
+  .content { padding: 20px; }
+  .cards { display: flex; gap: 20px; }
+  .card { border: 1px solid #ccc; border-radius: 8px; padding: 16px; min-width: 160px; }
+  .card strong { font-size: 24px; display: block; }
+  table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+  th, td { border: 1px solid #ddd; padding: 6px 10px; text-align: left; }
+  .calendar td { min-width: 120px; vertical-align: top; }
+  .available { background: #e8f5e9; }
+  .booked { background: #fff3cd; }
+  .held { background: #fff8e1; }
+  .blocked { background: #fce4ec; }
+  .booking { font-size: 11px; border-top: 1px solid #999; margin-top: 4px; padding-top: 2px; }
+</style>
+</head>
+<body>
+<nav>
+  <a href="{% url 'adminpanel:dashboard' %}">Panel</a>
+  <a href="{% url 'adminpanel:calendar' %}">Calendario</a>
+  <a href="{% url 'adminpanel:audit' %}">Auditoria</a>
+  <a href="{% url 'admin:index' %}">Django Admin</a>
+</nav>
+<div class="content">
+{% block content %}{% endblock %}
+</div>
+</body>
+</html>

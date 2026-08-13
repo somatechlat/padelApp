@@ -1,0 +1,30 @@
+{% extends "base_admin.html" %}
+{% block title %}Calendario - Andes Padel{% endblock %}
+{% block content %}
+<h1>Calendario de canchas - {{ day }}</h1>
+<p>
+  <a href="?date={{ prev_day }}">&larr; Anterior</a> |
+  <a href="?date={{ next_day }}">Siguiente &rarr;</a>
+</p>
+<table class="calendar">
+  <tr>
+    <th>Hora</th>
+    {% for c in courts %}<th>{{ c.name }}</th>{% endfor %}
+  </tr>
+  {% for time, cells in rows %}
+  <tr>
+    <td>{{ time }}</td>
+    {% for slot, day_bookings in cells %}
+    <td class="{% if slot %}{{ slot.status }}{% endif %}">
+      {% if slot %}
+        {{ slot.get_status_display }}
+        {% for b in day_bookings %}
+          <div class="booking">{{ b.user.email }} {{ b.get_status_display }}</div>
+        {% endfor %}
+      {% else %}--{% endif %}
+    </td>
+    {% endfor %}
+  </tr>
+  {% endfor %}
+</table>
+{% endblock %}
