@@ -59,6 +59,8 @@ services:
   flutter:
     image: ghcr.io/cirruslabs/flutter:3.27.3
     working_dir: /mobile
+    environment:
+      PUB_CACHE: /home/cirrus/.pub-cache
     volumes:
       - ./mobile:/mobile
       - flutter_home:/home/cirrus

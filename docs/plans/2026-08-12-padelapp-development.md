@@ -445,7 +445,9 @@ git add -A && git commit -m "feat: i18n catalogs, audit log, GDPR, security hard
 
 ---
 
-## Phase 11 — Flutter Setup & Auth App (M15, M01) — in the `flutter` container
+## Phase 11 — Flutter Setup & Auth App (M15, M01) ✅ DONE (commit 51edbaf..)
+
+> `flutter analyze` 0 issues, `flutter test` 12/12 pass in container; smoke test against live `backend` (login/me/courts/bookings/tournaments/notifications all 200). Tokens in flutter_secure_storage. PUB_CACHE persisted via `flutter_home` volume (fixes flaky package resolution on ephemeral container pub-cache).
 
 > Everything Flutter runs via `docker compose run --rm flutter ...` using the `ghcr.io/cirruslabs/flutter` image (Flutter + Android SDK preinstalled). No Flutter SDK on the host.
 
