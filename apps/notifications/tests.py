@@ -62,10 +62,12 @@ class TestDeviceTokens:
         assert dt.is_active is True
 
     def test_unique_token(self, user):
+        from django.db import IntegrityError
+
         from apps.notifications.models import DeviceToken
 
         DeviceToken.objects.create(user=user, platform="android", token="fcm-abc")
-        with pytest.raises(Exception):
+        with pytest.raises(IntegrityError):
             DeviceToken.objects.create(user=user, platform="ios", token="fcm-abc")
 
 

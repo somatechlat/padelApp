@@ -14,5 +14,5 @@ def notify_task(self, user_id, event_type, title, body="", data=None):
     try:
         NotificationService.notify(user, event_type, title, body, data or {})
     except Exception as exc:
-        raise self.retry(exc=exc)
+        raise self.retry(exc=exc) from exc
     return user_id

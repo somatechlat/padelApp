@@ -1,4 +1,3 @@
-from decimal import Decimal
 
 from apps.payments.models import Payment
 from runsecrets import secrets

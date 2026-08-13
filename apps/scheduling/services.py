@@ -1,9 +1,9 @@
-from datetime import time, timedelta
+from datetime import timedelta
 
 from django.db import transaction
 from django.utils import timezone
 
-from apps.scheduling.models import BookingHold, MaintenanceWindow, TimeSlot
+from apps.scheduling.models import MaintenanceWindow, TimeSlot
 
 SLOT_MINUTES = 30
 
@@ -56,8 +56,9 @@ class SlotService:
             .filter(start__date__lte=day, end__date__gte=day)
         )
         result = []
+        tz = timezone.get_current_timezone()
         for s in slots:
-            start_dt = timezone.datetime.combine(s.date, s.start, tzinfo=timezone.get_current_timezone())
+            start_dt = timezone.datetime.combine(s.date, s.start, tzinfo=tz)
             if day == now.date() and start_dt <= now:
                 continue
             if SlotService._is_in_maintenance(s, windows):

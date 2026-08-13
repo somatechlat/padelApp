@@ -31,8 +31,8 @@ def user():
 
 @pytest.fixture
 def confirmed_booking(court, user):
-    from apps.courts.models import CourtSchedule
     from apps.bookings.services import BookingService
+    from apps.courts.models import CourtSchedule
 
     for wd in range(7):
         CourtSchedule.objects.create(
@@ -94,7 +94,6 @@ class TestStripePayments:
 
 class TestTransferAndCash:
     def test_record_transfer_creates_pending(self, confirmed_booking):
-        from apps.payments.models import Payment
         from apps.payments.services import PaymentService
 
         payment = PaymentService.record_transfer(confirmed_booking, "REF-001")

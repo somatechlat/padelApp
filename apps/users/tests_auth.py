@@ -1,9 +1,10 @@
 import pytest
 from django.contrib.auth import get_user_model
-from django.utils import timezone
 from rest_framework import status
 
 from apps.verification.models import VerificationCode
+
+pytestmark = pytest.mark.django_db
 
 User = get_user_model()
 
@@ -134,7 +135,7 @@ class TestLogin:
             "/api/auth/login/", {"email": user.email, "password": "pass12345"}
         )
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
-        assert "locked" in resp.data.get("detail", "").lower()
+        assert "bloqueada" in resp.data.get("detail", "").lower()
 
 
 class TestRefreshLogout:
@@ -161,7 +162,9 @@ class TestRefreshLogout:
         token = RefreshToken.for_user(user)
         resp = api_client.post("/api/auth/logout/", {"refresh": str(token)})
         assert resp.status_code == status.HTTP_205_RESET_CONTENT
-        assert RefreshToken(str(token)).check_blacklist()
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+
+        assert BlacklistedToken.objects.filter(token__jti=token["jti"]).exists()
 
 
 class TestPassword:

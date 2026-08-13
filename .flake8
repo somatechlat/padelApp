@@ -1,0 +1,4 @@
+[flake8]
+max-line-length = 100
+exclude = runsecrets,migrations,mobile
+ignore = E501,E121,E123,E126,E226,E24,E704,W503,W504

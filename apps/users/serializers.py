@@ -1,9 +1,7 @@
-from django.contrib.auth import authenticate, password_validation
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model, password_validation
 from rest_framework import serializers
 
 from apps.notifications.models import DeviceToken
-from apps.verification.models import VerificationCode
 
 User = get_user_model()
 
@@ -52,7 +50,7 @@ class VerifySerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=attrs["email"].lower())
         except User.DoesNotExist:
-            raise serializers.ValidationError("Codigo invalido")
+            raise serializers.ValidationError("Codigo invalido") from None
         attrs["_user"] = user
         return attrs
 
@@ -68,6 +66,11 @@ class LoginSerializer(serializers.Serializer):
 
         email = attrs["email"].lower()
         key = f"failed_login:{email}"
+        if cache.get(key, 0) >= 5:
+            raise AuthenticationFailed(
+                "Cuenta temporalmente bloqueada por intentos fallidos",
+                code="account_locked",
+            )
         user = authenticate(email=email, password=attrs["password"])
         if user is None:
             count = cache.get(key, 0) + 1
@@ -79,7 +82,9 @@ class LoginSerializer(serializers.Serializer):
                 )
             raise AuthenticationFailed("Credenciales invalidas", code="invalid_credentials")
         if not user.email_verified:
-            raise AuthenticationFailed("Verifica tu email antes de iniciar sesion", code="email_not_verified")
+            raise AuthenticationFailed(
+                "Verifica tu email antes de iniciar sesion", code="email_not_verified"
+            )
         if user.status != "active":
             raise AuthenticationFailed("Cuenta no activa", code="account_inactive")
         cache.delete(key)
@@ -136,9 +141,11 @@ class PasswordChangeSerializer(serializers.Serializer):
 
 
 class DeviceTokenSerializer(serializers.ModelSerializer):
+    device_token = serializers.CharField(source="token", max_length=512)
+
     class Meta:
         model = DeviceToken
-        fields = ["id", "platform", "token", "is_active", "created_at"]
+        fields = ["id", "platform", "device_token", "is_active", "created_at"]
         read_only_fields = ["id", "is_active", "created_at"]
 
     def create(self, validated_data):

@@ -1,6 +1,6 @@
 """Development settings. Never use in production."""
 
-from padel.settings.base import *  # noqa: F403
+from padel.settings.base import *  # noqa: F401, F403  # noqa: F403
 from padel.settings.base import BASE_DIR
 
 DEBUG = True

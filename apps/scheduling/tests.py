@@ -55,10 +55,10 @@ class TestSlotGeneration:
 
         day = timezone.localdate() + timezone.timedelta(days=1)
         slots = SlotService.generate_day(schedule, day)
-        assert all(
-            (timezone.datetime.combine(day, s.end) - timezone.datetime.combine(day, s.start)).total_seconds() == 1800
-            for s in slots
-        )
+        end_dt = lambda s: timezone.datetime.combine(day, s.end)  # noqa: E731
+        start_dt = lambda s: timezone.datetime.combine(day, s.start)  # noqa: E731
+        durations = [(end_dt(s) - start_dt(s)).total_seconds() for s in slots]
+        assert durations and all(d == 1800 for d in durations)
 
     def test_does_not_generate_for_past_day(self, schedule):
         from apps.scheduling.services import SlotService
@@ -69,7 +69,6 @@ class TestSlotGeneration:
 
 class TestAvailability:
     def test_available_slots_exclude_booked(self, schedule, user):
-        from apps.scheduling.models import TimeSlot
         from apps.scheduling.services import SlotService
 
         day = timezone.localdate() + timezone.timedelta(days=1)
@@ -81,7 +80,6 @@ class TestAvailability:
         assert all(s.id != first.id for s in avail)
 
     def test_available_slots_exclude_held(self, schedule, user):
-        from apps.scheduling.models import TimeSlot
         from apps.scheduling.services import SlotService
 
         day = timezone.localdate() + timezone.timedelta(days=1)
@@ -96,20 +94,26 @@ class TestAvailability:
         from apps.scheduling.services import SlotService
 
         day = timezone.localdate() + timezone.timedelta(days=1)
-        MaintenanceWindow.objects.create(
-            court=schedule,
-            start=timezone.datetime.combine(day, timezone.datetime.strptime("09:00", "%H:%M").time(), tzinfo=timezone.get_current_timezone()),
-            end=timezone.datetime.combine(day, timezone.datetime.strptime("11:00", "%H:%M").time(), tzinfo=timezone.get_current_timezone()),
+        tz = timezone.get_current_timezone()
+        start = timezone.datetime.combine(
+            day, timezone.datetime.strptime("09:00", "%H:%M").time(), tzinfo=tz
         )
+        end = timezone.datetime.combine(
+            day, timezone.datetime.strptime("11:00", "%H:%M").time(), tzinfo=tz
+        )
+        MaintenanceWindow.objects.create(court=schedule, start=start, end=end)
         SlotService.generate_day(schedule, day)
         avail = SlotService.available_slots(schedule, day)
-        morning = [s for s in avail if str(s.start.strftime("%H:%M")) in ("09:00", "09:30", "10:00", "10:30")]
+        blocked = ("09:00", "09:30", "10:00", "10:30")
+        morning = [
+            s for s in avail if str(s.start.strftime("%H:%M")) in blocked
+        ]
         assert morning == []
 
 
 class TestBookingHold:
     def test_hold_expires_after_10_minutes(self, schedule, user):
-        from apps.scheduling.models import BookingHold, TimeSlot
+        from apps.scheduling.models import BookingHold
         from apps.scheduling.services import SlotService
 
         day = timezone.localdate() + timezone.timedelta(days=1)

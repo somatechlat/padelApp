@@ -1,6 +1,6 @@
 """Production settings. Fail fast if secrets are missing or dev-only."""
 
-from padel.settings.base import *  # noqa: F403
+from padel.settings.base import *  # noqa: F401, F403
 from runsecrets import secrets
 
 DEBUG = False

@@ -1,5 +1,6 @@
-import pytest
 from decimal import Decimal
+
+import pytest
 from django.utils import timezone
 
 pytestmark = pytest.mark.django_db
@@ -43,8 +44,8 @@ def policy(venue):
 
 @pytest.fixture
 def booking(court, user):
-    from apps.courts.models import CourtSchedule
     from apps.bookings.services import BookingService
+    from apps.courts.models import CourtSchedule
 
     for wd in range(7):
         CourtSchedule.objects.create(

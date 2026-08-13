@@ -65,6 +65,7 @@ class TestBookingCreation:
 
     def test_hold_rejects_already_held_slot(self, scheduled_court, user):
         from django.contrib.auth import get_user_model
+
         from apps.bookings.services import BookingService
 
         BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
@@ -99,11 +100,10 @@ class TestBookingCreation:
 
 class TestStateMachine:
     def test_illegal_transition_rejected(self, scheduled_court, user):
-        from apps.bookings.models import Booking
         from apps.bookings.services import BookingService
 
         booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
-        with pytest.raises(Exception):
+        with pytest.raises(ValueError):
             booking.transition_to("completed")
 
     def test_transition_history_audited(self, scheduled_court, user):
@@ -119,8 +119,9 @@ class TestStateMachine:
 class TestConcurrency:
     @pytest.mark.django_db(transaction=True)
     def test_no_double_booking_under_race(self, scheduled_court, user):
-        from apps.bookings.services import BookingService
         from django.contrib.auth import get_user_model
+
+        from apps.bookings.services import BookingService
 
         results = []
 

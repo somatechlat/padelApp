@@ -37,10 +37,12 @@ class TestCourt:
         assert court.status == "archived"
 
     def test_unique_name_per_venue(self, venue):
+        from django.db import IntegrityError
+
         from apps.courts.models import Court
 
         Court.objects.create(venue=venue, name="Cancha X", price_base="12.00")
-        with pytest.raises(Exception):
+        with pytest.raises(IntegrityError):
             Court.objects.create(venue=venue, name="Cancha X", price_base="12.00")
 
     def test_court_str(self, court):
