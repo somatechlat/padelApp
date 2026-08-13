@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:padel_app/app.dart';
+import 'package:padel_app/core/locale_controller.dart';
 import 'package:padel_app/core/storage.dart';
 
 import 'helpers/fake_api.dart';
 
 Widget buildApp(FakeApi api) {
   final storage = InMemoryTokenStorage();
-  return AndesPadelApp(api: api, storage: storage);
+  return AndesPadelApp(
+    api: api,
+    storage: storage,
+    localeController: LocaleController(storage: storage),
+  );
 }
 
 void main() {
@@ -71,7 +76,11 @@ void main() {
     final storage = InMemoryTokenStorage();
     await storage.write(SecureTokenStorage.accessKey, 'fake-access');
     await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
-    await tester.pumpWidget(AndesPadelApp(api: FakeApi(), storage: storage));
+    await tester.pumpWidget(AndesPadelApp(
+      api: FakeApi(),
+      storage: storage,
+      localeController: LocaleController(storage: storage),
+    ));
     await tester.pumpAndSettle();
 
     expect(find.text('Inicio'), findsWidgets);
@@ -82,7 +91,11 @@ void main() {
     final storage = InMemoryTokenStorage();
     await storage.write(SecureTokenStorage.accessKey, 'fake-access');
     await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
-    await tester.pumpWidget(AndesPadelApp(api: FakeApi(), storage: storage));
+    await tester.pumpWidget(AndesPadelApp(
+      api: FakeApi(),
+      storage: storage,
+      localeController: LocaleController(storage: storage),
+    ));
     await tester.pumpAndSettle();
 
     await tester.tap(find.text('Perfil'));

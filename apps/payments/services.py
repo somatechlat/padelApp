@@ -1,4 +1,5 @@
 
+from apps.notifications.services import NotificationService
 from apps.payments.models import Payment
 from apps.security.services import log_event
 from runsecrets import secrets
@@ -39,6 +40,11 @@ class PaymentService:
         payment.status = Payment.Status.CAPTURED
         payment.save(update_fields=["status", "updated_at"])
         log_event(payment.user, "payment.captured", "Payment", payment.id)
+        NotificationService.notify(
+            payment.user,
+            "payment_success",
+            data={"amount": f"${payment.amount}", "payment_id": payment.id},
+        )
         return payment
 
     @staticmethod
@@ -60,6 +66,11 @@ class PaymentService:
         payment.status = Payment.Status.CAPTURED
         payment.save(update_fields=["status", "updated_at"])
         log_event(payment.user, "payment.transfer_confirmed", "Payment", payment.id)
+        NotificationService.notify(
+            payment.user,
+            "transfer_confirmed",
+            data={"amount": f"${payment.amount}", "payment_id": payment.id},
+        )
         return payment
 
     @staticmethod
@@ -91,4 +102,9 @@ class PaymentService:
         payment.status = Payment.Status.REFUNDED
         payment.save(update_fields=["status", "updated_at"])
         log_event(payment.user, "payment.refund", "Payment", payment.id)
+        NotificationService.notify(
+            payment.user,
+            "payment_refunded",
+            data={"amount": f"${amount}", "payment_id": payment.id},
+        )
         return payment

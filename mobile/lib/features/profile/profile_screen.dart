@@ -2,10 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import '../../core/api_client.dart';
+import '../../core/locale_controller.dart';
 import '../auth/auth_state.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  static const _languages = [
+    ('es', 'Español'),
+    ('en', 'English'),
+    ('pt', 'Português'),
+    ('ca', 'Català'),
+  ];
 
   Future<void> _confirmLogout(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
@@ -32,6 +41,36 @@ class ProfileScreen extends StatelessWidget {
         Navigator.of(context)
             .pushNamedAndRemoveUntil('/login', (route) => false);
       }
+    }
+  }
+
+  Future<void> _pickLanguage(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final locale = context.read<LocaleController>();
+    final auth = context.read<AuthState>();
+    final api = context.read<ApiClient>();
+    final selected = await showDialog<String>(
+      context: context,
+      builder: (context) => SimpleDialog(
+        title: Text(l10n.language),
+        children: [
+          for (final (code, name) in _languages)
+            RadioListTile<String>(
+              value: code,
+              groupValue: locale.code,
+              title: Text(name),
+              onChanged: (v) => Navigator.of(context).pop(v),
+            ),
+        ],
+      ),
+    );
+    if (selected == null || selected == locale.code) return;
+    await locale.setLanguage(selected);
+    auth.applyUserPatch({'language_code': selected});
+    try {
+      await api.patch('/auth/me/', data: {'language_code': selected});
+    } catch (_) {
+      // Local language is already applied; backend sync will happen on next login.
     }
   }
 
@@ -73,8 +112,13 @@ class ProfileScreen extends StatelessWidget {
                   leading: const Icon(Icons.language),
                   title: Text(l10n.language),
                   trailing: Text(
-                    Localizations.localeOf(context).toString(),
+                    _languages
+                        .firstWhere((l) => l.$1 == context
+                            .read<LocaleController>()
+                            .code)
+                        .$2,
                   ),
+                  onTap: () => _pickLanguage(context),
                 ),
                 const Divider(height: 1),
                 ListTile(

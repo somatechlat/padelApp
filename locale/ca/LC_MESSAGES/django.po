@@ -150,3 +150,75 @@ msgstr "Portuguès"
 #: padel/settings/base.py:120
 msgid "Catalan"
 msgstr "Català"
+
+#: apps/notifications/services.py
+msgid "Booking confirmed"
+msgstr "Reserva confirmada"
+
+#: apps/notifications/services.py
+msgid "Your booking for {court} on {date} at {time} is confirmed."
+msgstr "La teva reserva de {court} el {date} a les {time} ha estat confirmada."
+
+#: apps/notifications/services.py
+msgid "Booking cancelled"
+msgstr "Reserva cancel·lada"
+
+#: apps/notifications/services.py
+msgid "Your booking for {court} on {date} at {time} was cancelled."
+msgstr "La teva reserva de {court} el {date} a les {time} ha estat cancel·lada."
+
+#: apps/notifications/services.py
+msgid "Booking reminder"
+msgstr "Recordatori de reserva"
+
+#: apps/notifications/services.py
+msgid "Reminder: {court} tomorrow at {time}."
+msgstr "Recordatori: {court} demà a les {time}."
+
+#: apps/notifications/services.py
+msgid "Payment received"
+msgstr "Pagament rebut"
+
+#: apps/notifications/services.py
+msgid "We received your payment of {amount}."
+msgstr "Hem rebut el teu pagament de {amount}."
+
+#: apps/notifications/services.py
+msgid "Payment refunded"
+msgstr "Pagament reemborsat"
+
+#: apps/notifications/services.py
+msgid "A refund of {amount} was processed."
+msgstr "S'ha processat un reemborsament de {amount}."
+
+#: apps/notifications/services.py
+msgid "Transfer confirmed"
+msgstr "Transferència confirmada"
+
+#: apps/notifications/services.py
+msgid "Your bank transfer of {amount} was confirmed."
+msgstr "La teva transferència bancària de {amount} ha estat confirmada."
+
+#: apps/notifications/services.py
+msgid "Tournament reminder"
+msgstr "Recordatori de torneig"
+
+#: apps/notifications/services.py
+msgid "The tournament {tournament} starts tomorrow."
+msgstr "El torneig {tournament} comença demà."
+
+#: apps/notifications/services.py
+msgid "Tournament registration confirmed"
+msgstr "Inscripció confirmada"
+
+#: apps/notifications/services.py
+msgid "You are registered for {tournament}."
+msgstr "Estàs inscrit al {tournament}."
+
+#: apps/users/views.py
+msgid "Verification code - Andes Padel"
+msgstr "Codi de verificació - Andes Padel"
+
+#: apps/users/views.py
+msgid "Your verification code is: {code}"
+msgstr "El teu codi de verificació és: {code}"

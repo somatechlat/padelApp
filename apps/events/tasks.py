@@ -24,9 +24,10 @@ def tournament_reminder_task(self):
                 NotificationService.notify(
                     reg.user,
                     "tournament_reminder",
-                    "Recordatorio de torneo",
-                    f"El torneo {tournament.name_localized} comienza manana.",
-                    {"tournament_id": tournament.id},
+                    data={
+                        "tournament": tournament.name_localized,
+                        "tournament_id": tournament.id,
+                    },
                 )
                 sent += 1
             except Exception:

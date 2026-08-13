@@ -107,5 +107,16 @@
   "paymentError": "No se pudo procesar el pago. Intenta de nuevo.",
   "slotTaken": "Ese horario ya no está disponible. Elige otro.",
   "minPlayers": "Jugadores",
-  "confirmedAt": "Confirmada el"
+  "confirmedAt": "Confirmada el",
+
+  "notificationSettings": "Configuración de notificaciones",
+  "save": "Guardar",
+  "bookingReminder": "Recordatorio de reserva",
+  "tournamentReminder": "Recordatorio de torneo",
+  "tournamentConfirmed": "Inscripción confirmada",
+  "payments": "Pagos",
+  "marketing": "Promociones y novedades",
+  "channelEmail": "Email",
+  "channelPush": "Notificaciones push",
+  "channelInApp": "Notificaciones en la app"
 }

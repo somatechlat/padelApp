@@ -126,6 +126,16 @@ class AuthState extends ChangeNotifier {
     }
   }
 
+  /// Merge a partial user payload (e.g. language change) into the cached user.
+  void applyUserPatch(Map<String, dynamic> data) {
+    final current = _user;
+    if (current != null) {
+      current.addAll(data);
+      _user = current;
+      notifyListeners();
+    }
+  }
+
   Future<void> logout() async {
     final refresh = await _storage.read(SecureTokenStorage.refreshKey);
     if (_storage is SecureTokenStorage && refresh != null) {

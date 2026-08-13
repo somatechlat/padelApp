@@ -80,6 +80,11 @@ class ApiClient {
     return res.data;
   }
 
+  Future<dynamic> put(String path, {Object? data}) async {
+    final res = await _dio.put<dynamic>(path, data: data);
+    return res.data;
+  }
+
   Future<dynamic> patch(String path, {Object? data}) async {
     final res = await _dio.patch<dynamic>(path, data: data);
     return res.data;

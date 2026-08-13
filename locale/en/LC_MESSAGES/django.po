@@ -150,3 +150,75 @@ msgstr ""
 #: padel/settings/base.py:120
 msgid "Catalan"
 msgstr ""
+
+#: apps/notifications/services.py
+msgid "Booking confirmed"
+msgstr "Booking confirmed"
+
+#: apps/notifications/services.py
+msgid "Your booking for {court} on {date} at {time} is confirmed."
+msgstr "Your booking for {court} on {date} at {time} is confirmed."
+
+#: apps/notifications/services.py
+msgid "Booking cancelled"
+msgstr "Booking cancelled"
+
+#: apps/notifications/services.py
+msgid "Your booking for {court} on {date} at {time} was cancelled."
+msgstr "Your booking for {court} on {date} at {time} was cancelled."
+
+#: apps/notifications/services.py
+msgid "Booking reminder"
+msgstr "Booking reminder"
+
+#: apps/notifications/services.py
+msgid "Reminder: {court} tomorrow at {time}."
+msgstr "Reminder: {court} tomorrow at {time}."
+
+#: apps/notifications/services.py
+msgid "Payment received"
+msgstr "Payment received"
+
+#: apps/notifications/services.py
+msgid "We received your payment of {amount}."
+msgstr "We received your payment of {amount}."
+
+#: apps/notifications/services.py
+msgid "Payment refunded"
+msgstr "Payment refunded"
+
+#: apps/notifications/services.py
+msgid "A refund of {amount} was processed."
+msgstr "A refund of {amount} was processed."
+
+#: apps/notifications/services.py
+msgid "Transfer confirmed"
+msgstr "Transfer confirmed"
+
+#: apps/notifications/services.py
+msgid "Your bank transfer of {amount} was confirmed."
+msgstr "Your bank transfer of {amount} was confirmed."
+
+#: apps/notifications/services.py
+msgid "Tournament reminder"
+msgstr "Tournament reminder"
+
+#: apps/notifications/services.py
+msgid "The tournament {tournament} starts tomorrow."
+msgstr "The tournament {tournament} starts tomorrow."
+
+#: apps/notifications/services.py
+msgid "Tournament registration confirmed"
+msgstr "Tournament registration confirmed"
+
+#: apps/notifications/services.py
+msgid "You are registered for {tournament}."
+msgstr "You are registered for {tournament}."
+
+#: apps/users/views.py
+msgid "Verification code - Andes Padel"
+msgstr "Verification code - Andes Padel"
+
+#: apps/users/views.py
+msgid "Your verification code is: {code}"
+msgstr "Your verification code is: {code}"

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'notification_preferences_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -34,11 +35,37 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  Future<void> _markRead(Map<String, dynamic> notification) async {
+    if (notification['read_at'] != null) return;
+    try {
+      await context
+          .read<ApiClient>()
+          .post('/notifications/${notification['id']}/read/');
+      if (mounted) _load();
+    } catch (_) {
+      // Ignore: reading is best-effort.
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return Scaffold(
-      appBar: AppBar(title: Text(l10n.notifications)),
+      appBar: AppBar(
+        title: Text(l10n.notifications),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.tune),
+            tooltip: l10n.notificationSettings,
+            onPressed: () async {
+              await Navigator.of(context).push(MaterialPageRoute(
+                builder: (_) => const NotificationPreferencesScreen(),
+              ));
+              if (mounted) _load();
+            },
+          ),
+        ],
+      ),
       body: _buildBody(l10n),
     );
   }
@@ -78,9 +105,20 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
             child: ListTile(
               leading: Icon(
                 read ? Icons.notifications_none : Icons.notifications_active,
+                color: read ? null : Theme.of(context).colorScheme.primary,
               ),
-              title: Text('${n['title']}'),
-              subtitle: Text('${n['body']}'),
+              title: Text(
+                '${n['title']}',
+                style: TextStyle(
+                  fontWeight: read ? FontWeight.normal : FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                '${n['body']}',
+                maxLines: 2,
+                overflow: TextOverflow.ellipsis,
+              ),
+              onTap: () => _markRead(n),
             ),
           );
         },

@@ -1,5 +1,9 @@
+import os
+
 from django.conf import settings
 from django.core.mail import send_mail
+from django.utils import translation
+from django.utils.translation import gettext
 
 from apps.notifications.models import (
     DeviceToken,
@@ -14,10 +18,51 @@ TRANSACTIONAL_EVENTS = {
     "no_show_penalty",
     "payment_success",
     "payment_failed",
+    "payment_refunded",
     "transfer_confirmed",
     "password_reset",
+    "tournament_reminder",
+    "tournament_confirmed",
 }
 DEFAULT_CHANNELS = ("email", "push", "inapp")
+
+# Message templates keyed by event type. The msgid (English) is the canonical
+# string; titles/bodies are localized with ``gettext`` using the user's
+# ``language_code`` and then interpolated with the event ``data`` params.
+MESSAGE_TEMPLATES = {
+    "booking_confirmed": (
+        "Booking confirmed",
+        "Your booking for {court} on {date} at {time} is confirmed.",
+    ),
+    "booking_cancelled": (
+        "Booking cancelled",
+        "Your booking for {court} on {date} at {time} was cancelled.",
+    ),
+    "booking_reminder": (
+        "Booking reminder",
+        "Reminder: {court} tomorrow at {time}.",
+    ),
+    "payment_success": (
+        "Payment received",
+        "We received your payment of {amount}.",
+    ),
+    "payment_refunded": (
+        "Payment refunded",
+        "A refund of {amount} was processed.",
+    ),
+    "transfer_confirmed": (
+        "Transfer confirmed",
+        "Your bank transfer of {amount} was confirmed.",
+    ),
+    "tournament_reminder": (
+        "Tournament reminder",
+        "The tournament {tournament} starts tomorrow.",
+    ),
+    "tournament_confirmed": (
+        "Tournament registration confirmed",
+        "You are registered for {tournament}.",
+    ),
+}
 
 
 class NotificationService:
@@ -35,8 +80,25 @@ class NotificationService:
         return channels
 
     @staticmethod
-    def notify(user, event_type, title, body="", data=None):
+    def _localize(user, event_type, data):
+        template = MESSAGE_TEMPLATES.get(event_type)
+        if not template:
+            return "", ""
+        lang = getattr(user, "language_code", None) or "es"
+        with translation.override(lang):
+            title = gettext(template[0])
+            body = gettext(template[1])
+            try:
+                body = body.format(**data)
+            except Exception:
+                pass
+        return title, body
+
+    @staticmethod
+    def notify(user, event_type, title="", body="", data=None):
         data = data or {}
+        if not title and not body:
+            title, body = NotificationService._localize(user, event_type, data)
         Notification.objects.create(
             user=user, event_type=event_type, title=title, body=body, data=data
         )
@@ -65,10 +127,13 @@ class NotificationService:
             return
         try:
             import firebase_admin
-            from firebase_admin import messaging
+            from firebase_admin import credentials, messaging
 
             if not firebase_admin._apps:
-                return
+                path = getattr(settings, "FIREBASE_CREDENTIALS_PATH", "")
+                if not path or not os.path.exists(path):
+                    return
+                firebase_admin.initialize_app(credentials.Certificate(path))
             message = messaging.MulticastMessage(
                 notification=messaging.Notification(title=title, body=body),
                 data={str(k): str(v) for k, v in (data or {}).items()},

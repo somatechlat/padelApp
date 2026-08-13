@@ -80,3 +80,70 @@ class TestTaskDispatch:
 
         assert Notification.objects.filter(user=user).exists()
         assert len(mailoutbox) == 1
+
+
+class TestLocalizedMessages:
+    def test_spanish_by_default(self, user, mailoutbox):
+        from apps.notifications.models import Notification
+        from apps.notifications.services import NotificationService
+
+        NotificationService.notify(
+            user,
+            "booking_confirmed",
+            data={"court": "C1", "date": "2026-08-15", "time": "10:00", "booking_id": 1},
+        )
+        n = Notification.objects.get(user=user, event_type="booking_confirmed")
+        assert n.title == "Reserva confirmada"
+        assert "C1" in n.body and "2026-08-15" in n.body
+
+    def test_english_when_language_code_en(self, user, mailoutbox):
+        from apps.notifications.models import Notification
+        from apps.notifications.services import NotificationService
+
+        user.language_code = "en"
+        user.save(update_fields=["language_code"])
+        NotificationService.notify(
+            user,
+            "booking_confirmed",
+            data={"court": "C1", "date": "2026-08-15", "time": "10:00", "booking_id": 1},
+        )
+        n = Notification.objects.get(user=user, event_type="booking_confirmed")
+        assert n.title == "Booking confirmed"
+        assert "is confirmed" in n.body
+
+    def test_unknown_event_type_stores_empty_strings(self, user, mailoutbox):
+        from apps.notifications.models import Notification
+        from apps.notifications.services import NotificationService
+
+        NotificationService.notify(user, "custom_event")
+        n = Notification.objects.get(user=user, event_type="custom_event")
+        assert n.title == ""
+        assert n.body == ""
+
+    def test_reminder_task_counts_confirmed_bookings(self, user, mailoutbox):
+        from django.utils import timezone
+
+        from apps.bookings.models import Booking
+        from apps.courts.models import Court, CourtSchedule, Venue
+        from apps.notifications.tasks import send_booking_reminders
+
+        venue = Venue.objects.create(name="V", timezone="UTC", currency="USD")
+        court = Court.objects.create(venue=venue, name="C1", price_base="10.00")
+        CourtSchedule.objects.create(court=court, weekday=0, open_time="08:00", close_time="22:00")
+        Booking.objects.create(
+            user=user,
+            court=court,
+            date=timezone.localdate() + timezone.timedelta(days=1),
+            start_time="10:00",
+            end_time="11:00",
+            duration_minutes=60,
+            players=4,
+            price="10.00",
+            status=Booking.Status.CONFIRMED,
+        )
+        sent = send_booking_reminders()
+        assert sent == 1
+        from apps.notifications.models import Notification
+
+        n = Notification.objects.get(user=user, event_type="booking_reminder")
+        assert "C1" in n.body

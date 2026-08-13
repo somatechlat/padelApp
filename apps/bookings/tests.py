@@ -97,6 +97,36 @@ class TestBookingCreation:
         assert booking.status == "cancelled"
         assert all(s.slot.status == "available" for s in booking.slots.all())
 
+    def test_cancelled_slot_can_be_rebooked(self, scheduled_court, user):
+        from django.contrib.auth import get_user_model
+
+        from apps.bookings.services import BookingService
+
+        first = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
+        BookingService.cancel(first)
+        other = get_user_model().objects.create_user(email="re@test.com", password="pass12345")
+        second = BookingService.hold(other, scheduled_court, _future_day(), "10:00", 60)
+        assert second.status == "pending_payment"
+        BookingService.cancel(second)
+
+    def test_expired_hold_is_released(self, scheduled_court, user):
+        from django.utils import timezone as tz
+
+        from apps.bookings.services import BookingService
+        from apps.scheduling.models import BookingHold
+
+        booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
+        BookingHold.objects.filter(user=user).update(
+            expires_at=tz.now() - tz.timedelta(minutes=1)
+        )
+        from apps.scheduling.tasks import release_expired_holds
+
+        released = release_expired_holds()
+        assert released == 1
+        booking.refresh_from_db()
+        assert booking.status == "cancelled"
+        assert all(s.slot.status == "available" for s in booking.slots.all())
+
 
 class TestStateMachine:
     def test_illegal_transition_rejected(self, scheduled_court, user):
@@ -146,3 +176,25 @@ class TestConcurrency:
 
         successes = [r for r in results if not isinstance(r, Exception)]
         assert len(successes) == 1
+
+
+class TestNotificationWiring:
+    def test_confirm_fires_booking_confirmed(self, scheduled_court, user):
+        from apps.bookings.services import BookingService
+        from apps.notifications.models import Notification
+
+        booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
+        BookingService.confirm(booking)
+        n = Notification.objects.get(user=user, event_type="booking_confirmed")
+        assert n.data["booking_id"] == booking.id
+        assert n.title == "Reserva confirmada"
+        assert scheduled_court.name in n.body
+
+    def test_cancel_fires_booking_cancelled(self, scheduled_court, user):
+        from apps.bookings.services import BookingService
+        from apps.notifications.models import Notification
+
+        booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
+        BookingService.cancel(booking)
+        n = Notification.objects.get(user=user, event_type="booking_cancelled")
+        assert n.data["booking_id"] == booking.id

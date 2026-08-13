@@ -107,5 +107,16 @@
   "paymentError": "Payment could not be processed. Try again.",
   "slotTaken": "That time is no longer available. Pick another.",
   "minPlayers": "Players",
-  "confirmedAt": "Confirmed on"
+  "confirmedAt": "Confirmed on",
+
+  "notificationSettings": "Notification settings",
+  "save": "Save",
+  "bookingReminder": "Booking reminder",
+  "tournamentReminder": "Tournament reminder",
+  "tournamentConfirmed": "Registration confirmed",
+  "payments": "Payments",
+  "marketing": "Promotions and news",
+  "channelEmail": "Email",
+  "channelPush": "Push notifications",
+  "channelInApp": "In-app notifications"
 }

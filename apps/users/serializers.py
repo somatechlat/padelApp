@@ -90,6 +90,7 @@ class LoginSerializer(serializers.Serializer):
             raise AuthenticationFailed(_("Cuenta no activa"), code="account_inactive")
         cache.delete(key)
         refresh = RefreshToken.for_user(user)
+        attrs["_user"] = user
         return {
             "access": str(refresh.access_token),
             "refresh": str(refresh),

@@ -510,6 +510,8 @@ git add -A && git commit -m "feat: flutter booking wizard, payments, my bookings
 
 ## Phase 13 — Flutter Events + Notifications (M08/M11)
 
+> ✅ **DONE (2026-08-13).** Backend: notification service auto-localizes via user language (gettext + compiled PO catalogs, es/en/pt/ca); FCM push via firebase_admin, optional `FIREBASE_CREDENTIALS_PATH` (in-app + email always work, push skipped when file absent). Event triggers wired: booking confirmed/cancelled, payment success/failed/refund, transfer confirmed, tournament confirmed + reminder, booking reminder (daily beat), expired-payment-hold release (5-min beat). Fix: `BookingSlot` unique constraint now released on cancel (re-booking works). 174 backend tests pass, ruff/flake8 clean, `BOOKING_SMOKE_OK` incl. localized notification + prefs + mark-read + language PATCH. Mobile: locale-aware app (LocaleController persisted, app-wide es/en/pt/ca), profile language picker, in-app notification center with mark-as-read, notification preferences grid (9 events × 3 channels), 12 widget/unit tests, `flutter analyze` clean. Push token registration endpoint exists (`POST /auth/me/devices/`); FCM token registration + deep links pending.
+
 **Files:**
 - Modify: `mobile/lib/features/events/` (feed, tournament detail, register), `features/notifications/`, `core/push/` (FCM)
 - Create: `mobile/test/` widget tests

@@ -89,18 +89,49 @@ class BookingService:
         from apps.security.services import log_event
 
         log_event(booking.user, "booking.confirm", "Booking", booking.id)
+        from apps.notifications.tasks import notify_task
+
+        notify_task.delay(
+            booking.user_id,
+            "booking_confirmed",
+            "",
+            "",
+            {
+                "court": booking.court.name,
+                "date": str(booking.date),
+                "time": str(booking.start_time),
+                "booking_id": booking.id,
+            },
+        )
         return booking
 
     @staticmethod
     def cancel(booking):
         with transaction.atomic():
             slot_ids = list(booking.slots.values_list("slot_id", flat=True))
+            # Free the BookingSlot rows so the slots can be booked again
+            # (uniq_slot_booked_once would otherwise block a re-booking).
+            booking.slots.all().delete()
             TimeSlot.objects.filter(id__in=slot_ids).update(status=TimeSlot.Status.AVAILABLE)
             BookingHold.objects.filter(slot_id__in=slot_ids).delete()
             booking.transition_to(Booking.Status.CANCELLED)
         from apps.security.services import log_event
 
         log_event(booking.user, "booking.cancel", "Booking", booking.id)
+        from apps.notifications.tasks import notify_task
+
+        notify_task.delay(
+            booking.user_id,
+            "booking_cancelled",
+            "",
+            "",
+            {
+                "court": booking.court.name,
+                "date": str(booking.date),
+                "time": str(booking.start_time),
+                "booking_id": booking.id,
+            },
+        )
         return booking
 
     @staticmethod

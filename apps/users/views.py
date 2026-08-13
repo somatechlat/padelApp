@@ -1,6 +1,8 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.utils import translation
+from django.utils.translation import gettext
 from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
@@ -24,6 +26,17 @@ from apps.verification.models import VerificationCode, VerificationCodeService
 User = get_user_model()
 
 
+def _negotiate_language(request):
+    """Map the Accept-Language header to one of the supported language codes."""
+    header = request.META.get("HTTP_ACCEPT_LANGUAGE", "")
+    supported = dict(settings.LANGUAGES)
+    for part in header.split(","):
+        code = part.split(";")[0].strip().split("-")[0].lower()
+        if code in supported:
+            return code
+    return None
+
+
 class AuthThrottle(SimpleRateThrottle):
     scope = "auth"
 
@@ -43,10 +56,17 @@ class RegisterView(generics.CreateAPIView):
                 return Response(serializer.errors, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         user = serializer.save()
+        lang = _negotiate_language(request)
+        if lang and lang != user.language_code:
+            user.language_code = lang
+            user.save(update_fields=["language_code"])
         code = VerificationCodeService.issue(user, VerificationCode.Purpose.EMAIL_VERIFY)
+        with translation.override(user.language_code):
+            subject = gettext("Verification code - Andes Padel")
+            message = gettext("Your verification code is: {code}").format(code=code.code)
         send_mail(
-            "Codigo de verificacion - Andes Padel",
-            f"Tu codigo de verificacion es: {code.code}",
+            subject,
+            message,
             settings.DEFAULT_FROM_EMAIL,
             [user.email],
             fail_silently=True,
@@ -92,6 +112,13 @@ class LoginView(APIView):
             log_event(None, "auth.login_failed", "User", before={"email": email}, ip=ip)
             raise
         log_event(None, "auth.login", "User", email, ip=ip)
+        lang = _negotiate_language(request)
+        if lang:
+            user = serializer.validated_data["_user"]
+            if user.language_code != lang:
+                user.language_code = lang
+                user.save(update_fields=["language_code"])
+                serializer.validated_data["user"]["language_code"] = lang
         return Response(serializer.validated_data)
 
 

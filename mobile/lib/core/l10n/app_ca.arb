@@ -107,5 +107,16 @@
   "paymentError": "No s'ha pogut processar el pagament. Torna-ho a provar.",
   "slotTaken": "Aquest horari ja no està disponible. Tria'n un altre.",
   "minPlayers": "Jugadors",
-  "confirmedAt": "Confirmada el"
+  "confirmedAt": "Confirmada el",
+
+  "notificationSettings": "Configuració de notificacions",
+  "save": "Desa",
+  "bookingReminder": "Recordatori de reserva",
+  "tournamentReminder": "Recordatori de torneig",
+  "tournamentConfirmed": "Inscripció confirmada",
+  "payments": "Pagaments",
+  "marketing": "Promocions i novetats",
+  "channelEmail": "Email",
+  "channelPush": "Notificacions push",
+  "channelInApp": "Notificacions a l'app"
 }

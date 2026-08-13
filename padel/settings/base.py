@@ -135,7 +135,21 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.events.tasks.tournament_reminder_task",
         "schedule": 86400.0,
     },
+    "booking-reminder-daily": {
+        "task": "apps.notifications.tasks.send_booking_reminders",
+        "schedule": 86400.0,
+    },
+    "release-expired-holds": {
+        "task": "apps.scheduling.tasks.release_expired_holds",
+        "schedule": 300.0,
+    },
 }
+
+# --- Push (FCM, open source SDK). Optional: without a service-account file
+# the push channel is silently skipped (in-app + email still work).
+FIREBASE_CREDENTIALS_PATH = getattr(
+    secrets, "FIREBASE_CREDENTIALS_PATH", "/app/runsecrets/firebase-service-account.json"
+)
 
 # --- JWT (SimpleJWT, rotating + blacklist, constraint F-0072) ----------------
 from datetime import timedelta  # noqa: E402

@@ -37,4 +37,11 @@ class TournamentService:
     def confirm(registration):
         registration.status = TournamentRegistration.Status.CONFIRMED
         registration.save(update_fields=["status"])
+        from apps.notifications.services import NotificationService
+
+        NotificationService.notify(
+            registration.user,
+            "tournament_confirmed",
+            data={"tournament": registration.tournament.name_localized, "tournament_id": registration.tournament_id},
+        )
         return registration

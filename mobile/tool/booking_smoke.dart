@@ -49,6 +49,33 @@ Future<void> main() async {
       options: Options(headers: headers));
   print('payment: ${payment.statusCode} method=${(payment.data as Map)['method']} status=${(payment.data as Map)['status']}');
 
+  final notifications = await dio.get('/notifications/', options: Options(headers: headers));
+  final items = (notifications.data as Map)['results'] as List;
+  final latest = items.first as Map;
+  print('notifications: ${notifications.statusCode} count=${items.length} latest=${latest['event_type']}: ${latest['title']}');
+
+  final read = await dio.post('/notifications/${latest['id']}/read/',
+      options: Options(headers: headers));
+  print('markRead: ${read.statusCode}');
+
+  final prefs = await dio.get('/notifications/preferences/', options: Options(headers: headers));
+  print('prefs: ${prefs.statusCode} count=${(prefs.data as List).length}');
+
+  final putPrefs = await dio.put('/notifications/preferences/',
+      data: [
+        {'event_type': 'marketing', 'channel': 'push', 'enabled': false},
+        {'event_type': 'marketing', 'channel': 'email', 'enabled': false},
+        {'event_type': 'marketing', 'channel': 'inapp', 'enabled': true},
+      ],
+      options: Options(headers: headers));
+  print('putPrefs: ${putPrefs.statusCode} count=${(putPrefs.data as List).length}');
+
+  final lang = await dio.patch('/auth/me/', data: {'language_code': 'en'},
+      options: Options(headers: headers));
+  print('lang: ${lang.statusCode} code=${(lang.data as Map)['language_code']}');
+  await dio.patch('/auth/me/', data: {'language_code': 'es'},
+      options: Options(headers: headers));
+
   final cancel = await dio.post('/bookings/$bookingId/cancel/',
       options: Options(headers: headers));
   print('cancel: ${cancel.statusCode} status=${(cancel.data as Map)['status']}');
