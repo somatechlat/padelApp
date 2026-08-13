@@ -65,7 +65,9 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         tournament = self.get_object()
         tournament.close_if_deadline_passed()
         try:
-            reg = TournamentService.register(request.user, tournament)
+            reg = TournamentService.register(
+                request.user, tournament, partner_name=request.data.get("partner_name", "")
+            )
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
         from apps.notifications.services import NotificationService

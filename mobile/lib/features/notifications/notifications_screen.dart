@@ -2,11 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/format.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/state_views.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'notification_preferences_screen.dart';
 
 class NotificationsScreen extends StatefulWidget {
-  const NotificationsScreen({super.key});
+  const NotificationsScreen({super.key, this.onOpenBookings});
+
+  final VoidCallback? onOpenBookings;
 
   @override
   State<NotificationsScreen> createState() => _NotificationsScreenState();
@@ -47,6 +52,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     }
   }
 
+  void _handleTap(Map<String, dynamic> notification) {
+    _markRead(notification);
+    final eventType = (notification['event_type'] as String?) ?? '';
+    if (eventType.contains('booking') || eventType.contains('payment')) {
+      widget.onOpenBookings?.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -72,57 +85,75 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
 
   Widget _buildBody(AppLocalizations l10n) {
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_error!),
-            const SizedBox(height: 12),
-            OutlinedButton(
-              onPressed: _load,
-              child: Text(l10n.retry),
-            ),
-          ],
-        ),
-      );
+      return ErrorState(onRetry: _load);
     }
     final items = _notifications;
     if (items == null) {
       return const Center(child: CircularProgressIndicator());
     }
     if (items.isEmpty) {
-      return Center(child: Text(l10n.noNotifications));
+      return EmptyState(
+        icon: Icons.notifications_none,
+        title: l10n.noNotifications,
+      );
     }
     return RefreshIndicator(
       onRefresh: _load,
       child: ListView.builder(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         itemCount: items.length,
         itemBuilder: (context, i) {
           final n = items[i] as Map<String, dynamic>;
           final read = n['read_at'] != null;
-          return Card(
-            child: ListTile(
-              leading: Icon(
-                read ? Icons.notifications_none : Icons.notifications_active,
-                color: read ? null : Theme.of(context).colorScheme.primary,
-              ),
-              title: Text(
-                '${n['title']}',
-                style: TextStyle(
-                  fontWeight: read ? FontWeight.normal : FontWeight.bold,
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Card(
+              child: ListTile(
+                leading: Icon(
+                  _iconFor(n['event_type'] as String?),
+                  color: read
+                      ? Theme.of(context).colorScheme.onSurface.withValues(
+                            alpha: 0.4,
+                          )
+                      : Theme.of(context).colorScheme.primary,
                 ),
+                title: Text(
+                  '${n['title']}',
+                  style: TextStyle(
+                    fontWeight: read ? FontWeight.normal : FontWeight.w700,
+                  ),
+                ),
+                subtitle: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if ('${n['body']}'.isNotEmpty)
+                      Text(
+                        '${n['body']}',
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    Text(
+                      relativeTime(l10n, n['created_at'] as String?),
+                      style: Theme.of(context).textTheme.bodySmall,
+                    ),
+                  ],
+                ),
+                isThreeLine: true,
+                onTap: () => _handleTap(n),
               ),
-              subtitle: Text(
-                '${n['body']}',
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-              ),
-              onTap: () => _markRead(n),
             ),
           );
         },
       ),
     );
+  }
+
+  IconData _iconFor(String? eventType) {
+    if (eventType == null) return Icons.notifications_none;
+    if (eventType.contains('booking')) return Icons.event_available_outlined;
+    if (eventType.contains('payment')) return Icons.payments_outlined;
+    if (eventType.contains('tournament')) return Icons.emoji_events_outlined;
+    if (eventType.contains('news')) return Icons.article_outlined;
+    return Icons.notifications_none;
   }
 }

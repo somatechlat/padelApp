@@ -46,7 +46,7 @@ class _LoginScreenState extends State<LoginScreen> {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Icon(
-                    Icons.sports_tennis,
+                    Icons.sports_tennis_outlined,
                     size: 56,
                     color: Theme.of(context).colorScheme.primary,
                   ),

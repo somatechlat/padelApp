@@ -56,6 +56,19 @@
   "news": "Notícies",
   "registerNow": "Inscriure'm",
   "capacity": "Places",
+  "partnerName": "Nom de la teva parella",
+  "registerPending": "Inscripció registrada. El teu pagament està pendent de confirmació.",
+  "registerSuccess": "Inscripció confirmada!",
+  "alreadyRegistered": "Ja estàs inscrit en aquest torneig",
+  "tournamentFull": "Torneig ple",
+  "registrationsClosed": "Inscripcions tancades",
+  "free": "Gratuït",
+  "registered": "Inscrit",
+  "tournamentStatus_open": "Inscripcions obertes",
+  "tournamentStatus_in_progress": "En curs",
+  "tournamentStatus_closed": "Tancat",
+  "tournamentStatus_finished": "Finalitzat",
+  "tournamentStatus_draft": "Esborrany",
 
   "notifications": "Notificacions",
   "noNotifications": "No tens notificacions",
@@ -118,5 +131,32 @@
   "marketing": "Promocions i novetats",
   "channelEmail": "Email",
   "channelPush": "Notificacions push",
-  "channelInApp": "Notificacions a l'app"
+  "channelInApp": "Notificacions a l'app",
+
+  "timeNow": "Ara",
+  "timeAgoMinutes": "Fa {minutes} min",
+  "@timeAgoMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timeAgoHours": "Fa {hours} h",
+  "@timeAgoHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "timeAgoDays": "Fa {days} d",
+  "@timeAgoDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "timeYesterday": "Ahir",
+  "noNews": "Sense notícies",
+  "role_cliente": "Client",
+  "role_recepcionista": "Recepcionista",
+  "role_gerente": "Gerent",
+  "role_dueno": "Propietari",
+  "role_superadmin": "Administrador"
 }

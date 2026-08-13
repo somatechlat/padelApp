@@ -84,6 +84,11 @@ class TestTournamentService:
         with pytest.raises(ValueError):
             TournamentService.register(user, tournament)
 
+    def test_register_stores_partner_name(self, tournament, user):
+        reg = TournamentService.register(user, tournament, partner_name="Lucia")
+        reg.refresh_from_db()
+        assert reg.partner_name == "Lucia"
+
     def test_confirm_registration(self, tournament, user):
         reg = TournamentService.register(user, tournament)
         TournamentService.confirm(reg)

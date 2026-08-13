@@ -56,6 +56,19 @@
   "news": "Noticias",
   "registerNow": "Inscribirme",
   "capacity": "Cupos",
+  "partnerName": "Nombre de tu pareja",
+  "registerPending": "Inscripción registrada. Tu pago está pendiente de confirmación.",
+  "registerSuccess": "¡Inscripción confirmada!",
+  "alreadyRegistered": "Ya estás inscrito en este torneo",
+  "tournamentFull": "Torneo lleno",
+  "registrationsClosed": "Inscripciones cerradas",
+  "free": "Gratis",
+  "registered": "Inscrito",
+  "tournamentStatus_open": "Inscripciones abiertas",
+  "tournamentStatus_in_progress": "En curso",
+  "tournamentStatus_closed": "Cerrado",
+  "tournamentStatus_finished": "Finalizado",
+  "tournamentStatus_draft": "Borrador",
 
   "notifications": "Notificaciones",
   "noNotifications": "No tienes notificaciones",
@@ -118,5 +131,32 @@
   "marketing": "Promociones y novedades",
   "channelEmail": "Email",
   "channelPush": "Notificaciones push",
-  "channelInApp": "Notificaciones en la app"
+  "channelInApp": "Notificaciones en la app",
+
+  "timeNow": "Ahora",
+  "timeAgoMinutes": "Hace {minutes} min",
+  "@timeAgoMinutes": {
+    "placeholders": {
+      "minutes": {"type": "int"}
+    }
+  },
+  "timeAgoHours": "Hace {hours} h",
+  "@timeAgoHours": {
+    "placeholders": {
+      "hours": {"type": "int"}
+    }
+  },
+  "timeAgoDays": "Hace {days} d",
+  "@timeAgoDays": {
+    "placeholders": {
+      "days": {"type": "int"}
+    }
+  },
+  "timeYesterday": "Ayer",
+  "noNews": "No hay noticias",
+  "role_cliente": "Cliente",
+  "role_recepcionista": "Recepcionista",
+  "role_gerente": "Gerente",
+  "role_dueno": "Dueño",
+  "role_superadmin": "Administrador"
 }

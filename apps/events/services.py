@@ -7,7 +7,7 @@ from apps.events.models import Tournament, TournamentRegistration
 
 class TournamentService:
     @staticmethod
-    def register(user, tournament, payment_reference=None):
+    def register(user, tournament, payment_reference=None, partner_name=""):
         if tournament.status != Tournament.Status.OPEN:
             raise ValueError(_("El torneo no acepta inscripciones"))
         if timezone.now() > tournament.registration_deadline:
@@ -30,7 +30,7 @@ class TournamentService:
             if used >= locked.capacity:
                 raise ValueError(_("Torneo lleno"))
             return TournamentRegistration.objects.create(
-                tournament=locked, user=user
+                tournament=locked, user=user, partner_name=partner_name
             )
 
     @staticmethod

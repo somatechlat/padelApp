@@ -144,6 +144,27 @@ class TestTournamentsAPI:
         resp = api_client.post(f"/api/tournaments/{tournament.id}/register/")
         assert resp.status_code == 409
 
+    def test_register_with_partner(self, api_client, client_user):
+        from apps.events.models import Tournament
+
+        tournament = Tournament.objects.create(
+            name="Torneo",
+            start_date=timezone.localdate() + timezone.timedelta(days=7),
+            end_date=timezone.localdate() + timezone.timedelta(days=14),
+            capacity=2,
+            price="25.00",
+            registration_deadline=timezone.now() + timezone.timedelta(days=3),
+            status=Tournament.Status.OPEN,
+        )
+        api_client.force_authenticate(client_user)
+        resp = api_client.post(
+            f"/api/tournaments/{tournament.id}/register/",
+            {"partner_name": "Lucia"},
+            format="json",
+        )
+        assert resp.status_code == 201
+        assert resp.data["partner_name"] == "Lucia"
+
     def test_full_tournament_conflict(self, api_client, client_user):
         from django.contrib.auth import get_user_model
 

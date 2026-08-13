@@ -28,7 +28,7 @@ class AuthScaffold extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Icon(
-                    Icons.sports_tennis,
+                    Icons.sports_tennis_outlined,
                     size: 56,
                     color: Theme.of(context).colorScheme.primary,
                   ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/theme/app_theme.dart';
+import '../../core/widgets/state_views.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 const _eventTypes = [
@@ -83,7 +85,7 @@ class _NotificationPreferencesScreenState
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(e.toString())));
+            .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).error)));
       }
     }
   }
@@ -141,22 +143,13 @@ class _NotificationPreferencesScreenState
 
   Widget _buildBody(AppLocalizations l10n) {
     if (_error != null) {
-      return Center(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(_error!),
-            const SizedBox(height: 12),
-            OutlinedButton(onPressed: _load, child: Text(l10n.retry)),
-          ],
-        ),
-      );
+      return ErrorState(onRetry: _load);
     }
     if (_loading) {
       return const Center(child: CircularProgressIndicator());
     }
     return ListView(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         for (final e in _eventTypes)
           Card(

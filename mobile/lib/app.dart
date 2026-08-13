@@ -5,6 +5,7 @@ import 'core/api_client.dart';
 import 'core/locale_controller.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'core/storage.dart';
+import 'core/theme/app_theme.dart';
 import 'features/auth/auth_state.dart';
 import 'features/auth/login_screen.dart';
 import 'features/booking/booking_wizard_screen.dart';
@@ -16,9 +17,11 @@ class AndesPadelApp extends StatelessWidget {
       required ApiClient api,
       required TokenStorage storage,
       required LocaleController localeController})
-      : _auth = AuthState(api: api, storage: storage),
+      : _api = api,
+        _auth = AuthState(api: api, storage: storage),
         _localeController = localeController;
 
+  final ApiClient _api;
   final AuthState _auth;
   final LocaleController _localeController;
 
@@ -26,6 +29,7 @@ class AndesPadelApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
+        Provider<ApiClient>.value(value: _api),
         ChangeNotifierProvider<AuthState>.value(value: _auth),
         ChangeNotifierProvider<LocaleController>.value(value: _localeController),
       ],
@@ -38,11 +42,9 @@ class AndesPadelApp extends StatelessWidget {
                 AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             locale: locale.locale ?? const Locale('es'),
-            theme: ThemeData(
-              colorScheme:
-                  ColorScheme.fromSeed(seedColor: const Color(0xFF1B5E20)),
-              useMaterial3: true,
-            ),
+            theme: AppTheme.light,
+            darkTheme: AppTheme.dark,
+            themeMode: ThemeMode.system,
             routes: {
               '/login': (_) => const LoginScreen(),
               '/shell': (_) => const AppShell(),

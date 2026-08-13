@@ -20,12 +20,12 @@ class _AppShellState extends State<AppShell> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final screens = const [
-      HomeScreen(),
-      BookingsScreen(),
-      EventsScreen(),
-      NotificationsScreen(),
-      ProfileScreen(),
+    final screens = [
+      const HomeScreen(),
+      const BookingsScreen(),
+      const EventsScreen(),
+      NotificationsScreen(onOpenBookings: () => setState(() => _index = 1)),
+      const ProfileScreen(),
     ];
     return Scaffold(
       body: IndexedStack(index: _index, children: screens),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import '../../core/api_client.dart';
 import '../../core/locale_controller.dart';
+import '../../core/theme/app_theme.dart';
 import '../auth/auth_state.dart';
 
 class ProfileScreen extends StatelessWidget {
@@ -79,34 +80,50 @@ class ProfileScreen extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final auth = context.watch<AuthState>();
     final user = auth.user;
+    final scheme = Theme.of(context).colorScheme;
     return Scaffold(
       appBar: AppBar(title: Text(l10n.profile)),
       body: ListView(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(AppSpacing.md),
         children: [
-          const CircleAvatar(
-            radius: 40,
-            child: Icon(Icons.person, size: 48),
+          Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: Column(
+                children: [
+                  CircleAvatar(
+                    radius: 36,
+                    backgroundColor: AppColors.accentSoft,
+                    child: Icon(
+                      Icons.person_outline,
+                      size: 36,
+                      color: scheme.primary,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  Text(
+                    (user?['full_name'] as String?) ?? '',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: AppSpacing.xxs),
+                  Text(
+                    (user?['email'] as String?) ?? '',
+                    textAlign: TextAlign.center,
+                    style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                ],
+              ),
+            ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            (user?['full_name'] as String?) ?? '',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          Text(
-            (user?['email'] as String?) ?? '',
-            textAlign: TextAlign.center,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          const SizedBox(height: 24),
+          const SizedBox(height: AppSpacing.md),
           Card(
             child: Column(
               children: [
                 ListTile(
                   leading: const Icon(Icons.badge_outlined),
                   title: Text(l10n.role),
-                  trailing: Text('${user?['role']}'),
+                  trailing: Text(_roleLabel(l10n, '${user?['role']}')),
                 ),
                 ListTile(
                   leading: const Icon(Icons.language),
@@ -120,10 +137,16 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   onTap: () => _pickLanguage(context),
                 ),
-                const Divider(height: 1),
+                const Divider(),
                 ListTile(
-                  leading: const Icon(Icons.logout),
-                  title: Text(l10n.logout),
+                  leading: Icon(
+                    Icons.logout,
+                    color: AppColors.danger,
+                  ),
+                  title: Text(
+                    l10n.logout,
+                    style: TextStyle(color: AppColors.danger),
+                  ),
                   onTap: () => _confirmLogout(context),
                 ),
               ],
@@ -132,5 +155,22 @@ class ProfileScreen extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  String _roleLabel(AppLocalizations l10n, String role) {
+    switch (role) {
+      case 'cliente':
+        return l10n.role_cliente;
+      case 'recepcionista':
+        return l10n.role_recepcionista;
+      case 'gerente':
+        return l10n.role_gerente;
+      case 'dueno':
+        return l10n.role_dueno;
+      case 'superadmin':
+        return l10n.role_superadmin;
+      default:
+        return role;
+    }
   }
 }

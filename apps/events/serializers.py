@@ -47,5 +47,5 @@ class TournamentSerializer(serializers.ModelSerializer):
 class TournamentRegistrationSerializer(serializers.ModelSerializer):
     class Meta:
         model = TournamentRegistration
-        fields = ("id", "tournament", "status", "created_at")
+        fields = ("id", "tournament", "partner_name", "status", "created_at")
         read_only_fields = ("status", "created_at")

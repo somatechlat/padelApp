@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "corsheaders",
     "django_filters",
     # local apps
+    "apps.common",
     "apps.users",
     "apps.verification",
     "apps.courts",
