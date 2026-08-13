@@ -130,6 +130,12 @@ CELERY_RESULT_BACKEND = secrets.REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = "UTC"
+CELERY_BEAT_SCHEDULE = {
+    "tournament-reminder-daily": {
+        "task": "apps.events.tasks.tournament_reminder_task",
+        "schedule": 86400.0,
+    },
+}
 
 # --- JWT (SimpleJWT, rotating + blacklist, constraint F-0072) ----------------
 from datetime import timedelta  # noqa: E402
