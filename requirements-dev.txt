@@ -1,0 +1,11 @@
+-r requirements.txt
+
+# --- Testing -------------------------------------------------------------
+pytest>=8.3
+pytest-django>=4.9
+pytest-cov>=6.0
+
+# --- Linting / security --------------------------------------------------
+ruff>=0.9
+flake8>=7.1
+bandit>=1.8

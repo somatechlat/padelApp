@@ -1,0 +1,17 @@
+.DS_Store
+*.pyc
+__pycache__/
+.venv/
+.env
+docker/backend/secrets.py
+padel/settings/secrets.py
+staticfiles/
+media/
+node_modules/
+mobile/build/
+mobile/.dart_tool/
+mobile/.flutter-plugins
+.pytest_cache/
+.ruff_cache/
+.coverage
+htmlcov/

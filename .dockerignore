@@ -1,0 +1,13 @@
+.git
+.gitignore
+docs
+docker/backend/secrets.py
+.env
+*.pyc
+__pycache__
+.venv
+node_modules
+mobile/build
+mobile/.dart_tool
+staticfiles
+media

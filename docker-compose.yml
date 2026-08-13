@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:15-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: padel
+      POSTGRES_USER: padel
+      POSTGRES_PASSWORD: padel_dev
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U padel -d padel"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: python manage.py runserver 0.0.0.0:8000
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./docker/backend:/app/runsecrets:ro
+    ports:
+      - "8000:8000"
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: celery -A padel worker -l info
+    restart: unless-stopped
+    volumes:
+      - .:/app
+      - ./docker/backend:/app/runsecrets:ro
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+    depends_on:
+      - backend
+
+  flutter:
+    image: ghcr.io/cirruslabs/flutter:3.27.3
+    working_dir: /mobile
+    volumes:
+      - ./mobile:/mobile
+      - flutter_home:/home/cirrus
+    stdin_open: true
+    tty: true
+
+volumes:
+  db_data: {}
+  flutter_home: {}
