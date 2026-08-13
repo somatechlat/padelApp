@@ -17,6 +17,9 @@ build:
 migrate:
 	docker compose exec backend python manage.py migrate
 
+seed:
+	docker compose exec backend python manage.py seed_courts
+
 makemigrations:
 	docker compose exec backend python manage.py makemigrations
 

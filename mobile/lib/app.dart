@@ -6,6 +6,7 @@ import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'core/storage.dart';
 import 'features/auth/auth_state.dart';
 import 'features/auth/login_screen.dart';
+import 'features/booking/booking_wizard_screen.dart';
 import 'shell/app_shell.dart';
 
 class AndesPadelApp extends StatelessWidget {
@@ -31,6 +32,7 @@ class AndesPadelApp extends StatelessWidget {
         routes: {
           '/login': (_) => const LoginScreen(),
           '/shell': (_) => const AppShell(),
+          '/bookings/new': (_) => const BookingWizardScreen(),
         },
         home: _AuthGate(auth: _auth),
       ),

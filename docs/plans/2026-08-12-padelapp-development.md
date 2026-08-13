@@ -479,6 +479,15 @@ git add -A && git commit -m "feat: flutter app shell, auth, i18n"
 
 ## Phase 12 — Flutter Booking Flow (M04/M05/M06/M07)
 
+> **STATUS: ✅ DONE**
+> - Court list + 7-day availability picker (date/duration/players) + 4-step wizard: `mobile/lib/features/booking/booking_wizard_screen.dart` (court → schedule → summary+price preview → done).
+> - `/bookings/preview/` price preview, hold/confirm flow, transfer payment (test mode, Stripe keys are placeholders).
+> - My Bookings reload on return + cancel with confirmation dialog: `mobile/lib/features/bookings/bookings_screen.dart`.
+> - Booking-flow l10n keys added to all 4 ARBs (es/en/pt/ca).
+> - **Data gap fixed:** no `CourtSchedule` seed existed → availability was always empty. Added idempotent `apps/courts/management/commands/seed_courts.py` (`make seed`), ran it, cleaned duplicate courts.
+> - E2E smoke `mobile/tool/booking_smoke.dart` against live backend: login → availability(28 slots) → preview → create → confirm → payment(transfer/pending_transfer) → cancel = `BOOKING_SMOKE_OK`.
+> - 166 backend tests pass; `flutter analyze` clean (only intentional `avoid_print` in tool scripts); 12 flutter tests pass.
+
 **Files:**
 - Modify: `mobile/lib/features/courts/` (list/detail), `features/booking/` (wizard: date→time→summary→pay), `features/payments/`, `features/mybookings/`
 - Create: `mobile/test/` booking widget tests
