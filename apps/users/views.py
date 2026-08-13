@@ -1,10 +1,11 @@
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.utils.translation import gettext_lazy as _
 from rest_framework import generics, status
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
-from rest_framework.throttling import ScopedRateThrottle
+from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
 from apps.notifications.models import DeviceToken
@@ -23,8 +24,11 @@ from apps.verification.models import VerificationCode, VerificationCodeService
 User = get_user_model()
 
 
-class AuthThrottle(ScopedRateThrottle):
+class AuthThrottle(SimpleRateThrottle):
     scope = "auth"
+
+    def get_cache_key(self, request, view):
+        return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
 
 
 class RegisterView(generics.CreateAPIView):
@@ -48,7 +52,7 @@ class RegisterView(generics.CreateAPIView):
             fail_silently=True,
         )
         return Response(
-            {"email": user.email, "detail": "Revisa tu email para verificar la cuenta"},
+            {"email": user.email, "detail": _("Revisa tu email para verificar la cuenta")},
             status=status.HTTP_201_CREATED,
         )
 
@@ -65,11 +69,11 @@ class VerifyEmailView(APIView):
         )
         if not ok:
             return Response(
-                {"detail": "Codigo invalido o expirado"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": _("Codigo invalido o expirado")}, status=status.HTTP_400_BAD_REQUEST
             )
         user.email_verified = True
         user.save(update_fields=["email_verified"])
-        return Response({"detail": "Email verificado"})
+        return Response({"detail": _("Email verificado")})
 
 
 class LoginView(APIView):
@@ -77,8 +81,17 @@ class LoginView(APIView):
     throttle_classes = [AuthThrottle]
 
     def post(self, request):
+        from apps.security.services import log_event
+
         serializer = LoginSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
+        ip = request.META.get("REMOTE_ADDR")
+        email = request.data.get("email", "")
+        try:
+            serializer.is_valid(raise_exception=True)
+        except Exception:
+            log_event(None, "auth.login_failed", "User", before={"email": email}, ip=ip)
+            raise
+        log_event(None, "auth.login", "User", email, ip=ip)
         return Response(serializer.validated_data)
 
 
@@ -108,7 +121,7 @@ class PasswordResetView(APIView):
             user = User.objects.get(email=email)
         except User.DoesNotExist:
             # No enumeration: respond identically.
-            return Response({"detail": "Si el email existe, recibira un codigo"})
+            return Response({"detail": _("Si el email existe, recibira un codigo")})
         code = VerificationCodeService.issue(user, VerificationCode.Purpose.PASSWORD_RESET)
         send_mail(
             "Restablecer contrasena - Andes Padel",
@@ -117,7 +130,7 @@ class PasswordResetView(APIView):
             [user.email],
             fail_silently=True,
         )
-        return Response({"detail": "Si el email existe, recibira un codigo"})
+        return Response({"detail": _("Si el email existe, recibira un codigo")})
 
 
 class PasswordResetConfirmView(APIView):
@@ -130,31 +143,34 @@ class PasswordResetConfirmView(APIView):
         try:
             user = User.objects.get(email=serializer.validated_data["email"].lower())
         except User.DoesNotExist:
-            return Response({"detail": "Codigo invalido"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response({"detail": _("Codigo invalido")}, status=status.HTTP_400_BAD_REQUEST)
         ok = VerificationCodeService.verify(
             user, VerificationCode.Purpose.PASSWORD_RESET, serializer.validated_data["code"]
         )
         if not ok:
             return Response(
-                {"detail": "Codigo invalido o expirado"}, status=status.HTTP_400_BAD_REQUEST
+                {"detail": _("Codigo invalido o expirado")}, status=status.HTTP_400_BAD_REQUEST
             )
         user.set_password(serializer.validated_data["password"])
         user.save()
         _blacklist_all_user_tokens(user)
-        return Response({"detail": "Contrasena actualizada"})
+        return Response({"detail": _("Contrasena actualizada")})
 
 
 class PasswordChangeView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
+        from apps.security.services import log_event
+
         serializer = PasswordChangeSerializer(data=request.data, context={"request": request})
         serializer.is_valid(raise_exception=True)
         user = request.user
         user.set_password(serializer.validated_data["new_password"])
         user.save()
         _blacklist_all_user_tokens(user)
-        return Response({"detail": "Contrasena cambiada"})
+        log_event(user, "auth.password_change", "User", user.id)
+        return Response({"detail": _("Contrasena cambiada")})
 
 
 class MeView(generics.RetrieveUpdateAPIView):

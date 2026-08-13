@@ -1,4 +1,5 @@
 from django.contrib.auth import authenticate, get_user_model, password_validation
+from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.notifications.models import DeviceToken
@@ -15,7 +16,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_email(self, value):
         if User.objects.filter(email=value.lower()).exists():
-            raise serializers.ValidationError("El email ya esta registrado")
+            raise serializers.ValidationError(_("El email ya esta registrado"))
         return value.lower()
 
     def validate_password(self, value):
@@ -24,7 +25,7 @@ class RegisterSerializer(serializers.Serializer):
 
     def validate_consent_version(self, value):
         if not value:
-            raise serializers.ValidationError("Debes aceptar los terminos")
+            raise serializers.ValidationError(_("Debes aceptar los terminos"))
         return value
 
     def create(self, validated_data):
@@ -50,7 +51,7 @@ class VerifySerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=attrs["email"].lower())
         except User.DoesNotExist:
-            raise serializers.ValidationError("Codigo invalido") from None
+            raise serializers.ValidationError(_("Codigo invalido")) from None
         attrs["_user"] = user
         return attrs
 
@@ -68,7 +69,7 @@ class LoginSerializer(serializers.Serializer):
         key = f"failed_login:{email}"
         if cache.get(key, 0) >= 5:
             raise AuthenticationFailed(
-                "Cuenta temporalmente bloqueada por intentos fallidos",
+                _("Cuenta temporalmente bloqueada por intentos fallidos"),
                 code="account_locked",
             )
         user = authenticate(email=email, password=attrs["password"])
@@ -77,16 +78,16 @@ class LoginSerializer(serializers.Serializer):
             cache.set(key, count, 1800)
             if count >= 5:
                 raise AuthenticationFailed(
-                    "Cuenta temporalmente bloqueada por intentos fallidos",
+                    _("Cuenta temporalmente bloqueada por intentos fallidos"),
                     code="account_locked",
                 )
-            raise AuthenticationFailed("Credenciales invalidas", code="invalid_credentials")
+            raise AuthenticationFailed(_("Credenciales invalidas"), code="invalid_credentials")
         if not user.email_verified:
             raise AuthenticationFailed(
-                "Verifica tu email antes de iniciar sesion", code="email_not_verified"
+                _("Verifica tu email antes de iniciar sesion"), code="email_not_verified"
             )
         if user.status != "active":
-            raise AuthenticationFailed("Cuenta no activa", code="account_inactive")
+            raise AuthenticationFailed(_("Cuenta no activa"), code="account_inactive")
         cache.delete(key)
         refresh = RefreshToken.for_user(user)
         return {
@@ -132,7 +133,7 @@ class PasswordChangeSerializer(serializers.Serializer):
     def validate_old_password(self, value):
         user = self.context["request"].user
         if not user.check_password(value):
-            raise serializers.ValidationError("Contrasena actual incorrecta")
+            raise serializers.ValidationError(_("Contrasena actual incorrecta"))
         return value
 
     def validate_new_password(self, value):

@@ -1,4 +1,6 @@
 from django.db import transaction
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.events.models import Tournament, TournamentRegistration
 
@@ -7,19 +9,17 @@ class TournamentService:
     @staticmethod
     def register(user, tournament, payment_reference=None):
         if tournament.status != Tournament.Status.OPEN:
-            raise ValueError("El torneo no acepta inscripciones")
-        from django.utils import timezone
-
+            raise ValueError(_("El torneo no acepta inscripciones"))
         if timezone.now() > tournament.registration_deadline:
             tournament.close_if_deadline_passed()
-            raise ValueError("Inscripciones cerradas")
+            raise ValueError(_("Inscripciones cerradas"))
         with transaction.atomic():
             locked = Tournament.objects.select_for_update().get(pk=tournament.pk)
             existing = TournamentRegistration.objects.filter(
                 tournament=locked, user=user
             ).exists()
             if existing:
-                raise ValueError("Ya estas inscrito en este torneo")
+                raise ValueError(_("Ya estas inscrito en este torneo"))
             used = TournamentRegistration.objects.filter(
                 tournament=locked,
                 status__in=(
@@ -28,7 +28,7 @@ class TournamentService:
                 ),
             ).count()
             if used >= locked.capacity:
-                raise ValueError("Torneo lleno")
+                raise ValueError(_("Torneo lleno"))
             return TournamentRegistration.objects.create(
                 tournament=locked, user=user
             )

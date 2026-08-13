@@ -1,0 +1,153 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-08-13 13:12+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/bookings/admin.py:51
+#, python-format
+msgid "%d reserva confirmada."
+msgid_plural "%d reservas confirmadas."
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/bookings/admin.py:68
+#, python-format
+msgid "%d reserva cancelada."
+msgid_plural "%d reservas canceladas."
+msgstr[0] ""
+msgstr[1] ""
+
+#: apps/bookings/services.py:30
+msgid "La hora ya paso"
+msgstr "The time has passed"
+
+#: apps/bookings/services.py:36
+msgid "Horario no disponible"
+msgstr "Schedule not available"
+
+#: apps/bookings/services.py:43
+msgid "La cancha no esta disponible en ese horario"
+msgstr "Court not available at that time"
+
+#: apps/bookings/services.py:73
+msgid "Limite de reservas temporales superado"
+msgstr "Temporary hold limit reached"
+
+#: apps/bookings/services.py:84
+msgid "Las franjas ya no estan disponibles"
+msgstr "Slots are no longer available"
+
+#: apps/events/services.py:11
+msgid "El torneo no acepta inscripciones"
+msgstr "Tournament is not accepting registrations"
+
+#: apps/events/services.py:16
+msgid "Inscripciones cerradas"
+msgstr "Registrations are closed"
+
+#: apps/events/services.py:23
+msgid "Ya estas inscrito en este torneo"
+msgstr "You are already registered in this tournament"
+
+#: apps/events/services.py:32
+msgid "Torneo lleno"
+msgstr "Tournament is full"
+
+#: apps/events/views.py:92
+msgid "Inscripcion no encontrada"
+msgstr "Registration not found"
+
+#: apps/gdpr/views.py:29
+msgid "Consentimiento registrado"
+msgstr "Consent recorded"
+
+#: apps/gdpr/views.py:47
+msgid "Tus datos fueron anonimizados (derecho al olvido)"
+msgstr "Your data has been anonymized (right to be forgotten)"
+
+#: apps/users/serializers.py:19
+msgid "El email ya esta registrado"
+msgstr "Email already registered"
+
+#: apps/users/serializers.py:28
+msgid "Debes aceptar los terminos"
+msgstr "You must accept the terms"
+
+#: apps/users/serializers.py:54 apps/users/views.py:146
+msgid "Codigo invalido"
+msgstr "Invalid code"
+
+#: apps/users/serializers.py:72 apps/users/serializers.py:81
+msgid "Cuenta temporalmente bloqueada por intentos fallidos"
+msgstr "Account temporarily locked due to failed attempts"
+
+#: apps/users/serializers.py:84
+msgid "Credenciales invalidas"
+msgstr "Invalid credentials"
+
+#: apps/users/serializers.py:87
+msgid "Verifica tu email antes de iniciar sesion"
+msgstr "Verify your email before signing in"
+
+#: apps/users/serializers.py:90
+msgid "Cuenta no activa"
+msgstr "Account not active"
+
+#: apps/users/serializers.py:136
+msgid "Contrasena actual incorrecta"
+msgstr "Current password is incorrect"
+
+#: apps/users/views.py:55
+msgid "Revisa tu email para verificar la cuenta"
+msgstr "Check your email to verify your account"
+
+#: apps/users/views.py:72 apps/users/views.py:152
+msgid "Codigo invalido o expirado"
+msgstr "Invalid or expired code"
+
+#: apps/users/views.py:76
+msgid "Email verificado"
+msgstr "Email verified"
+
+#: apps/users/views.py:124 apps/users/views.py:133
+msgid "Si el email existe, recibira un codigo"
+msgstr "If the email exists, a code will be sent"
+
+#: apps/users/views.py:157
+msgid "Contrasena actualizada"
+msgstr "Password updated"
+
+#: apps/users/views.py:173
+msgid "Contrasena cambiada"
+msgstr "Password changed"
+
+#: padel/settings/base.py:117
+msgid "Espanol"
+msgstr ""
+
+#: padel/settings/base.py:118
+msgid "English"
+msgstr ""
+
+#: padel/settings/base.py:119
+msgid "Portugues"
+msgstr ""
+
+#: padel/settings/base.py:120
+msgid "Catalan"
+msgstr ""

@@ -76,7 +76,7 @@ class TestBookingCreation:
     def test_hold_rejects_past_time(self, scheduled_court, user):
         from apps.bookings.services import BookingService
 
-        with pytest.raises(Exception, match="paso"):
+        with pytest.raises(Exception, match="La hora ya pas"):
             BookingService.hold(user, scheduled_court, timezone.localdate() - timezone.timedelta(days=1), "08:00", 60)
 
     def test_confirm_booking(self, scheduled_court, user):

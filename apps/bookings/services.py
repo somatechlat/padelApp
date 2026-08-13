@@ -2,6 +2,7 @@ from datetime import time, timedelta
 
 from django.db import transaction
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 from apps.bookings.models import Booking, BookingSlot
 from apps.pricing.services import TariffService
@@ -26,20 +27,20 @@ class BookingService:
             timezone.datetime.combine(day, start_time), timezone.get_current_timezone()
         )
         if day < now.date() or (day == now.date() and start_dt <= now):
-            raise ValueError("La hora ya paso")
+            raise ValueError(_("La hora ya paso"))
 
         with transaction.atomic():
             SlotService.generate_day(court, day)
             slots = list(SlotService.slots_in_range(court, day, start_time, duration_minutes))
             if len(slots) < duration_minutes // SLOT_MINUTES:
-                raise ValueError("Horario no disponible")
+                raise ValueError(_("Horario no disponible"))
             locked = list(
                 TimeSlot.objects.select_for_update()
                 .filter(id__in=[s.id for s in slots])
                 .order_by("start")
             )
             if any(s.status != TimeSlot.Status.AVAILABLE for s in locked):
-                raise ValueError("La cancha no esta disponible en ese horario")
+                raise ValueError(_("La cancha no esta disponible en ese horario"))
 
             price = TariffService.compute(court, day, duration_minutes)
             booking = Booking.objects.create(
@@ -69,7 +70,10 @@ class BookingService:
                 user=user, expires_at__gt=timezone.now()
             ).count()
             if active_holds > MAX_HOLDS_PER_USER:
-                raise ValueError("Limite de reservas temporales superado")
+                raise ValueError(_("Limite de reservas temporales superado"))
+        from apps.security.services import log_event
+
+        log_event(user, "booking.hold", "Booking", booking.id, after={"price": str(booking.price)})
         return booking
 
     @staticmethod
@@ -77,11 +81,14 @@ class BookingService:
         with transaction.atomic():
             booking_slots = list(booking.slots.select_related("slot").all())
             if any(s.slot.status != TimeSlot.Status.HELD for s in booking_slots):
-                raise ValueError("Las franjas ya no estan disponibles")
+                raise ValueError(_("Las franjas ya no estan disponibles"))
             slot_ids = [s.slot_id for s in booking_slots]
             TimeSlot.objects.filter(id__in=slot_ids).update(status=TimeSlot.Status.BOOKED)
             BookingHold.objects.filter(slot_id__in=slot_ids).delete()
             booking.transition_to(Booking.Status.CONFIRMED)
+        from apps.security.services import log_event
+
+        log_event(booking.user, "booking.confirm", "Booking", booking.id)
         return booking
 
     @staticmethod
@@ -91,6 +98,9 @@ class BookingService:
             TimeSlot.objects.filter(id__in=slot_ids).update(status=TimeSlot.Status.AVAILABLE)
             BookingHold.objects.filter(slot_id__in=slot_ids).delete()
             booking.transition_to(Booking.Status.CANCELLED)
+        from apps.security.services import log_event
+
+        log_event(booking.user, "booking.cancel", "Booking", booking.id)
         return booking
 
     @staticmethod

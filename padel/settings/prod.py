@@ -1,5 +1,6 @@
 """Production settings. Fail fast if secrets are missing or dev-only."""
 
+from padel.settings._checks import validate_production_secrets
 from padel.settings.base import *  # noqa: F401, F403
 from runsecrets import secrets
 
@@ -29,19 +30,16 @@ EMAIL_HOST_USER = secrets.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secrets.EMAIL_HOST_PASSWORD
 
 # --- Fail-fast secret check (constraint C2/C3, NFR-0008) --------------------
-_req = {
-    "SECRET_KEY": secrets.SECRET_KEY,
-    "DB_NAME": secrets.DB_NAME,
-    "DB_USER": secrets.DB_USER,
-    "DB_PASSWORD": secrets.DB_PASSWORD,
-    "DB_HOST": secrets.DB_HOST,
-    "REDIS_URL": secrets.REDIS_URL,
-    "EMAIL_HOST": getattr(secrets, "EMAIL_HOST", None),
-    "EMAIL_HOST_USER": getattr(secrets, "EMAIL_HOST_USER", None),
-    "EMAIL_HOST_PASSWORD": getattr(secrets, "EMAIL_HOST_PASSWORD", None),
-}
-_missing = [k for k, v in _req.items() if not v]
-if _missing:
-    raise RuntimeError(f"Missing required secrets in settings/secrets.py: {', '.join(_missing)}")
-if secrets.SECRET_KEY.startswith("dev-only-"):
-    raise RuntimeError("Production SECRET_KEY must not be the dev placeholder (constraint C2).")
+validate_production_secrets(
+    {
+        "SECRET_KEY": secrets.SECRET_KEY,
+        "DB_NAME": secrets.DB_NAME,
+        "DB_USER": secrets.DB_USER,
+        "DB_PASSWORD": secrets.DB_PASSWORD,
+        "DB_HOST": secrets.DB_HOST,
+        "REDIS_URL": secrets.REDIS_URL,
+        "EMAIL_HOST": getattr(secrets, "EMAIL_HOST", None),
+        "EMAIL_HOST_USER": getattr(secrets, "EMAIL_HOST_USER", None),
+        "EMAIL_HOST_PASSWORD": getattr(secrets, "EMAIL_HOST_PASSWORD", None),
+    }
+)

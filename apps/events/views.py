@@ -1,3 +1,4 @@
+from django.utils.translation import gettext_lazy as _
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -89,7 +90,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             TournamentService.confirm(reg)
         except TournamentRegistration.DoesNotExist:
             return Response(
-                {"detail": "Inscripcion no encontrada"}, status=status.HTTP_404_NOT_FOUND
+                {"detail": _("Inscripcion no encontrada")}, status=status.HTTP_404_NOT_FOUND
             )
         return Response(TournamentRegistrationSerializer(reg).data)
 
