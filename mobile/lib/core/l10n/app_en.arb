@@ -1,6 +1,6 @@
 {
   "@@locale": "en",
-  "appTitle": "Andes Padel",
+  "appTitle": "Andes Pádel",
   "appTagline": "Book your padel court",
 
   "login": "Sign in",
@@ -158,5 +158,70 @@
   "role_recepcionista": "Receptionist",
   "role_gerente": "Manager",
   "role_dueno": "Owner",
-  "role_superadmin": "Administrator"
+  "role_superadmin": "Administrator",
+
+  "homeGreeting": "Hello, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "findYourCourt": "Find your court",
+  "seeAll": "See all",
+  "availableCourts": "Available courts",
+  "noCourtsAvailable": "No courts available right now",
+  "courtType_techada": "Indoor",
+  "courtType_abierta": "Outdoor",
+  "hasLighting": "With lighting",
+  "noLighting": "No lighting",
+  "basePrice": "Base price",
+  "viewDetails": "View details",
+  "reserve": "Book",
+  "today": "Today",
+  "thisWeek": "This week",
+
+  "paymentMethod": "Payment method",
+  "paymentMethodSubtitle": "Choose how you want to pay",
+  "payWithCard": "Pay with card",
+  "payWithTransfer": "Bank transfer",
+  "payWithCash": "Cash at venue",
+  "cardDescription": "Debit or credit via Stripe",
+  "transferDescription": "Make a transfer and upload your receipt",
+  "cashDescription": "Pay when you arrive at the venue",
+
+  "transferInstructions": "Transfer details",
+  "bankName": "Bank",
+  "accountNumber": "Account number",
+  "accountHolder": "Account holder",
+  "beneficiaryCode": "Beneficiary code",
+  "transferAmount": "Amount to transfer",
+  "uploadProof": "Upload receipt",
+  "uploadProofHint": "Take photo or select from gallery",
+  "proofUploaded": "Receipt uploaded",
+  "proofPending": "Waiting for receipt confirmation",
+  "transferPending": "Transfer pending verification",
+  "transferConfirmed": "Transfer confirmed",
+  "transferRejected": "Transfer rejected",
+  "transferRejectedReason": "Reason: {reason}",
+  "@transferRejectedReason": {
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "confirmTransfer": "Confirm transfer",
+  "rejectTransfer": "Reject transfer",
+  "rejectionReason": "Rejection reason",
+  "maxFileSize": "Max size: 5 MB",
+  "allowedFormats": "Formats: JPEG, PNG",
+  "imageTooLarge": "Image exceeds 5 MB",
+  "invalidFormat": "Format not allowed. Use JPEG or PNG",
+  "proofUploadSuccess": "Receipt uploaded successfully",
+  "proofUploadError": "Error uploading receipt",
+  "camera": "Camera",
+  "gallery": "Gallery",
+  "send": "Send receipt",
+  "bookingModified": "Booking modified",
+  "noShowPenalty": "No-show penalty",
+  "tournamentRegistered": "Tournament registered",
+  "newsPublished": "News published"
 }

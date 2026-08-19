@@ -31,6 +31,17 @@ class Payment(models.Model):
     )
     stripe_payment_intent_id = models.CharField(max_length=128, blank=True)
     reference = models.CharField(max_length=128, blank=True)
+    proof_image = models.ImageField(
+        upload_to="transfer_proofs/%Y/%m/",
+        blank=True,
+        null=True,
+        help_text="Foto del comprobante de transferencia bancaria",
+    )
+    rejection_reason = models.TextField(
+        blank=True,
+        default="",
+        help_text="Motivo de rechazo de transferencia (visible para el cliente)",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

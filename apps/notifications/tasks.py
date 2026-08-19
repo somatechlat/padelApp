@@ -21,7 +21,7 @@ def notify_task(self, user_id, event_type, title="", body="", data=None):
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=5)
 def send_booking_reminders(self):
-    """Notify confirmed players the day before their booking."""
+    """Notify confirmed players the day before their booking (24h reminder)."""
     from apps.bookings.models import Booking
 
     tomorrow = timezone.localdate() + timezone.timedelta(days=1)
@@ -36,6 +36,44 @@ def send_booking_reminders(self):
             NotificationService.notify(
                 booking.user,
                 "booking_reminder",
+                data={
+                    "court": booking.court.name,
+                    "time": str(booking.start_time),
+                    "booking_id": booking.id,
+                },
+            )
+            sent += 1
+        except Exception:
+            continue
+    return sent
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=5)
+def send_booking_reminders_2h(self):
+    """Notify confirmed players 2 hours before their booking starts."""
+    from datetime import timedelta
+
+    from apps.bookings.models import Booking
+
+    now = timezone.localtime()
+    in_2h = now + timedelta(hours=2)
+    today = now.date()
+    bookings = (
+        Booking.objects.filter(
+            date=today,
+            status=Booking.Status.CONFIRMED,
+            start_time__gte=now.time(),
+            start_time__lte=in_2h.time(),
+        )
+        .select_related("user", "court")
+        .only("id", "user_id", "court__name", "date", "start_time")
+    )
+    sent = 0
+    for booking in bookings:
+        try:
+            NotificationService.notify(
+                booking.user,
+                "booking_reminder_2h",
                 data={
                     "court": booking.court.name,
                     "time": str(booking.start_time),

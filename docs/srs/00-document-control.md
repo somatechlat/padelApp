@@ -7,9 +7,9 @@
 | Project | Padel Court Reservation & Management System |
 | Document | Software Requirements Specification (SRS) |
 | Document ID | SRS-PADEL-001 |
-| Version | 1.1 |
+| Version | 1.2 |
 | Status | Draft for review |
-| Date | 2026-08-12 |
+| Date | 2026-08-19 |
 | Standards | ISO/IEC/IEEE 29148:2018, ISO/IEC 25010:2011, ISO/IEC 27001:2022, ISO 9001:2015, GDPR |
 | Author | Product Engineering (AI-assisted) |
 | Classification | Internal — Confidential |
@@ -35,6 +35,7 @@
 |---------|------|--------|----------------------|
 | 1.0 | 2026-08-12 | Engineering | Initial baseline. All modules M01–M17 defined. v1/v2 scope split applied. |
 | 1.1 | 2026-08-12 | Engineering | Corrected cross-references (cancellation policy F-0041/F-0042, audit log F-0067, password NFR-0002, transport NFR-0005); M01–M17 naming; EUR→USD; removed duplicate glossary entry; aligned wizard (4 steps) and nav tabs (5, incl. Events); added assumptions A16–A18 (venue map, integrations, phone/WhatsApp bookings). |
+| 1.2 | 2026-08-19 | Engineering | Added F-0035a (Bank Transfer Proof of Payment) with photo upload, admin confirm/reject flow, notification triggers; updated F-0053, F-0083, F-0045; added `proof_image` and `rejection_reason` to Payment entity; added `POST /payments/{id}/upload-proof/` and `POST /admin/payments/{id}/reject-transfer/` endpoints; added TC-0035a. |
 
 ---
 

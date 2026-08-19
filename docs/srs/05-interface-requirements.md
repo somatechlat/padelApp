@@ -52,6 +52,7 @@
 | PATCH | `/bookings/{id}/reschedule/` | access | owner/admin | Modify | F-0024 |
 | POST | `/bookings/{id}/cancel/` | access | owner/admin | Cancel | F-0025 |
 | POST | `/bookings/{id}/confirm-payment/` | access | user | Stripe confirm | F-0021 |
+| POST | `/payments/{id}/upload-proof/` | access | owner | Upload transfer receipt photo | F-0035a |
 | GET | `/bookings/{id}/invoice.pdf` | access | user | Invoice | F-0028 |
 | GET | `/notifications/` | access | user | In-app center | F-0046 |
 | PATCH | `/notifications/preferences/` | access | user | Prefs | F-0047 |
@@ -71,6 +72,7 @@
 | POST | `/admin/bookings/{id}/mark-no-show/` | access | r,g | No-show | F-0026 |
 | GET/PATCH | `/admin/users/...` | access | g,d,s | Users | F-0052 |
 | POST | `/admin/payments/{id}/confirm-transfer/` | access | r,g | Transfers | F-0053 |
+| POST | `/admin/payments/{id}/reject-transfer/` | access | r,g | Reject transfer with reason | F-0035a |
 | POST | `/admin/payments/{id}/cash/` | access | r,g | Cash | F-0053 |
 | POST | `/admin/payments/{id}/refund/` | access | g,d | Refunds | F-0038 |
 | GET | `/admin/settings/...` · PATCH | access | d,s | Settings | F-0055 |

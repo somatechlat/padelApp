@@ -70,6 +70,7 @@ Legend — 25010 characteristics: FS=Functional suitability, PE=Performance effi
 | Req | Module | 25010 | 27001 / Other | Test |
 |-----|--------|-------|---------------|------|
 | F-0035 Payment methods | M06 | FS, SE | PCI SAQ-A | TC-0035 |
+| F-0035a Transfer proof | M06 | FS, SE | A.8, A.10 | TC-0035a |
 | F-0036 Payment lifecycle | M06 | FS, RE | A.12 | TC-0036 |
 | F-0037 Deposit capture | M06 | FS, RE | PCI | TC-0037 |
 | F-0038 Refunds | M06 | FS | A.12 | TC-0038 |

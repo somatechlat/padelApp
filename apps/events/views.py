@@ -70,14 +70,6 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             )
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
-        from apps.notifications.services import NotificationService
-
-        NotificationService.notify(
-            request.user,
-            "tournament_registered",
-            "Inscripcion registrada",
-            f"Te inscribiste en {tournament.name_localized}. Completa el pago para confirmar.",
-        )
         return Response(
             TournamentRegistrationSerializer(reg).data, status=status.HTTP_201_CREATED
         )

@@ -1,0 +1,68 @@
+{% extends "base_admin.html" %}
+{% block title %}Ajustes - Andes Padel PRO{% endblock %}
+{% block page_title %}POLITICAS DE CANCELACION & REGLAS DE TARIFA{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Politica de Cancelacion Vigente</div>
+</div>
+
+<div class="table-container" style="margin-bottom: 40px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Ventana Gratuita</th>
+        <th>Penalizacion Cancelacion Tardía</th>
+        <th>Penalizacion No-Show</th>
+        <th>Tiempo de Hold (Checkout)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in policies %}
+      <tr>
+        <td style="font-weight: 800; color: var(--volt-green);">≥ {{ p.free_cancellation_hours }} Horas Antes</td>
+        <td style="font-weight: 700; color: var(--accent-yellow);">{{ p.late_cancellation_fee_percent }}% del Valor</td>
+        <td style="font-weight: 700; color: var(--accent-red);">{{ p.no_show_fee_percent }}% del Valor</td>
+        <td style="font-weight: 700;">{{ p.hold_duration_minutes }} Minutos</td>
+      </tr>
+      {% empty %}
+      <tr>
+        <td style="font-weight: 800; color: var(--volt-green);">≥ 24 Horas Antes</td>
+        <td style="font-weight: 700; color: var(--accent-yellow);">50% del Valor</td>
+        <td style="font-weight: 700; color: var(--accent-red);">100% del Valor</td>
+        <td style="font-weight: 700;">10 Minutos</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="section-header">
+  <div class="section-title">Reglas de Tarifa por Hora</div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Cancha</th>
+        <th>Rango Horario</th>
+        <th>Dia de la Semana</th>
+        <th>Tarifa por Hora</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in price_rules %}
+      <tr>
+        <td style="font-weight: 700;">{{ r.court.name|default:"Todas" }}</td>
+        <td>{{ r.start_time }} a {{ r.end_time }}</td>
+        <td>{{ r.get_day_type_display|default:"Lunes a Domingo" }}</td>
+        <td style="font-weight: 900; color: var(--volt-green);">${{ r.price_per_hour }} / hora</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Tarifa base estandar: $30.00 / hora.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

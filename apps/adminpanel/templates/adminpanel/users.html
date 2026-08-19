@@ -1,0 +1,87 @@
+{% extends "base_admin.html" %}
+{% block title %}Usuarios - Andes Padel PRO{% endblock %}
+{% block page_title %}GESTION DE USUARIOS & ROLES (RBAC){% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px; padding: 20px;">
+  <form method="get" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <input type="text" name="q" value="{{ request.GET.q }}" placeholder="Buscar por email o nombre..." style="flex-grow: 1; min-width: 200px;">
+    
+    <select name="role">
+      <option value="">Todos los Roles</option>
+      <option value="cliente" {% if request.GET.role == 'cliente' %}selected{% endif %}>Cliente</option>
+      <option value="recepcionista" {% if request.GET.role == 'recepcionista' %}selected{% endif %}>Recepcionista</option>
+      <option value="gerente" {% if request.GET.role == 'gerente' %}selected{% endif %}>Gerente</option>
+      <option value="dueño" {% if request.GET.role == 'dueño' %}selected{% endif %}>Dueño</option>
+      <option value="superadmin" {% if request.GET.role == 'superadmin' %}selected{% endif %}>Superadmin</option>
+    </select>
+
+    <select name="status">
+      <option value="">Todos los Estados</option>
+      <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>Activo</option>
+      <option value="suspended" {% if request.GET.status == 'suspended' %}selected{% endif %}>Suspendido</option>
+      <option value="blocked" {% if request.GET.status == 'blocked' %}selected{% endif %}>Bloqueado</option>
+    </select>
+
+    <button type="submit" class="btn">Filtrar</button>
+    <a href="{% url 'adminpanel:users' %}" class="btn btn-outline">Limpiar</a>
+  </form>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Usuario</th>
+        <th>Nombre</th>
+        <th>Rol Actual</th>
+        <th>Estado</th>
+        <th>Registro</th>
+        <th>Cambiar Rol</th>
+        <th>Cambiar Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for u in users_list %}
+      <tr>
+        <td style="font-weight: 700;">{{ u.email }}</td>
+        <td>{{ u.full_name|default:"--" }}</td>
+        <td><span class="badge badge-active">{{ u.get_role_display }}</span></td>
+        <td><span class="badge badge-{{ u.status }}">{{ u.get_status_display }}</span></td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ u.date_joined|date:"Y-m-d" }}</td>
+        <td>
+          <form method="post" style="display: flex; gap: 6px; margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change_role">
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <select name="role" style="padding: 4px 8px; font-size: 12px;">
+              <option value="cliente" {% if u.role == 'cliente' %}selected{% endif %}>Cliente</option>
+              <option value="recepcionista" {% if u.role == 'recepcionista' %}selected{% endif %}>Recepcionista</option>
+              <option value="gerente" {% if u.role == 'gerente' %}selected{% endif %}>Gerente</option>
+              <option value="dueño" {% if u.role == 'dueño' %}selected{% endif %}>Dueño</option>
+              <option value="superadmin" {% if u.role == 'superadmin' %}selected{% endif %}>Superadmin</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline">Guardar</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" style="display: flex; gap: 6px; margin: 0;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="change_status">
+            <input type="hidden" name="user_id" value="{{ u.id }}">
+            <select name="status" style="padding: 4px 8px; font-size: 12px;">
+              <option value="active" {% if u.status == 'active' %}selected{% endif %}>Activo</option>
+              <option value="suspended" {% if u.status == 'suspended' %}selected{% endif %}>Suspendido</option>
+              <option value="blocked" {% if u.status == 'blocked' %}selected{% endif %}>Bloqueado</option>
+            </select>
+            <button type="submit" class="btn btn-sm btn-outline">Guardar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Sin usuarios encontrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

@@ -10,11 +10,16 @@ const _eventTypes = [
   'booking_confirmed',
   'booking_cancelled',
   'booking_reminder',
+  'booking_modified',
+  'no_show_penalty',
   'payment_success',
   'payment_failed',
   'transfer_confirmed',
+  'transfer_rejected',
   'tournament_reminder',
   'tournament_confirmed',
+  'tournament_registered',
+  'news_published',
   'marketing',
 ];
 
@@ -98,16 +103,26 @@ class _NotificationPreferencesScreenState
         return '${l10n.bookingStatus_cancelled} · ${l10n.bookings}';
       case 'booking_reminder':
         return '${l10n.bookingReminder} · ${l10n.bookings}';
+      case 'booking_modified':
+        return '${l10n.bookingModified} · ${l10n.bookings}';
+      case 'no_show_penalty':
+        return '${l10n.noShowPenalty} · ${l10n.bookings}';
       case 'payment_success':
         return '${l10n.paymentSuccess} · ${l10n.payments}';
       case 'payment_failed':
         return '${l10n.paymentError} · ${l10n.payments}';
       case 'transfer_confirmed':
         return '${l10n.payTransfer} · ${l10n.payments}';
+      case 'transfer_rejected':
+        return '${l10n.transferRejected} · ${l10n.payments}';
       case 'tournament_reminder':
         return '${l10n.tournamentReminder} · ${l10n.tournaments}';
       case 'tournament_confirmed':
         return '${l10n.tournamentConfirmed} · ${l10n.tournaments}';
+      case 'tournament_registered':
+        return '${l10n.tournamentRegistered} · ${l10n.tournaments}';
+      case 'news_published':
+        return '${l10n.newsPublished} · ${l10n.news}';
       default:
         return l10n.marketing;
     }

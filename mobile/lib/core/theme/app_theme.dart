@@ -1,30 +1,35 @@
 import 'package:flutter/material.dart';
 
-/// Brand palette: tasteful navy blue and muted gold accents.
+/// Brand palette: Electric Volt Green with dark obsidian accents.
 /// Flat, clean, no gradients or emojis anywhere in the UI.
+/// Contrast rule: #D4FF00 (92% luminance) MUST pair with dark (#121418)
+/// text. Never white-on-green or green-on-white — both fail WCAG AA (1.2:1).
 abstract final class AppColors {
-  static const brand = Color(0xFF17456E);
-  static const brandDeep = Color(0xFF0E2F4C);
-  static const brandLight = Color(0xFF9CC3E8);
+  static const brand = Color(0xFFD4FF00); // Electric Volt Green
+  static const brandDeep = Color(0xFF121418); // Deep Obsidian
+  static const brandLight = Color(0xFFE5FF66); // Light Volt
 
-  static const accent = Color(0xFFC89B3C);
-  static const accentSoft = Color(0xFFF3E7C9);
+  static const accent = Color(0xFFD4FF00);
+  static const accentSoft = Color(0xFF262C18);
 
-  static const success = Color(0xFF2E7D4F);
-  static const warning = Color(0xFFB07D12);
-  static const danger = Color(0xFFB3261E);
+  /// Readable green for text/icons on light backgrounds (WCAG AA ≥ 4.5:1).
+  static const brandReadable = Color(0xFF3A6B00); // Dark forest green
+
+  static const success = Color(0xFF3A6B00);
+  static const warning = Color(0xFFFFC107);
+  static const danger = Color(0xFFFF4D4D);
 
   static const background = Color(0xFFF5F7FA);
   static const surface = Color(0xFFFFFFFF);
-  static const onSurface = Color(0xFF1B2430);
+  static const onSurface = Color(0xFF121418);
   static const textMuted = Color(0xFF5B6472);
   static const outline = Color(0xFFD8DEE6);
 
-  static const backgroundDark = Color(0xFF0B1219);
-  static const surfaceDark = Color(0xFF141D27);
-  static const onSurfaceDark = Color(0xFFE6EBF1);
+  static const backgroundDark = Color(0xFF121418);
+  static const surfaceDark = Color(0xFF1E2229);
+  static const onSurfaceDark = Color(0xFFFFFFFF);
   static const textMutedDark = Color(0xFF9AA5B1);
-  static const outlineDark = Color(0xFF2A3743);
+  static const outlineDark = Color(0xFF2E3440);
 }
 
 /// Design tokens for spacing and shape.
@@ -47,11 +52,16 @@ abstract final class AppTheme {
 
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
-    final scheme = ColorScheme.fromSeed(seedColor: AppColors.brand)
-        .copyWith(
+    final brandBg = isDark ? AppColors.brandLight : AppColors.brand;
+    final brandText = isDark ? AppColors.brandDeep : AppColors.brandDeep;
+    final readable = isDark ? AppColors.brandLight : AppColors.brandReadable;
+    final navSelected = isDark ? AppColors.brandLight : AppColors.brandDeep;
+    final scheme = ColorScheme.fromSeed(seedColor: AppColors.brand).copyWith(
       brightness: brightness,
-      primary: isDark ? AppColors.brandLight : AppColors.brand,
+      primary: brandBg,
+      onPrimary: AppColors.brandDeep,
       secondary: isDark ? const Color(0xFFE3C06E) : AppColors.accent,
+      onSecondary: AppColors.brandDeep,
       error: AppColors.danger,
       surface: isDark ? AppColors.surfaceDark : AppColors.surface,
       onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurface,
@@ -118,6 +128,8 @@ abstract final class AppTheme {
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
           minimumSize: const Size(64, AppSpacing.buttonHeight),
+          backgroundColor: brandBg,
+          foregroundColor: AppColors.brandDeep,
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
           ),
@@ -163,12 +175,12 @@ abstract final class AppTheme {
           return TextStyle(
             fontSize: 12,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? scheme.primary : muted,
+            color: selected ? navSelected : muted,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(color: selected ? scheme.primary : muted);
+          return IconThemeData(color: selected ? navSelected : muted);
         }),
       ),
       snackBarTheme: SnackBarThemeData(
@@ -193,9 +205,9 @@ abstract final class AppTheme {
         contentTextStyle: TextStyle(color: onSurface, fontSize: 15),
       ),
       tabBarTheme: TabBarThemeData(
-        labelColor: scheme.primary,
+        labelColor: navSelected,
         unselectedLabelColor: muted,
-        indicatorColor: scheme.primary,
+        indicatorColor: navSelected,
         labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
         unselectedLabelStyle: const TextStyle(
           fontWeight: FontWeight.w500,
@@ -204,30 +216,30 @@ abstract final class AppTheme {
       ),
       dividerTheme: DividerThemeData(color: outline, thickness: 1, space: 1),
       floatingActionButtonTheme: FloatingActionButtonThemeData(
-        backgroundColor: scheme.primary,
-        foregroundColor: AppColors.surface,
+        backgroundColor: brandBg,
+        foregroundColor: AppColors.brandDeep,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         ),
       ),
-      progressIndicatorTheme: ProgressIndicatorThemeData(color: scheme.primary),
+      progressIndicatorTheme: ProgressIndicatorThemeData(color: readable),
       listTileTheme: ListTileThemeData(iconColor: muted),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
           return states.contains(WidgetState.selected)
-              ? scheme.primary
+              ? AppColors.brandDeep
               : muted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
           return states.contains(WidgetState.selected)
-              ? AppColors.accentSoft
+              ? brandBg
               : outline;
         }),
       ),
       textTheme: TextTheme(
         headlineMedium: TextStyle(
           color: onSurface,
-          fontSize: 26,
+          fontSize: 28,
           fontWeight: FontWeight.w700,
         ),
         titleLarge: TextStyle(
@@ -238,6 +250,11 @@ abstract final class AppTheme {
         titleMedium: TextStyle(
           color: onSurface,
           fontSize: 16,
+          fontWeight: FontWeight.w600,
+        ),
+        titleSmall: TextStyle(
+          color: onSurface,
+          fontSize: 14,
           fontWeight: FontWeight.w600,
         ),
         bodyLarge: TextStyle(color: onSurface, fontSize: 16),

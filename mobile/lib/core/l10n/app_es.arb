@@ -1,6 +1,6 @@
 {
   "@@locale": "es",
-  "appTitle": "Andes Padel",
+  "appTitle": "Andes Pádel",
   "appTagline": "Reserva tu cancha de pádel",
 
   "login": "Iniciar sesión",
@@ -158,5 +158,70 @@
   "role_recepcionista": "Recepcionista",
   "role_gerente": "Gerente",
   "role_dueno": "Dueño",
-  "role_superadmin": "Administrador"
+  "role_superadmin": "Administrador",
+
+  "homeGreeting": "Hola, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "findYourCourt": "Busca tu cancha",
+  "seeAll": "Ver todo",
+  "availableCourts": "Canchas disponibles",
+  "noCourtsAvailable": "No hay canchas disponibles en este momento",
+  "courtType_techada": "Techada",
+  "courtType_abierta": "Abierta",
+  "hasLighting": "Con iluminación",
+  "noLighting": "Sin iluminación",
+  "basePrice": "Precio base",
+  "viewDetails": "Ver detalles",
+  "reserve": "Reservar",
+  "today": "Hoy",
+  "thisWeek": "Esta semana",
+
+  "paymentMethod": "Método de pago",
+  "paymentMethodSubtitle": "Elige cómo deseas pagar",
+  "payWithCard": "Pagar con tarjeta",
+  "payWithTransfer": "Transferencia bancaria",
+  "payWithCash": "Efectivo en cancha",
+  "cardDescription": "Débito o crédito vía Stripe",
+  "transferDescription": "Realiza una transferencia y sube tu comprobante",
+  "cashDescription": "Paga al llegar a la cancha",
+
+  "transferInstructions": "Datos para transferencia",
+  "bankName": "Banco",
+  "accountNumber": "Número de cuenta",
+  "accountHolder": "Titular de la cuenta",
+  "beneficiaryCode": "Código de beneficiario",
+  "transferAmount": "Monto a transferir",
+  "uploadProof": "Subir comprobante",
+  "uploadProofHint": "Tomar foto o seleccionar de galería",
+  "proofUploaded": "Comprobante subido",
+  "proofPending": "Esperando confirmación del comprobante",
+  "transferPending": "Transferencia pendiente de verificación",
+  "transferConfirmed": "Transferencia confirmada",
+  "transferRejected": "Transferencia rechazada",
+  "transferRejectedReason": "Motivo: {reason}",
+  "@transferRejectedReason": {
+    "placeholders": {
+      "reason": {"type": "String"}
+    }
+  },
+  "confirmTransfer": "Confirmar transferencia",
+  "rejectTransfer": "Rechazar transferencia",
+  "rejectionReason": "Motivo del rechazo",
+  "maxFileSize": "Tamaño máximo: 5 MB",
+  "allowedFormats": "Formatos: JPEG, PNG",
+  "imageTooLarge": "La imagen excede 5 MB",
+  "invalidFormat": "Formato no permitido. Use JPEG o PNG",
+  "proofUploadSuccess": "Comprobante enviado correctamente",
+  "proofUploadError": "Error al subir el comprobante",
+  "camera": "Cámara",
+  "gallery": "Galería",
+  "send": "Enviar comprobante",
+  "bookingModified": "Reserva modificada",
+  "noShowPenalty": "Penalizacion por inasistencia",
+  "tournamentRegistered": "Inscripcion registrada",
+  "newsPublished": "Noticia publicada"
 }

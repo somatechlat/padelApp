@@ -1,0 +1,103 @@
+{% extends "base_admin.html" %}
+{% block title %}Pagos - Andes Padel PRO{% endblock %}
+{% block page_title %}PAGOS & VERIFICACION DE TRANSFERENCIAS{% endblock %}
+
+{% block content %}
+<div class="card" style="margin-bottom: 24px; padding: 20px;">
+  <form method="get" style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap;">
+    <select name="status">
+      <option value="">Todos los Estados</option>
+      <option value="pending_transfer" {% if request.GET.status == 'pending_transfer' %}selected{% endif %}>Transferencia Pendiente</option>
+      <option value="confirmed" {% if request.GET.status == 'confirmed' %}selected{% endif %}>Confirmado</option>
+      <option value="captured" {% if request.GET.status == 'captured' %}selected{% endif %}>Capturado (Stripe)</option>
+      <option value="refunded" {% if request.GET.status == 'refunded' %}selected{% endif %}>Reembolsado</option>
+      <option value="failed" {% if request.GET.status == 'failed' %}selected{% endif %}>Fallido / Rechazado</option>
+    </select>
+
+    <select name="method">
+      <option value="">Todos los Metodos</option>
+      <option value="transfer" {% if request.GET.method == 'transfer' %}selected{% endif %}>Transferencia Bancaria</option>
+      <option value="stripe" {% if request.GET.method == 'stripe' %}selected{% endif %}>Tarjeta (Stripe)</option>
+      <option value="cash" {% if request.GET.method == 'cash' %}selected{% endif %}>Efectivo (Recepcion)</option>
+    </select>
+
+    <button type="submit" class="btn">Filtrar</button>
+    <a href="{% url 'adminpanel:payments' %}" class="btn btn-outline">Limpiar</a>
+  </form>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>ID Pago</th>
+        <th>Cliente</th>
+        <th>Monto</th>
+        <th>Metodo</th>
+        <th>Estado</th>
+        <th>Comprobante / Referencia</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in payments_list %}
+      <tr>
+        <td style="font-weight: 800; font-family: monospace;">#{{ p.id|slice:":8" }}</td>
+        <td style="font-weight: 600;">{{ p.booking.user.email|default:"--" }}</td>
+        <td style="font-weight: 900; color: var(--volt-green);">${{ p.amount }}</td>
+        <td><span class="badge badge-active">{{ p.get_payment_method_display }}</span></td>
+        <td><span class="badge badge-{{ p.status }}">{{ p.get_status_display }}</span></td>
+        <td>
+          {% if p.proof_image %}
+            <a href="{{ p.proof_image.url }}" target="_blank" class="btn btn-sm btn-outline">Ver Comprobante ↗</a>
+          {% else %}
+            <span style="color: var(--text-muted); font-size: 12px;">{{ p.provider_reference|default:"Sin archivo" }}</span>
+          {% endif %}
+        </td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ p.created_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          <div style="display: flex; gap: 6px;">
+            {% if p.status == 'pending_transfer' %}
+              {% if p.proof_image %}
+                <img src="{{ p.proof_image.url }}" alt="Comprobante"
+                     style="max-width: 120px; max-height: 80px; border-radius: 8px; cursor: pointer;"
+                     onclick="window.open('{{ p.proof_image.url }}', '_blank')">
+              {% endif %}
+              <form method="post" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="confirm_transfer">
+                <input type="hidden" name="payment_id" value="{{ p.id }}">
+                <button type="submit" class="btn btn-sm">Aprobar</button>
+              </form>
+              <form method="post" style="margin: 0; display: flex; gap: 4px; align-items: center;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="reject_transfer">
+                <input type="hidden" name="payment_id" value="{{ p.id }}">
+                <input type="text" name="rejection_reason" placeholder="Motivo..."
+                       style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
+                              background: var(--surface); color: var(--text); font-size: 12px; width: 140px;">
+                <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
+              </form>
+            {% elif p.rejection_reason %}
+              <span style="color: var(--accent-red); font-size: 12px;">Rechazado: {{ p.rejection_reason }}</span>
+            {% elif p.status == 'confirmed' or p.status == 'captured' %}
+              <form method="post" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="refund">
+                <input type="hidden" name="payment_id" value="{{ p.id }}">
+                <button type="submit" onclick="return confirm('¿Procesar reembolso?')" class="btn btn-sm btn-outline" style="color: var(--accent-red); border-color: var(--accent-red);">Reembolsar</button>
+              </form>
+            {% else %}
+              <span style="color: var(--text-muted); font-size: 12px;">--</span>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Sin pagos encontrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

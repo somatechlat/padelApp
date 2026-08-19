@@ -177,6 +177,17 @@
 - **Description:** (a) Card via **Stripe** (incl. Apple/Google Pay); (b) bank transfer → status `pending_transfer`, admin-confirmed (F-0053); (c) cash at venue → recorded by receptionist. Card data never touches our servers (Stripe Elements) (C11).
 - **ISO:** PCI-DSS scope minimization, 27001 A.10.
 
+### F-0035a · Bank Transfer Proof of Payment
+- **Description:** When the client selects bank transfer as payment method:
+  1. The app displays bank account details (bank name, account number, account holder, reference/beneficiary code) configured in admin settings (F-0055).
+  2. The client uploads a photo/screenshot of the transfer receipt (comprobante) via camera capture or gallery selection. Image stored as `proof_image` on the `Payment` record.
+  3. The payment status transitions to `pending_transfer` and the booking is held (F-0019) until admin confirms.
+  4. Admin/staff views the proof image in the admin panel (F-0053) and confirms or rejects the transfer.
+  5. On confirmation, the client receives a push/in-app notification (`transfer_confirmed`) and the booking status advances to `confirmed`.
+  6. On rejection (e.g., wrong amount, invalid proof), the client receives a notification (`transfer_rejected`) with a reason, and the payment status becomes `failed`; the booking hold expires.
+  7. Image constraints: max 5 MB, JPEG/PNG only, stored encrypted at rest (F-0070), served via signed URL (expires in 1 h).
+- **ISO:** 25010 Functional suitability, 27001 A.8 (media handling).
+
 ### F-0036 · Payment Lifecycle
 - **Description:** States `authorized → captured → paid | refunded | failed | voided`. Server verifies webhook (signature-verified) and reconciles.
 - **ISO:** 25010 Reliability.
@@ -222,7 +233,7 @@
 ## M08 — Notifications
 
 ### F-0045 · Event Triggers
-- **Description:** Events: booking confirmed, reminder (24h and 2h before), cancellation (user & admin), no-show penalty, payment success/failure, transfer confirmed, booking modified.
+- **Description:** Events: booking confirmed, reminder (24h and 2h before), cancellation (user & admin), no-show penalty, payment success/failure, transfer confirmed, transfer rejected (with reason), booking modified.
 - **ISO:** 25010 Functional suitability.
 
 ### F-0046 · Channels
@@ -257,7 +268,7 @@
 - **ISO:** 27001 A.9.
 
 ### F-0053 · Payment Management
-- **Description:** Confirm bank transfers, record cash payments, issue refunds, view payment failures.
+- **Description:** Confirm bank transfers (view proof image, approve/reject with reason), record cash payments, issue refunds, view payment failures. Transfer confirmation triggers notification to client (F-0035a). Rejection includes mandatory reason text.
 - **ISO:** 25010 Functional suitability.
 
 ### F-0054 · Audit Viewer
@@ -426,7 +437,7 @@
 - **ISO:** 25010 Usability.
 
 ### F-0083 · Payment Screens
-- **Description:** Stripe card (Elements), transfer instructions, cash option note; payment status results; failure recovery with hold re-validation.
+- **Description:** Payment method selection screen; Stripe card (Elements); transfer instructions with bank details + photo upload of transfer receipt (F-0035a); cash option note; payment status tracking; failure recovery with hold re-validation.
 - **ISO:** PCI scope minimized.
 
 ### F-0084 · My Bookings

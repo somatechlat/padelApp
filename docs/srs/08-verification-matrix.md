@@ -81,6 +81,7 @@
 | Req | TC | Method | Acceptance Criteria |
 |-----|-----|--------|---------------------|
 | F-0035 | TC-0035 | T + D | Card via Stripe (test mode); transfer marked pending; cash recorded; no card data in our DB (scan) |
+| F-0035a | TC-0035a | T + D | Transfer: bank details displayed; photo upload (JPEG/PNG, ≤5 MB) succeeds; status → pending_transfer; admin sees proof image; confirm → notification sent to client; reject → notification with reason sent; invalid file type/size rejected |
 | F-0036 | TC-0036 | T | Lifecycle transitions correct; failures handled idempotently |
 | F-0037 | TC-0037 | T | Authorize at booking; capture at start; penalty capture on no-show |
 | F-0038 | TC-0038 | T | Full/partial refund to original instrument; audited |
@@ -173,7 +174,7 @@
 | F-0080 | TC-0080 | T (widget+int) | All auth flows complete; tokens in secure storage (Keychain/Keystore); no token logs |
 | F-0081 | TC-0081 | T (widget) | Court list/detail renders correct data; loading/error states |
 | F-0082 | TC-0082 | T (widget) | Wizard steps complete; draft restored on restart; validations localized |
-| F-0083 | TC-0083 | T (widget+int) | Payment sheet works (test mode); failure recovery re-validates hold |
+| F-0083 | TC-0083 | T (widget+int) | Payment method selection works; Stripe card works (test mode); transfer shows bank details + photo upload; failure recovery re-validates hold |
 | F-0084 | TC-0084 | T (widget) | Lists/detail correct; cancel/reschedule act per policy; invoice link |
 | F-0085 | TC-0085 | T (widget) | Profile/settings update; language switch live; GDPR actions present |
 | F-0086 | TC-0086 | T + M | FCM token registered; deep links open correct screen |

@@ -1,6 +1,6 @@
 {
   "@@locale": "pt",
-  "appTitle": "Andes Padel",
+  "appTitle": "Andes Pádel",
   "appTagline": "Reserve sua quadra de pádel",
 
   "login": "Entrar",
@@ -158,5 +158,25 @@
   "role_recepcionista": "Recepcionista",
   "role_gerente": "Gerente",
   "role_dueno": "Dono",
-  "role_superadmin": "Administrador"
+  "role_superadmin": "Administrador",
+
+  "homeGreeting": "Olá, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "findYourCourt": "Encontre sua quadra",
+  "seeAll": "Ver tudo",
+  "availableCourts": "Quadras disponíveis",
+  "noCourtsAvailable": "Não há quadras disponíveis no momento",
+  "courtType_techada": "Coberta",
+  "courtType_abierta": "Aberta",
+  "hasLighting": "Com iluminação",
+  "noLighting": "Sem iluminação",
+  "basePrice": "Preço base",
+  "viewDetails": "Ver detalhes",
+  "reserve": "Reservar",
+  "today": "Hoje",
+  "thisWeek": "Esta semana"
 }

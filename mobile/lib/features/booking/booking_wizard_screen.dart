@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import '../../core/api_client.dart';
 import '../../core/format.dart';
 import '../../core/theme/app_theme.dart';
+import 'payment_method_screen.dart';
 
 class BookingWizardScreen extends StatefulWidget {
   const BookingWizardScreen({super.key});
@@ -111,18 +112,23 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       });
       final bookingId = booking['id'];
       await api.post('/bookings/$bookingId/confirm/');
-      // Test mode: bank transfer needs no Stripe keys and creates a pending payment.
-      try {
-        await api.post('/bookings/$bookingId/payments/',
-            data: {'method': 'transfer', 'reference': 'PEND'});
-      } catch (_) {
-        // A failed payment must not roll back a confirmed booking.
-      }
       if (mounted) {
         setState(() {
-          _step = 3;
           _submitting = false;
         });
+        final paymentResult = await Navigator.of(context).push(
+          MaterialPageRoute(
+            builder: (_) => PaymentMethodScreen(
+              bookingId: bookingId,
+              amount: double.tryParse(_price ?? '0') ?? 0,
+            ),
+          ),
+        );
+        if (mounted) {
+          setState(() {
+            _step = 3;
+          });
+        }
       }
     } catch (e) {
       if (mounted) {
@@ -183,7 +189,12 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(_error!),
+            Text(
+              _error!,
+              style: TextStyle(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
             const SizedBox(height: 12),
             OutlinedButton(onPressed: _loadCourts, child: Text(l10n.retry)),
           ],
@@ -365,7 +376,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       decoration: InputDecoration(
         labelText: label,
         border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
       ),
       child: DropdownButtonHideUnderline(
         child: DropdownButton<T>(

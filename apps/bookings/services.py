@@ -140,4 +140,52 @@ class BookingService:
 
     @staticmethod
     def mark_no_show(booking):
-        return booking.transition_to(Booking.Status.NO_SHOW)
+        booking.transition_to(Booking.Status.NO_SHOW)
+        from apps.security.services import log_event
+        log_event(booking.user, "booking.no_show", "Booking", booking.id)
+        from apps.notifications.tasks import notify_task
+        notify_task.delay(
+            booking.user_id,
+            "no_show_penalty",
+            "",
+            "",
+            {
+                "court": booking.court.name,
+                "date": str(booking.date),
+                "time": str(booking.start_time),
+                "amount": f"${booking.price}",
+                "booking_id": booking.id,
+            },
+        )
+        return booking
+
+    @staticmethod
+    def reschedule(booking, new_date, new_start_time):
+        with transaction.atomic():
+            old_date = str(booking.date)
+            old_time = str(booking.start_time)
+            slot_ids = list(booking.slots.values_list("slot_id", flat=True))
+            booking.slots.all().delete()
+            TimeSlot.objects.filter(id__in=slot_ids).update(status=TimeSlot.Status.AVAILABLE)
+            BookingHold.objects.filter(slot_id__in=slot_ids).delete()
+            booking.date = new_date
+            booking.start_time = new_start_time
+            booking.save(update_fields=["date", "start_time", "updated_at"])
+        from apps.security.services import log_event
+        log_event(booking.user, "booking.reschedule", "Booking", booking.id,
+                  before={"date": old_date, "time": old_time},
+                  after={"date": str(new_date), "time": str(new_start_time)})
+        from apps.notifications.tasks import notify_task
+        notify_task.delay(
+            booking.user_id,
+            "booking_modified",
+            "",
+            "",
+            {
+                "court": booking.court.name,
+                "date": str(new_date),
+                "time": str(new_start_time),
+                "booking_id": booking.id,
+            },
+        )
+        return booking

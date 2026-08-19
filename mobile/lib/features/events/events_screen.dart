@@ -205,7 +205,7 @@ class _EventsScreenState extends State<EventsScreen> {
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isFree
                               ? Theme.of(context).colorScheme.onSurface
-                              : AppColors.accent,
+                              : AppColors.brandReadable,
                           fontWeight:
                               isFree ? FontWeight.normal : FontWeight.w600,
                         ),
@@ -314,9 +314,9 @@ class _EventsScreenState extends State<EventsScreen> {
   Color _statusColor(String status) {
     switch (status) {
       case 'open':
-        return AppColors.brand;
+        return AppColors.brandReadable;
       case 'in_progress':
-        return AppColors.accent;
+        return AppColors.brandReadable;
       default:
         return AppColors.textMuted;
     }

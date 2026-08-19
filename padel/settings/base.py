@@ -140,6 +140,10 @@ CELERY_BEAT_SCHEDULE = {
         "task": "apps.notifications.tasks.send_booking_reminders",
         "schedule": 86400.0,
     },
+    "booking-reminder-2h": {
+        "task": "apps.notifications.tasks.send_booking_reminders_2h",
+        "schedule": 1800.0,  # every 30 minutes
+    },
     "release-expired-holds": {
         "task": "apps.scheduling.tasks.release_expired_holds",
         "schedule": 300.0,
@@ -204,3 +208,8 @@ STATIC_URL = "/static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
+
+LOGIN_URL = "/adminpanel/login/"
+LOGIN_REDIRECT_URL = "/adminpanel/"
+
+

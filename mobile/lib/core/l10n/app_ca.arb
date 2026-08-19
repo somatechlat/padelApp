@@ -1,6 +1,6 @@
 {
   "@@locale": "ca",
-  "appTitle": "Andes Padel",
+  "appTitle": "Andes Pádel",
   "appTagline": "Reserva la teva pista de pàdel",
 
   "login": "Iniciar sessió",
@@ -158,5 +158,25 @@
   "role_recepcionista": "Recepcionista",
   "role_gerente": "Gerent",
   "role_dueno": "Propietari",
-  "role_superadmin": "Administrador"
+  "role_superadmin": "Administrador",
+
+  "homeGreeting": "Hola, {name}",
+  "@homeGreeting": {
+    "placeholders": {
+      "name": {"type": "String"}
+    }
+  },
+  "findYourCourt": "Busca la teva pista",
+  "seeAll": "Veure tot",
+  "availableCourts": "Pistes disponibles",
+  "noCourtsAvailable": "No hi ha pistes disponibles ara mateix",
+  "courtType_techada": "Coberta",
+  "courtType_abierta": "Oberta",
+  "hasLighting": "Amb il·luminació",
+  "noLighting": "Sense il·luminació",
+  "basePrice": "Preu base",
+  "viewDetails": "Veure detalls",
+  "reserve": "Reservar",
+  "today": "Avui",
+  "thisWeek": "Aquesta setmana"
 }

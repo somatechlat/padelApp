@@ -14,7 +14,7 @@ class ApiClient {
         _dio = dio ?? Dio() {
     _dio.options.baseUrl = baseUrl ??
         const String.fromEnvironment('API_BASE_URL',
-            defaultValue: 'http://10.0.2.2:8000/api');
+            defaultValue: 'http://192.168.100.140:8000/api');
     _dio.options.headers['Accept'] = 'application/json';
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 15);
@@ -62,7 +62,11 @@ class ApiClient {
     try {
       final res = await _dio.post('/auth/refresh/', data: {'refresh': refresh});
       final access = res.data['access'] as String;
+      final newRefresh = res.data['refresh'] as String?;
       await _storage.write(SecureTokenStorage.accessKey, access);
+      if (newRefresh != null) {
+        await _storage.write(SecureTokenStorage.refreshKey, newRefresh);
+      }
       return true;
     } catch (_) {
       await _storage.clearTokens();

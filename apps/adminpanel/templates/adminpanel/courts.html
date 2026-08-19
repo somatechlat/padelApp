@@ -1,0 +1,138 @@
+{% extends "base_admin.html" %}
+{% block title %}Canchas - Andes Padel PRO{% endblock %}
+{% block page_title %}GESTION DE CANCHAS & MANTENIMIENTO{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Canchas del Club</div>
+  <button onclick="document.getElementById('modal-court').style.display='flex'" class="btn">+ Nueva Cancha</button>
+</div>
+
+<!-- Modal Nueva Cancha -->
+<div id="modal-court" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Agregar Nueva Cancha</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_court">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DE LA CANCHA</label>
+        <input type="text" name="name" placeholder="Ej. Cancha 3 Central" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA</label>
+        <select name="court_type">
+          <option value="techada">Techada (Covered)</option>
+          <option value="abierta">Abierta (Outdoor)</option>
+        </select>
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="has_lighting" id="lighting" checked style="width: 18px; height: 18px;">
+          <label for="lighting" style="font-size: 14px; font-weight: 600;">Tiene Iluminacion LED</label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-court').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cancha</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container" style="margin-bottom: 40px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Nombre</th>
+        <th>Tipo</th>
+        <th>Iluminacion</th>
+        <th>Estado</th>
+        <th>Accion</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for c in courts %}
+      <tr>
+        <td style="font-weight: 800; font-size: 16px;">{{ c.name }}</td>
+        <td><span class="badge badge-active">{{ c.get_court_type_display }}</span></td>
+        <td>{% if c.has_lighting %}<span style="color: var(--volt-green); font-weight: 700;">✓ LED</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
+        <td><span class="badge badge-{{ c.status }}">{{ c.status|upper }}</span></td>
+        <td>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_status">
+            <input type="hidden" name="court_id" value="{{ c.id }}">
+            <button type="submit" class="btn btn-sm btn-outline">
+              {% if c.status == 'active' %}Desactivar{% else %}Activar{% endif %}
+            </button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay canchas registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="section-header">
+  <div class="section-title">Ventanas de Mantenimiento</div>
+  <button onclick="document.getElementById('modal-maint').style.display='flex'" class="btn btn-outline">+ Agendar Mantenimiento</button>
+</div>
+
+<!-- Modal Mantenimiento -->
+<div id="modal-maint" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Agendar Mantenimiento</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="schedule_maintenance">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CANCHA</label>
+        <select name="court_id" required>
+          {% for c in courts %}
+          <option value="{{ c.id }}">{{ c.name }}</option>
+          {% endfor %}
+        </select>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MOTIVO</label>
+        <input type="text" name="reason" placeholder="Ej. Cambio de red / Limpieza" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INICIO (FECHA Y HORA)</label>
+        <input type="datetime-local" name="start" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN (FECHA Y HORA)</label>
+        <input type="datetime-local" name="end" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-maint').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Agendar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Cancha</th>
+        <th>Motivo</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for m in maintenances %}
+      <tr>
+        <td style="font-weight: 700;">{{ m.court.name }}</td>
+        <td>{{ m.reason }}</td>
+        <td>{{ m.start|date:"Y-m-d H:i" }}</td>
+        <td>{{ m.end|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin mantenimientos agendados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

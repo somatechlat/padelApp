@@ -1,30 +1,79 @@
 {% extends "base_admin.html" %}
-{% block title %}Panel - Andes Padel{% endblock %}
+{% block title %}Panel - Andes Padel PRO{% endblock %}
+{% block page_title %}PANEL DE CONTROL{% endblock %}
+
 {% block content %}
-<h1>Panel de control</h1>
-<div class="cards">
-  <div class="card"><strong>{{ bookings_today }}</strong><span>Reservas de hoy</span></div>
-  <div class="card"><strong>{{ occupancy_pct }}%</strong><span>Ocupacion de hoy</span></div>
-  <div class="card"><strong>${{ revenue_today }}</strong><span>Ingresos de hoy</span></div>
+<div class="cards-grid">
+  <div class="card">
+    <div class="card-label">Ingresos de Hoy</div>
+    <div class="card-value" style="color: var(--volt-green);">${{ revenue_today }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Reservas Activas</div>
+    <div class="card-value">{{ bookings_today }}</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Ocupacion de Canchas</div>
+    <div class="card-value">{{ occupancy_pct }}%</div>
+  </div>
+  <div class="card">
+    <div class="card-label">Total Usuarios</div>
+    <div class="card-value">{{ total_users }}</div>
+  </div>
 </div>
-<h2>Alertas</h2>
-<ul>
-  <li>Mantenimientos hoy: {{ alerts.mantenimiento_hoy }}</li>
-  <li>Transferencias pendientes: {{ alerts.transferencias_pendientes }}</li>
-  <li>Reservas sin pagar: {{ alerts.reservas_sin_pagar }}</li>
-</ul>
-<h2>Proximas reservas</h2>
-<table>
-  <tr><th>Cliente</th><th>Cancha</th><th>Inicio</th><th>Estado</th></tr>
-  {% for b in bookings_list %}
-  <tr>
-    <td>{{ b.user.email }}</td>
-    <td>{{ b.court.name }}</td>
-    <td>{{ b.start_time }}</td>
-    <td>{{ b.get_status_display }}</td>
-  </tr>
-  {% empty %}
-  <tr><td colspan="4">Sin reservas para hoy.</td></tr>
-  {% endfor %}
-</table>
+
+<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px;">
+  <div>
+    <div class="section-header">
+      <div class="section-title">Proximas Reservas</div>
+      <a href="{% url 'adminpanel:calendar' %}" class="btn btn-sm btn-outline">Ver Calendario Full &rarr;</a>
+    </div>
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Cliente</th>
+            <th>Cancha</th>
+            <th>Inicio</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for b in bookings_list %}
+          <tr>
+            <td style="font-weight: 600;">{{ b.user.email }}</td>
+            <td><span class="badge badge-active">{{ b.court.name }}</span></td>
+            <td style="font-weight: 700;">{{ b.start_time }}</td>
+            <td><span class="badge badge-{{ b.status }}">{{ b.get_status_display }}</span></td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin reservas agendadas para hoy.</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div>
+    <div class="section-header">
+      <div class="section-title">Alertas del Sistema</div>
+    </div>
+    <div class="card" style="gap: 16px;">
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600; color: var(--text-muted);">Transferencias Pendientes</span>
+        <span class="badge badge-pending">{{ alerts.transferencias_pendientes }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600; color: var(--text-muted);">Reservas Sin Pagar</span>
+        <span class="badge badge-pending">{{ alerts.reservas_sin_pagar }}</span>
+      </div>
+      <div style="display: flex; justify-content: space-between; align-items: center;">
+        <span style="font-weight: 600; color: var(--text-muted);">Mantenimientos Hoy</span>
+        <span class="badge badge-blocked">{{ alerts.mantenimiento_hoy }}</span>
+      </div>
+      <hr style="border-color: var(--border-color); margin: 8px 0;">
+      <a href="{% url 'adminpanel:payments' %}?status=pending_transfer" class="btn btn-sm btn-outline" style="justify-content: center;">Revisar Transferencias</a>
+    </div>
+  </div>
+</div>
 {% endblock %}

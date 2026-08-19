@@ -20,7 +20,7 @@
 | **BookingHold** | `user`, `timeslot`, `expires_at` | Soft-reserve F-0019 |
 | **PriceRule** | `name`, `court_type`, `zone` (valle/pico), `weekday`, `base_minor`, `multipliers` (JSON) | Versioned, audited |
 | **Holiday** | `date`, `name`, `zone` | Feeds multipliers |
-| **Payment** | `booking`, `method` (card/transfer/cash), `provider` (stripe), `provider_ref`, `amount_minor`, `status`, `type` (auth/capture/refund/penalty), `created_at` | Lifecycle F-0036 |
+| **Payment** | `booking`, `method` (card/transfer/cash), `provider` (stripe), `provider_ref`, `amount_minor`, `status`, `type` (auth/capture/refund/penalty), `proof_image` (transfer receipt, nullable), `rejection_reason` (nullable), `created_at` | Lifecycle F-0036, Transfer proof F-0035a |
 | **PaymentMethod (stored)** | `user`, `provider`, `tokenized_ref` | Card data never stored (PCI) |
 | **Invoice** | `booking`, `number`, `issued_at`, `items` (JSON lines), `total_minor`, `pdf_url` | F-0028 |
 | **Notification** | `user`, `type`, `channel`, `status`, `payload`, `read_at`, `idempotency_key` | In-app center |

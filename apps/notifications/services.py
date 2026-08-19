@@ -15,14 +15,19 @@ TRANSACTIONAL_EVENTS = {
     "booking_confirmed",
     "booking_cancelled",
     "booking_reminder",
+    "booking_modified",
     "no_show_penalty",
     "payment_success",
     "payment_failed",
     "payment_refunded",
     "transfer_confirmed",
+    "transfer_rejected",
     "password_reset",
     "tournament_reminder",
     "tournament_confirmed",
+    "tournament_registered",
+    "news_published",
+    "event_published",
 }
 DEFAULT_CHANNELS = ("email", "push", "inapp")
 
@@ -42,9 +47,25 @@ MESSAGE_TEMPLATES = {
         "Booking reminder",
         "Reminder: {court} tomorrow at {time}.",
     ),
+    "booking_reminder_2h": (
+        "Booking starting soon",
+        "Your booking for {court} starts in 2 hours at {time}.",
+    ),
+    "booking_modified": (
+        "Booking modified",
+        "Your booking for {court} has been rescheduled to {date} at {time}.",
+    ),
+    "no_show_penalty": (
+        "No-show penalty",
+        "You did not attend your booking for {court}. A penalty of {amount} has been applied.",
+    ),
     "payment_success": (
         "Payment received",
         "We received your payment of {amount}.",
+    ),
+    "payment_failed": (
+        "Payment failed",
+        "Your payment of {amount} could not be processed. Please try again or contact support.",
     ),
     "payment_refunded": (
         "Payment refunded",
@@ -54,6 +75,10 @@ MESSAGE_TEMPLATES = {
         "Transfer confirmed",
         "Your bank transfer of {amount} was confirmed.",
     ),
+    "transfer_rejected": (
+        "Transfer rejected",
+        "Your bank transfer of {amount} was rejected. Reason: {reason}",
+    ),
     "tournament_reminder": (
         "Tournament reminder",
         "The tournament {tournament} starts tomorrow.",
@@ -61,6 +86,18 @@ MESSAGE_TEMPLATES = {
     "tournament_confirmed": (
         "Tournament registration confirmed",
         "You are registered for {tournament}.",
+    ),
+    "tournament_registered": (
+        "Tournament registration",
+        "Your registration for {tournament} has been received.",
+    ),
+    "news_published": (
+        "New announcement",
+        "{title}",
+    ),
+    "event_published": (
+        "New event",
+        "{title}",
     ),
 }
 

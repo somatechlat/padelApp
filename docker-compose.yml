@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
+    mem_limit: 512m
     restart: unless-stopped
     environment:
       POSTGRES_DB: padel
@@ -16,6 +17,7 @@ services:
 
   redis:
     image: redis:7-alpine
+    mem_limit: 192m
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
@@ -27,6 +29,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
+    mem_limit: 1g
     command: python manage.py runserver 0.0.0.0:8000
     restart: unless-stopped
     volumes:
@@ -46,7 +49,8 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    command: celery -A padel worker -l info
+    mem_limit: 768m
+    command: celery -A padel worker -l info --concurrency=2
     restart: unless-stopped
     volumes:
       - .:/app
@@ -58,15 +62,20 @@ services:
 
   flutter:
     image: ghcr.io/cirruslabs/flutter:3.27.3
+    mem_limit: 2500m
     working_dir: /mobile
     environment:
       PUB_CACHE: /home/cirrus/.pub-cache
     volumes:
       - ./mobile:/mobile
       - flutter_home:/home/cirrus
+      - gradle_home:/root/.gradle
+      - android_sdk:/opt/android-sdk-linux
     stdin_open: true
     tty: true
 
 volumes:
   db_data: {}
   flutter_home: {}
+  gradle_home: {}
+  android_sdk: {}

@@ -53,7 +53,9 @@ class _VerifyScreenState extends State<VerifyScreen> {
                   Text(
                     widget.email,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodySmall,
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
                   ),
                   const SizedBox(height: 24),
                   TextField(

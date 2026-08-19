@@ -1,0 +1,129 @@
+{% extends "base_admin.html" %}
+{% block title %}Eventos & Torneos - Andes Padel PRO{% endblock %}
+{% block page_title %}GESTION DE TORNEOS, EVENTOS & NOTICIAS{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Torneos</div>
+  <button onclick="document.getElementById('modal-tournament').style.display='flex'" class="btn">+ Nuevo Torneo</button>
+</div>
+
+<!-- Modal Torneo -->
+<div id="modal-tournament" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Nuevo Torneo</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_tournament">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO DEL TORNEO</label>
+        <input type="text" name="title" placeholder="Ej. Torneo Apertura 2026" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CATEGORIA</label>
+        <select name="category">
+          <option value="Primera">Primera Categoria</option>
+          <option value="Segunda">Segunda Categoria</option>
+          <option value="Tercera">Tercera Categoria</option>
+          <option value="Open">Open Masculino / Femenino</option>
+          <option value="Mixto">Mixto</option>
+        </select>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAXIMO PAREJAS / DUOS</label>
+        <input type="number" name="max_teams" value="16" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO INSCRIPCION ($)</label>
+        <input type="number" step="0.01" name="entry_fee" value="40.00" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA INICIO</label>
+        <input type="date" name="start_date" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA FIN</label>
+        <input type="date" name="end_date" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-tournament').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Publicar Torneo</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container" style="margin-bottom: 40px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Torneo</th>
+        <th>Categoria</th>
+        <th>Cupo Max</th>
+        <th>Inscripcion</th>
+        <th>Fechas</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for t in tournaments %}
+      <tr>
+        <td style="font-weight: 800; font-size: 16px;">{{ t.title }}</td>
+        <td><span class="badge badge-active">{{ t.category }}</span></td>
+        <td>{{ t.max_teams }} Parejas</td>
+        <td style="font-weight: 900; color: var(--volt-green);">${{ t.entry_fee }}</td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ t.start_date }} al {{ t.end_date }}</td>
+        <td><span class="badge badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Sin torneos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<div class="section-header">
+  <div class="section-title">Noticias & Publicaciones</div>
+  <button onclick="document.getElementById('modal-news').style.display='flex'" class="btn btn-outline">+ Nueva Noticia</button>
+</div>
+
+<!-- Modal Noticia -->
+<div id="modal-news" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Publicar Noticia</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_news">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
+        <input type="text" name="title" placeholder="Ej. Nuevas canchas techadas disponibles" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CONTENIDO</label>
+        <textarea name="content" rows="4" placeholder="Escribe el anuncio para los jugadores..." required></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-news').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Titulo</th>
+        <th>Fecha Publicacion</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for n in news %}
+      <tr>
+        <td style="font-weight: 700;">{{ n.title }}</td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ n.published_at|date:"Y-m-d H:i" }}</td>
+        <td><span class="badge badge-active">Publicado</span></td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Sin noticias publicadas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

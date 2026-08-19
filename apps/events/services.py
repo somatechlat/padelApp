@@ -29,9 +29,23 @@ class TournamentService:
             ).count()
             if used >= locked.capacity:
                 raise ValueError(_("Torneo lleno"))
-            return TournamentRegistration.objects.create(
+            reg = TournamentRegistration.objects.create(
                 tournament=locked, user=user, partner_name=partner_name
             )
+        from apps.security.services import log_event
+        log_event(user, "tournament.register", "TournamentRegistration", reg.id)
+        from apps.notifications.tasks import notify_task
+        notify_task.delay(
+            user.id,
+            "tournament_registered",
+            "",
+            "",
+            {
+                "tournament": tournament.name_localized,
+                "tournament_id": tournament.id,
+            },
+        )
+        return reg
 
     @staticmethod
     def confirm(registration):

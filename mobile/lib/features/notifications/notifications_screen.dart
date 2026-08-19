@@ -151,9 +151,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   IconData _iconFor(String? eventType) {
     if (eventType == null) return Icons.notifications_none;
     if (eventType.contains('booking')) return Icons.event_available_outlined;
-    if (eventType.contains('payment')) return Icons.payments_outlined;
+    if (eventType.contains('payment') || eventType.contains('transfer')) return Icons.payments_outlined;
     if (eventType.contains('tournament')) return Icons.emoji_events_outlined;
     if (eventType.contains('news')) return Icons.article_outlined;
+    if (eventType.contains('no_show')) return Icons.person_off_outlined;
     return Icons.notifications_none;
   }
 }

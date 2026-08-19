@@ -48,6 +48,19 @@ class PaymentService:
         return payment
 
     @staticmethod
+    def fail(payment, reason=""):
+        payment.status = Payment.Status.FAILED
+        payment.save(update_fields=["status", "updated_at"])
+        log_event(payment.user, "payment.failed", "Payment", payment.id,
+                  after={"reason": reason})
+        NotificationService.notify(
+            payment.user,
+            "payment_failed",
+            data={"amount": f"${payment.amount}", "payment_id": payment.id, "reason": reason},
+        )
+        return payment
+
+    @staticmethod
     def record_transfer(booking, reference):
         payment = Payment.objects.create(
             booking=booking,
@@ -70,6 +83,26 @@ class PaymentService:
             payment.user,
             "transfer_confirmed",
             data={"amount": f"${payment.amount}", "payment_id": payment.id},
+        )
+        return payment
+
+    @staticmethod
+    def reject_transfer(payment, reason):
+        payment.status = Payment.Status.FAILED
+        payment.rejection_reason = reason
+        payment.save(update_fields=["status", "rejection_reason", "updated_at"])
+        log_event(
+            payment.user, "payment.transfer_rejected", "Payment", payment.id,
+            after={"rejection_reason": reason},
+        )
+        NotificationService.notify(
+            payment.user,
+            "transfer_rejected",
+            data={
+                "amount": f"${payment.amount}",
+                "payment_id": payment.id,
+                "reason": reason,
+            },
         )
         return payment
 
