@@ -200,7 +200,7 @@ class _EventsScreenState extends State<EventsScreen> {
                   ),
                   const SizedBox(height: AppSpacing.xxs),
                   Text(
-                    '$l10n.capacity: $confirmed/$capacity · '
+                    '${l10n.capacity}: $confirmed/$capacity · '
                     '${isFree ? l10n.free : '\$$price'}',
                     style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                           color: isFree

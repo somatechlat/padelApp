@@ -223,5 +223,7 @@
   "bookingModified": "Booking modified",
   "noShowPenalty": "No-show penalty",
   "tournamentRegistered": "Tournament registered",
-  "newsPublished": "News published"
+  "newsPublished": "News published",
+  "durationMin": "min",
+  "paymentProcessing": "Processing payment..."
 }

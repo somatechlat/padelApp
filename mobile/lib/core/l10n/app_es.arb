@@ -223,5 +223,7 @@
   "bookingModified": "Reserva modificada",
   "noShowPenalty": "Penalizacion por inasistencia",
   "tournamentRegistered": "Inscripcion registrada",
-  "newsPublished": "Noticia publicada"
+  "newsPublished": "Noticia publicada",
+  "durationMin": "min",
+  "paymentProcessing": "Procesando pago..."
 }

@@ -95,7 +95,7 @@ class PaymentMethodScreen extends StatelessWidget {
       );
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Stripe payment intent created')),
+          SnackBar(content: Text(l10n.paymentProcessing)),
         );
         Navigator.of(context).pop(payment);
       }

@@ -141,7 +141,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                 subtitle: Text(
                   '${dateShort(l10n, b['date'] as String?)} · '
                   '${timeShort(b['start_time'] as String?)} · '
-                  '${b['duration_minutes']} min',
+                  '${b['duration_minutes']} ${l10n.durationMin}',
                 ),
                 trailing: StatusChip(label: label, color: color),
                 onTap: cancellable ? () => _cancelBooking(b) : null,

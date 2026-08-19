@@ -284,7 +284,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                 l10n.duration,
                 _duration,
                 _durations,
-                (v) => '$v min',
+                (v) => '$v ${l10n.durationMin}',
                 (v) => setState(() {
                   _duration = v;
                   _price = null;
