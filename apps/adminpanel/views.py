@@ -366,7 +366,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["tournaments"] = Tournament.objects.all().order_by("-start_date")
-        ctx["events"] = Event.objects.all().order_by("-start_date")
+        ctx["events"] = Event.objects.all().order_by("-start_at")
         ctx["news"] = NewsPost.objects.all().order_by("-published_at")
         return ctx
 
@@ -423,7 +423,7 @@ class ReportsAdminView(StaffRequiredMixin, TemplateView):
         ).values("booking__court__name").annotate(total=Sum("amount"))
 
         ctx["top_customers"] = User.objects.annotate(
-            booking_count=Count("booking")
+            booking_count=Count("bookings")
         ).order_by("-booking_count")[:10]
 
         return ctx
@@ -435,7 +435,7 @@ class ReportsAdminView(StaffRequiredMixin, TemplateView):
             writer = csv.writer(response)
             writer.writerow(["ID Reserva", "Fecha", "Cliente", "Cancha", "Precio", "Estado"])
             for b in Booking.objects.select_related("user", "court").order_by("-date")[:500]:
-                writer.writerow([b.id, b.date, b.user.email, b.court.name, b.total_price, b.status])
+                writer.writerow([b.id, b.date, b.user.email, b.court.name, b.price, b.status])
             return response
         return super().get(request, *args, **kwargs)
 
@@ -446,7 +446,7 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["policies"] = CancellationPolicy.objects.all()
-        ctx["price_rules"] = PriceRule.objects.select_related("court").all()
+        ctx["price_rules"] = PriceRule.objects.select_related("venue").all()
         return ctx
 
 
