@@ -27,10 +27,10 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.sports_tennis_outlined,
-                    size: 56,
-                    color: Theme.of(context).colorScheme.primary,
+                  Image.asset(
+                    'assets/images/LOGOTIPO-ANDES-PADEL.png',
+                    height: 80,
+                    fit: BoxFit.contain,
                   ),
                   const SizedBox(height: 16),
                   Text(

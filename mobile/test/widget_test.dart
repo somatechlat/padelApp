@@ -20,7 +20,7 @@ void main() {
     await tester.pumpWidget(buildApp(FakeApi()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Andes Padel'), findsOneWidget);
+    expect(find.text('Andes Pádel'), findsOneWidget);
     expect(find.text('Iniciar sesión'), findsWidgets);
     expect(find.byType(TextButton), findsWidgets);
   });

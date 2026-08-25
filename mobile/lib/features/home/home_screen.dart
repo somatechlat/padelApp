@@ -48,12 +48,12 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final scheme = Theme.of(context).colorScheme;
     final user = context.watch<AuthState>().user;
     final userName = (user?['full_name'] as String?) ?? '';
     final greeting = userName.isNotEmpty ? l10n.homeGreeting(userName) : l10n.homeWelcome;
 
     return Scaffold(
-      backgroundColor: AppColors.backgroundDark,
       body: SafeArea(
         child: RefreshIndicator(
           onRefresh: _loadCourts,
@@ -66,9 +66,9 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      _buildHeader(l10n, greeting),
+                      _buildHeader(l10n, greeting, scheme),
                       const SizedBox(height: AppSpacing.lg),
-                      _buildHeroBanner(l10n),
+                      _buildHeroBanner(l10n, scheme),
                       const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               SliverPadding(
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                sliver: _buildCourtsSection(l10n),
+                sliver: _buildCourtsSection(l10n, scheme),
               ),
               const SliverToBoxAdapter(
                   child: SizedBox(height: AppSpacing.xl)),
@@ -87,32 +87,26 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeader(AppLocalizations l10n, String greeting) {
+  Widget _buildHeader(AppLocalizations l10n, String greeting, ColorScheme scheme) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.brand,
-            borderRadius: BorderRadius.circular(24),
-          ),
-          child: Text(
-            l10n.appTitle,
-            style: const TextStyle(
-              color: AppColors.backgroundDark,
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-            ),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(8),
+          child: Image.asset(
+            'assets/images/LOGOTIPO-ANDES-PADEL.png',
+            height: 32,
+            fit: BoxFit.contain,
           ),
         ),
         Container(
-          decoration: const BoxDecoration(
-            color: AppColors.surfaceDark,
+          decoration: BoxDecoration(
+            color: scheme.surface,
             shape: BoxShape.circle,
+            border: Border.all(color: scheme.outline),
           ),
           child: IconButton(
-            icon: const Icon(Icons.notifications_none, color: Colors.white),
+            icon: Icon(Icons.notifications_none, color: scheme.onSurface),
             onPressed: () {},
           ),
         ),
@@ -120,19 +114,13 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroBanner(AppLocalizations l10n) {
+  Widget _buildHeroBanner(AppLocalizations l10n, ColorScheme scheme) {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.lg),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: AppColors.brand,
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-        border: Border.all(color: AppColors.outlineDark),
-        gradient: const LinearGradient(
-          colors: [AppColors.surfaceDark, Color(0xFF1A2210)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -140,7 +128,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             l10n.appTagline,
             style: TextStyle(
-              color: Colors.white.withOpacity(0.8),
+              color: Colors.white.withValues(alpha: 0.8),
               fontSize: 14,
               fontWeight: FontWeight.w800,
               letterSpacing: 0.5,
@@ -150,7 +138,7 @@ class _HomeScreenState extends State<HomeScreen> {
           Text(
             l10n.appTitle,
             style: const TextStyle(
-              color: AppColors.brand,
+              color: AppColors.accent,
               fontSize: 32,
               fontWeight: FontWeight.w900,
               letterSpacing: -0.5,
@@ -161,7 +149,7 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildCourtsSection(AppLocalizations l10n) {
+  Widget _buildCourtsSection(AppLocalizations l10n, ColorScheme scheme) {
     if (_courts == null) {
       return const SliverFillRemaining(
         child: Center(child: CircularProgressIndicator()),
@@ -174,12 +162,12 @@ class _HomeScreenState extends State<HomeScreen> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(Icons.sports_tennis_outlined,
-                  size: 48, color: AppColors.textMutedDark),
+                  size: 48, color: scheme.onSurface.withValues(alpha: 0.4)),
               const SizedBox(height: AppSpacing.sm),
               Text(
                 l10n.noCourtsAvailable,
-                style: const TextStyle(
-                    color: AppColors.textMutedDark, fontSize: 14),
+                style: TextStyle(
+                    color: scheme.onSurface.withValues(alpha: 0.6), fontSize: 14),
               ),
             ],
           ),
@@ -190,14 +178,15 @@ class _HomeScreenState extends State<HomeScreen> {
       delegate: SliverChildBuilderDelegate(
         (context, i) {
           final c = _courts![i] as Map<String, dynamic>;
-          return _buildCourtCard(c, l10n);
+          return _buildCourtCard(c, l10n, scheme);
         },
         childCount: _courts!.length,
       ),
     );
   }
 
-  Widget _buildCourtCard(Map<String, dynamic> court, AppLocalizations l10n) {
+  Widget _buildCourtCard(
+      Map<String, dynamic> court, AppLocalizations l10n, ColorScheme scheme) {
     final name = (court['name'] as String?) ?? '';
     final courtType = court['court_type'] as String?;
     final hasLighting = court['has_lighting'] as bool? ?? false;
@@ -207,9 +196,9 @@ class _HomeScreenState extends State<HomeScreen> {
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: AppColors.surfaceDark,
+        color: scheme.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-        border: Border.all(color: AppColors.outlineDark),
+        border: Border.all(color: scheme.outline),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,8 +212,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   children: [
                     Text(
                       name,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: scheme.onSurface,
                         fontSize: 18,
                         fontWeight: FontWeight.w900,
                       ),
@@ -232,8 +221,8 @@ class _HomeScreenState extends State<HomeScreen> {
                     const SizedBox(height: 4),
                     Text(
                       '${_courtTypeLabel(l10n, courtType)} · ${hasLighting ? l10n.hasLighting : l10n.noLighting}',
-                      style: const TextStyle(
-                        color: AppColors.textMutedDark,
+                      style: TextStyle(
+                        color: scheme.onSurface.withValues(alpha: 0.6),
                         fontSize: 14,
                       ),
                     ),
@@ -242,7 +231,7 @@ class _HomeScreenState extends State<HomeScreen> {
               ),
               Icon(
                 hasLighting ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                color: AppColors.textMutedDark,
+                color: scheme.onSurface.withValues(alpha: 0.5),
                 size: 20,
               ),
             ],
@@ -254,8 +243,8 @@ class _HomeScreenState extends State<HomeScreen> {
               if (priceBase != null)
                 Text(
                   '\$$priceBase ${l10n.perHour}',
-                  style: const TextStyle(
-                    color: AppColors.brand,
+                  style: TextStyle(
+                    color: AppColors.accent,
                     fontSize: 16,
                     fontWeight: FontWeight.w900,
                   ),
@@ -268,7 +257,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.brand,
-                  foregroundColor: AppColors.backgroundDark,
+                  foregroundColor: Colors.white,
                   minimumSize: const Size(64, 48),
                   shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(20)),

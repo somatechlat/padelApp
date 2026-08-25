@@ -206,7 +206,7 @@ class _MethodTile extends StatelessWidget {
                   ],
                 ),
               ),
-              Icon(Icons.chevron_right, color: scheme.onSurface.withOpacity(0.4)),
+              Icon(Icons.chevron_right, color: scheme.onSurface.withValues(alpha: 0.4)),
             ],
           ),
         ),
