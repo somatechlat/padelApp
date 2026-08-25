@@ -13,14 +13,14 @@ ADMIN_USER = "admin@andespadel.com"
 ADMIN_PASS = "Andes12345!"
 
 
-def capture(page, name, url=None, full_page=True, wait=3):
+def capture(page, name, url=None, full_page=True, wait=3, screenshot_timeout=60000):
     print(f"  Capturing: {name}")
     if url:
         page.goto(url, wait_until="networkidle", timeout=30000)
         time.sleep(2)
     time.sleep(wait)
     path = OUT / f"{name}.png"
-    page.screenshot(path=str(path), full_page=full_page)
+    page.screenshot(path=str(path), full_page=full_page, timeout=screenshot_timeout)
     print(f"    -> {path.name}")
 
 
