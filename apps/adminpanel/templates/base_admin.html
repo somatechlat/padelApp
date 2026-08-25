@@ -9,21 +9,26 @@
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
 <style>
   :root {
-    --bg-dark: #121418;
-    --sidebar-bg: #16191E;
-    --card-bg: #1E2229;
-    --card-hover: #252A33;
-    --input-bg: #262B33;
-    --border-color: #2E3440;
-    --volt-green: #D4FF00;
-    --volt-hover: #b8de00;
-    --volt-glow: rgba(212, 255, 0, 0.25);
+    /* ── Andes Pádel Corporate Palette ── */
+    --bg-dark: #001219;
+    --sidebar-bg: #001A2A;
+    --card-bg: #001F2E;
+    --card-hover: #002636;
+    --input-bg: #002636;
+    --border-color: #1A3A4A;
+    --brand: #002F48;
+    --brand-deep: #001A2A;
+    --brand-light: #3571B8;
+    --accent: #CEDC29;
+    --accent-hover: #B8C825;
+    --accent-glow: rgba(206, 220, 41, 0.25);
+    --accent-soft: #E8EFB0;
     --text-primary: #FFFFFF;
-    --text-muted: #9AA0AC;
-    --text-dark: #121418;
-    --accent-red: #FF4D4D;
+    --text-muted: #90A4AE;
+    --text-dark: #001A2A;
+    --accent-red: #D32F2F;
     --accent-yellow: #FFC107;
-    --accent-blue: #2196F3;
+    --accent-blue: #3571B8;
     --radius-sm: 8px;
     --radius-md: 14px;
     --radius-lg: 20px;
@@ -58,13 +63,13 @@
     border-bottom: 1px solid var(--border-color);
   }
   .brand-badge {
-    background-color: var(--volt-green);
-    color: var(--text-dark);
+    background-color: var(--brand);
+    color: var(--text-primary);
     font-weight: 900;
     font-size: 16px;
     padding: 6px 12px;
     border-radius: var(--radius-sm);
-    box-shadow: 0 0 12px var(--volt-glow);
+    box-shadow: 0 0 12px var(--accent-glow);
     letter-spacing: -0.5px;
   }
   .brand-title {
@@ -101,10 +106,10 @@
   }
 
   nav a.active {
-    background-color: var(--volt-green);
-    color: var(--text-dark);
+    background-color: var(--brand);
+    color: var(--text-primary);
     font-weight: 700;
-    box-shadow: 0 4px 14px var(--volt-glow);
+    box-shadow: 0 4px 14px rgba(0, 47, 72, 0.4);
   }
 
   .sidebar-footer {
@@ -147,8 +152,8 @@
 
   .role-pill {
     background: var(--input-bg);
-    color: var(--volt-green);
-    border: 1px solid var(--volt-green);
+    color: var(--accent);
+    border: 1px solid var(--accent);
     font-size: 12px;
     font-weight: 700;
     padding: 4px 12px;
@@ -202,7 +207,7 @@
     content: '';
     position: absolute;
     top: 0; left: 0; width: 4px; height: 100%;
-    background-color: var(--volt-green);
+    background-color: var(--accent);
   }
   .card-label {
     font-size: 12px;
@@ -233,8 +238,8 @@
     align-items: center;
     justify-content: space-between;
   }
-  .alert-success { background: rgba(212, 255, 0, 0.15); border: 1px solid var(--volt-green); color: var(--volt-green); }
-  .alert-error { background: rgba(255, 77, 77, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
+  .alert-success { background: rgba(206, 220, 41, 0.15); border: 1px solid var(--accent); color: var(--accent); }
+  .alert-error { background: rgba(211, 47, 47, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
   .alert-warning { background: rgba(255, 193, 7, 0.15); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); }
 
   /* Tables */
@@ -275,8 +280,8 @@
 
   /* Buttons */
   .btn {
-    background-color: var(--volt-green);
-    color: var(--text-dark);
+    background-color: var(--brand);
+    color: var(--text-primary);
     font-weight: 700;
     font-size: 13px;
     padding: 10px 20px;
@@ -289,10 +294,10 @@
     gap: 8px;
     transition: all 0.2s;
   }
-  .btn:hover { background-color: var(--volt-hover); transform: translateY(-1px); }
+  .btn:hover { background-color: var(--brand-light); transform: translateY(-1px); }
   .btn-sm { padding: 6px 14px; font-size: 12px; }
   .btn-outline { background: transparent; border: 1px solid var(--border-color); color: var(--text-primary); }
-  .btn-outline:hover { border-color: var(--volt-green); color: var(--volt-green); background: transparent; }
+  .btn-outline:hover { border-color: var(--brand); color: var(--brand); background: transparent; }
   .btn-danger { background: var(--accent-red); color: white; }
 
   /* Forms */
@@ -307,8 +312,8 @@
     outline: none;
   }
   input:focus, select:focus, textarea:focus {
-    border-color: var(--volt-green);
-    box-shadow: 0 0 0 2px var(--volt-glow);
+    border-color: var(--brand);
+    box-shadow: 0 0 0 2px rgba(0, 47, 72, 0.3);
   }
 
   /* Status Badges */
@@ -320,9 +325,9 @@
     text-transform: uppercase;
     display: inline-block;
   }
-  .badge-active, .badge-confirmed, .badge-booked, .badge-captured { background: rgba(212, 255, 0, 0.2); color: var(--volt-green); border: 1px solid var(--volt-green); }
+  .badge-active, .badge-confirmed, .badge-booked, .badge-captured { background: rgba(206, 220, 41, 0.2); color: var(--accent); border: 1px solid var(--accent); }
   .badge-pending, .badge-held, .badge-pending_payment, .badge-pending_transfer { background: rgba(255, 193, 7, 0.2); color: var(--accent-yellow); border: 1px solid var(--accent-yellow); }
-  .badge-blocked, .badge-inactive, .badge-cancelled, .badge-failed { background: rgba(255, 77, 77, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
+  .badge-blocked, .badge-inactive, .badge-cancelled, .badge-failed { background: rgba(211, 47, 47, 0.2); color: var(--accent-red); border: 1px solid var(--accent-red); }
 
   /* Section Title */
   .section-header {
@@ -351,9 +356,9 @@
     font-weight: 600;
   }
   .slot-available { background: rgba(255, 255, 255, 0.05); color: var(--text-muted); }
-  .slot-booked { background: rgba(212, 255, 0, 0.15); border: 1px solid var(--volt-green); color: var(--volt-green); }
+  .slot-booked { background: rgba(206, 220, 41, 0.15); border: 1px solid var(--accent); color: var(--accent); }
   .slot-held { background: rgba(255, 193, 7, 0.15); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); }
-  .slot-blocked { background: rgba(255, 77, 77, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
+  .slot-blocked { background: rgba(211, 47, 47, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
 </style>
 </head>
 <body>
@@ -361,7 +366,7 @@
 <aside>
   <div class="brand">
     <div class="brand-badge">PRO</div>
-    <div class="brand-title">Padel Admin</div>
+    <div class="brand-title">Andes Pádel</div>
   </div>
   <nav>
     <a href="{% url 'adminpanel:dashboard' %}" class="{% if request.resolver_match.url_name == 'dashboard' or request.resolver_match.url_name == 'index' %}active{% endif %}">

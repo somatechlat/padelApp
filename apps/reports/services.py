@@ -116,7 +116,7 @@ class ReportService:
         table.setStyle(
             TableStyle(
                 [
-                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#1a6d3a")),
+                    ("BACKGROUND", (0, 0), (-1, 0), colors.HexColor("#002F48")),
                     ("TEXTCOLOR", (0, 0), (-1, 0), colors.white),
                     ("GRID", (0, 0), (-1, -1), 0.5, colors.grey),
                 ]

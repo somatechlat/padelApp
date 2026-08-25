@@ -54,7 +54,7 @@
       <tr>
         <td style="font-weight: 800; font-size: 16px;">{{ c.name }}</td>
         <td><span class="badge badge-active">{{ c.get_court_type_display }}</span></td>
-        <td>{% if c.has_lighting %}<span style="color: var(--volt-green); font-weight: 700;">✓ LED</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
+        <td>{% if c.has_lighting %}<span style="color: var(--accent); font-weight: 700;">✓ LED</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
         <td><span class="badge badge-{{ c.status }}">{{ c.status|upper }}</span></td>
         <td>
           <form method="post" style="display: inline;">

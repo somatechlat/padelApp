@@ -20,7 +20,7 @@ style.paragraph_format.space_after = Pt(6)
 
 for level in range(1, 4):
     hs = doc.styles[f"Heading {level}"]
-    hs.font.color.rgb = RGBColor(0x1B, 0x5E, 0x20)
+    hs.font.color.rgb = RGBColor(0x00, 0x2F, 0x48)  # Midnight Blue
 
 # ── Helper functions ──
 def add_screenshot(name, caption, width=5.5):
@@ -77,7 +77,7 @@ title.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run = title.add_run("Manual de Usuario")
 run.font.size = Pt(32)
 run.font.bold = True
-run.font.color.rgb = RGBColor(0x1B, 0x5E, 0x20)
+run.font.color.rgb = RGBColor(0x00, 0x2F, 0x48)  # Midnight Blue
 
 subtitle = doc.add_paragraph()
 subtitle.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -777,7 +777,7 @@ p.alignment = WD_ALIGN_PARAGRAPH.CENTER
 run = p.add_run("— Fin del Manual —")
 run.font.size = Pt(12)
 run.font.italic = True
-run.font.color.rgb = RGBColor(0x1B, 0x5E, 0x20)
+run.font.color.rgb = RGBColor(0x00, 0x2F, 0x48)  # Midnight Blue
 
 p = doc.add_paragraph()
 p.alignment = WD_ALIGN_PARAGRAPH.CENTER
