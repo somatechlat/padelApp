@@ -9,7 +9,9 @@
 - ✅ Celery Worker (async tasks)
 - ✅ Flutter APK Built & Ready
 
-**APK Location:** `./padelapp-debug.apk` (89 MB)
+**APK Location:** `./padelapp-debug.apk` (86 MB)
+
+**Full build & deploy instructions:** [docs/BUILD_AND_DEPLOY.md](docs/BUILD_AND_DEPLOY.md)
 
 ---
 
@@ -46,7 +48,7 @@ Role:     cliente
 ### Admin Panel Access
 
 ```
-URL:      http://192.168.100.131:8000/adminpanel/login/
+URL:      https://andespadel.yachaq.io/adminpanel/login/
 Email:    admin@andespadel.com
 Password: Andes12345!
 ```
@@ -110,18 +112,24 @@ Password: Andes12345!
 
 ## 🌐 Network Details
 
-**Your Machine IP:** `192.168.100.131`
+**Production Server:** `https://andespadel.yachaq.io`
 
 **Services Available:**
 
 | Service | URL | Port |
 |---------|-----|------|
-| Backend API | http://192.168.100.131:8000/api | 8000 |
-| Admin Panel | http://192.168.100.131:8000/adminpanel | 8000 |
-| Database | 192.168.100.131:5432 | 5432 |
-| Redis | 192.168.100.131:6379 | 6379 |
+| Backend API | https://andespadel.yachaq.io/api | 443 |
+| Admin Panel | https://andespadel.yachaq.io/adminpanel | 443 |
+| Landing Page | https://andespadel.yachaq.io | 443 |
 
-**From Phone:** Make sure phone is on **same WiFi network** as your machine.
+**Local Development (Docker):**
+
+| Service | URL | Port |
+|---------|-----|------|
+| Backend API | http://localhost:8000/api | 8000 |
+| Admin Panel | http://localhost:8000/adminpanel | 8000 |
+| Database | localhost:5432 | 5432 |
+| Redis | localhost:6379 | 6379 |
 
 ---
 
@@ -184,8 +192,8 @@ make seeddemo
 - Try clearing app cache first: `adb shell pm clear com.andes.padel.padel_app`
 
 ### Can't Connect to Backend
-- Verify phone is on same WiFi as your machine
-- Test: Open browser on phone → `http://192.168.100.131:8000/api/auth/me/`
+- Verify phone has internet access
+- Test: Open browser on phone → `https://andespadel.yachaq.io/api/auth/me/`
 - Should see: `{"detail":"Las credenciales de autenticación no se proveyeron."}`
 
 ### Bookings Not Loading
@@ -220,10 +228,10 @@ make seeddemo
 ## ✅ Checklist Before Presentation
 
 - [ ] APK installed on phone
-- [ ] Phone on same WiFi as machine
-- [ ] Backend running (docker compose ps shows all healthy)
+- [ ] Phone has internet access (connects to andespadel.yachaq.io)
+- [ ] Backend running (check https://andespadel.yachaq.io/api/auth/me/)
 - [ ] Can login to mobile app
-- [ ] Can access admin dashboard
+- [ ] Can access admin dashboard (https://andespadel.yachaq.io/adminpanel)
 - [ ] Can view bookings on mobile
 - [ ] Can see demo data in admin panel
 - [ ] Test booking creation workflow
