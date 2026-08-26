@@ -1,0 +1,801 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Andes Pádel — Reserva tu Cancha</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --brand: #002F48;
+            --brand-deep: #001A2A;
+            --brand-light: #3571B8;
+            --accent: #CEDC29;
+            --accent-hover: #B8C825;
+            --accent-soft: #E8EFB0;
+            --bg: #001219;
+            --surface: #001F2E;
+            --surface-hover: #002636;
+            --border: #1A3A4A;
+            --text: #FFFFFF;
+            --text-muted: #90A4AE;
+            --success: #2E7D32;
+            --warning: #FFC107;
+            --danger: #D32F2F;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        /* NAV */
+        nav {
+            position: fixed; top: 0; width: 100%; z-index: 100;
+            background: rgba(0, 18, 25, 0.85);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            padding: 0 2rem;
+        }
+        .nav-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: flex; align-items: center; justify-content: space-between;
+            height: 70px;
+        }
+        .logo {
+            display: flex; align-items: center; gap: 12px;
+            font-size: 1.3rem; font-weight: 800; color: var(--text);
+            text-decoration: none;
+        }
+        .logo-icon {
+            width: 40px; height: 40px;
+            background: var(--accent);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.1rem; color: var(--brand-deep);
+            font-weight: 900;
+        }
+        .nav-links { display: flex; gap: 2rem; align-items: center; }
+        .nav-links a {
+            color: var(--text-muted); text-decoration: none;
+            font-size: 0.9rem; font-weight: 500;
+            transition: color 0.2s;
+        }
+        .nav-links a:hover { color: var(--accent); }
+        .nav-cta {
+            background: var(--accent) !important; color: var(--brand-deep) !important;
+            padding: 10px 24px; border-radius: 8px; font-weight: 700 !important;
+            transition: all 0.2s !important;
+        }
+        .nav-cta:hover { background: var(--accent-hover) !important; transform: translateY(-1px); }
+        .hamburger {
+            display: none; background: none; border: none; cursor: pointer;
+            flex-direction: column; gap: 5px; padding: 5px;
+        }
+        .hamburger span {
+            width: 24px; height: 2px; background: var(--text);
+            transition: all 0.3s;
+        }
+
+        /* HERO */
+        .hero {
+            min-height: 100vh; display: flex; align-items: center;
+            padding: 120px 2rem 80px;
+            position: relative; overflow: hidden;
+        }
+        .hero::before {
+            content: '';
+            position: absolute; top: -50%; right: -30%;
+            width: 800px; height: 800px;
+            background: radial-gradient(circle, rgba(206,220,41,0.08) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .hero-inner {
+            max-width: 1200px; margin: 0 auto; width: 100%;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+            align-items: center; position: relative; z-index: 1;
+        }
+        .hero-badge {
+            display: inline-flex; align-items: center; gap: 8px;
+            background: rgba(206,220,41,0.1); border: 1px solid rgba(206,220,41,0.2);
+            padding: 6px 16px; border-radius: 50px;
+            font-size: 0.8rem; color: var(--accent); font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+        .hero-badge::before {
+            content: ''; width: 6px; height: 6px;
+            background: var(--accent); border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
+        .hero h1 {
+            font-size: 3.8rem; font-weight: 900; line-height: 1.05;
+            margin-bottom: 1.5rem;
+        }
+        .hero h1 span { color: var(--accent); }
+        .hero p {
+            font-size: 1.15rem; color: var(--text-muted);
+            margin-bottom: 2.5rem; max-width: 500px;
+        }
+        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 14px 32px; border-radius: 10px;
+            font-size: 0.95rem; font-weight: 700;
+            text-decoration: none; border: none; cursor: pointer;
+            transition: all 0.25s;
+        }
+        .btn-primary { background: var(--accent); color: var(--brand-deep); }
+        .btn-primary:hover {
+            background: var(--accent-hover); transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(206,220,41,0.25);
+        }
+        .btn-secondary {
+            background: var(--surface); color: var(--text);
+            border: 1px solid var(--border);
+        }
+        .btn-secondary:hover {
+            background: var(--surface-hover); border-color: var(--brand-light);
+        }
+        .hero-visual { display: flex; justify-content: center; align-items: center; }
+        .phone-mockup {
+            width: 280px; height: 560px;
+            background: linear-gradient(145deg, var(--surface), var(--brand-deep));
+            border-radius: 36px; border: 3px solid var(--border);
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            position: relative; overflow: hidden;
+            box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+        }
+        .phone-mockup::before {
+            content: '';
+            position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+            width: 120px; height: 28px;
+            background: var(--bg); border-radius: 0 0 16px 16px;
+        }
+        .phone-screen {
+            width: 90%; height: 88%;
+            background: linear-gradient(180deg, var(--brand) 0%, var(--brand-deep) 100%);
+            border-radius: 24px;
+            display: flex; flex-direction: column;
+            align-items: center; justify-content: center;
+            padding: 1.5rem; text-align: center;
+        }
+        .phone-screen .court-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+        .phone-screen h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
+        .phone-screen p { font-size: 0.7rem; color: var(--text-muted); }
+        .phone-screen .slots {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 6px;
+            margin-top: 1rem; width: 100%;
+        }
+        .phone-screen .slot {
+            background: rgba(206,220,41,0.1);
+            border: 1px solid rgba(206,220,41,0.2);
+            border-radius: 6px; padding: 6px;
+            font-size: 0.6rem; color: var(--accent); font-weight: 600;
+        }
+        .phone-screen .slot.booked {
+            background: rgba(46,125,50,0.15);
+            border-color: rgba(46,125,50,0.3);
+            color: var(--success);
+        }
+        .phone-nav {
+            display: flex; justify-content: space-around; width: 100%;
+            margin-top: 0.8rem; padding-top: 0.6rem;
+            border-top: 1px solid rgba(255,255,255,0.1);
+        }
+        .phone-nav span { font-size: 1rem; opacity: 0.5; }
+        .phone-nav span:first-child { opacity: 1; color: var(--accent); }
+
+        /* STATS */
+        .stats {
+            padding: 4rem 2rem;
+            border-top: 1px solid var(--border);
+            border-bottom: 1px solid var(--border);
+        }
+        .stats-inner {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+        }
+        .stat { text-align: center; }
+        .stat-num {
+            font-size: 2.5rem; font-weight: 900; color: var(--accent);
+        }
+        .stat-label {
+            font-size: 0.85rem; color: var(--text-muted); margin-top: 0.3rem;
+        }
+
+        /* FEATURES */
+        .features { padding: 6rem 2rem; }
+        .section-header { text-align: center; margin-bottom: 4rem; }
+        .section-tag {
+            font-size: 0.8rem; font-weight: 700; color: var(--accent);
+            text-transform: uppercase; letter-spacing: 2px;
+            margin-bottom: 0.8rem;
+        }
+        .section-header h2 { font-size: 2.5rem; font-weight: 800; }
+        .section-header p {
+            font-size: 1rem; color: var(--text-muted);
+            max-width: 550px; margin: 1rem auto 0;
+        }
+        .features-grid {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
+        }
+        .feature-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; padding: 2rem;
+            transition: all 0.3s;
+        }
+        .feature-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .feature-icon {
+            width: 50px; height: 50px;
+            background: rgba(206,220,41,0.1);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; margin-bottom: 1.2rem;
+        }
+        .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
+        .feature-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
+
+        /* BOOKING STEPS */
+        .how-it-works {
+            padding: 6rem 2rem;
+            background: linear-gradient(180deg, var(--bg) 0%, rgba(0,47,72,0.15) 50%, var(--bg) 100%);
+        }
+        .steps {
+            max-width: 1000px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
+        }
+        .step { text-align: center; }
+        .step-num {
+            width: 60px; height: 60px;
+            background: var(--accent); border-radius: 16px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; font-weight: 900; color: var(--brand-deep);
+            margin: 0 auto 1rem;
+        }
+        .step-content h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+        .step-content p { font-size: 0.85rem; color: var(--text-muted); }
+        .step-connector {
+            display: none;
+        }
+
+        /* ADMIN SECTION */
+        .admin-section {
+            padding: 6rem 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .admin-grid {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 4rem;
+            align-items: center;
+        }
+        .admin-features { display: flex; flex-direction: column; gap: 1.5rem; }
+        .admin-feat {
+            display: flex; gap: 1rem; align-items: flex-start;
+        }
+        .admin-feat-icon {
+            width: 44px; height: 44px; min-width: 44px;
+            background: rgba(53,113,184,0.15);
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .admin-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
+        .admin-feat p { font-size: 0.82rem; color: var(--text-muted); }
+        .admin-mockup {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+        .admin-bar {
+            background: var(--brand-deep); padding: 10px 16px;
+            display: flex; align-items: center; gap: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        .admin-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .admin-dot.r { background: #ff5f56; }
+        .admin-dot.y { background: #ffbd2e; }
+        .admin-dot.g { background: #27c93f; }
+        .admin-body { padding: 1.5rem; }
+        .admin-row {
+            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem;
+            margin-bottom: 0.8rem;
+        }
+        .admin-card {
+            background: var(--bg); border-radius: 10px; padding: 1rem;
+            border: 1px solid var(--border);
+        }
+        .admin-card .num {
+            font-size: 1.4rem; font-weight: 800; color: var(--accent);
+        }
+        .admin-card .label {
+            font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;
+        }
+        .admin-bar-chart {
+            display: flex; align-items: flex-end; gap: 6px;
+            height: 80px; margin-top: 1rem;
+        }
+        .admin-bar-chart div {
+            flex: 1; background: var(--brand-light); border-radius: 4px 4px 0 0;
+            opacity: 0.6; transition: opacity 0.3s;
+        }
+        .admin-bar-chart div:hover { opacity: 1; }
+        .admin-bar-chart div:nth-child(3) { background: var(--accent); opacity: 1; }
+
+        /* DOWNLOAD */
+        .download { padding: 6rem 2rem; }
+        .download-card {
+            max-width: 900px; margin: 0 auto;
+            background: linear-gradient(135deg, var(--brand) 0%, var(--brand-deep) 100%);
+            border: 1px solid var(--border);
+            border-radius: 24px; padding: 4rem;
+            text-align: center; position: relative; overflow: hidden;
+        }
+        .download-card::before {
+            content: '';
+            position: absolute; top: -100px; right: -100px;
+            width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(206,220,41,0.1) 0%, transparent 70%);
+            border-radius: 50%;
+        }
+        .download-card h2 {
+            font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem;
+            position: relative;
+        }
+        .download-card p {
+            font-size: 1rem; color: var(--text-muted);
+            margin-bottom: 2rem; max-width: 450px;
+            margin-left: auto; margin-right: auto; position: relative;
+        }
+        .download-buttons {
+            display: flex; gap: 1rem; justify-content: center;
+            flex-wrap: wrap; position: relative;
+        }
+        .store-btn {
+            display: inline-flex; align-items: center; gap: 12px;
+            background: rgba(0,0,0,0.4); border: 1px solid var(--border);
+            padding: 14px 28px; border-radius: 12px;
+            text-decoration: none; color: var(--text);
+            transition: all 0.25s;
+        }
+        .store-btn:hover {
+            border-color: var(--accent); background: rgba(206,220,41,0.08);
+            transform: translateY(-2px);
+        }
+        .store-btn .store-icon { font-size: 1.8rem; }
+        .store-btn .store-text { text-align: left; }
+        .store-btn .store-text small { font-size: 0.7rem; color: var(--text-muted); display: block; }
+        .store-btn .store-text strong { font-size: 0.95rem; }
+
+        /* LANGUAGES */
+        .languages {
+            padding: 4rem 2rem; text-align: center;
+            border-top: 1px solid var(--border);
+        }
+        .lang-flags {
+            display: flex; gap: 2rem; justify-content: center;
+            margin-top: 1.5rem;
+        }
+        .lang-item {
+            display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+        }
+        .lang-flag {
+            width: 50px; height: 50px;
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem;
+        }
+        .lang-item span { font-size: 0.8rem; color: var(--text-muted); font-weight: 500; }
+
+        /* FOOTER */
+        footer {
+            padding: 3rem 2rem;
+            border-top: 1px solid var(--border);
+            text-align: center;
+        }
+        footer p { font-size: 0.8rem; color: var(--text-muted); }
+        footer a { color: var(--accent); text-decoration: none; }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            .nav-links { display: none; }
+            .nav-links.active {
+                display: flex; flex-direction: column;
+                position: absolute; top: 70px; left: 0; right: 0;
+                background: rgba(0,18,25,0.98);
+                padding: 2rem; gap: 1.5rem;
+                border-bottom: 1px solid var(--border);
+            }
+            .hamburger { display: flex; }
+            .hero-inner { grid-template-columns: 1fr; text-align: center; }
+            .hero h1 { font-size: 2.5rem; }
+            .hero p { margin: 0 auto 2rem; }
+            .hero-buttons { justify-content: center; }
+            .hero-visual { margin-top: 3rem; }
+            .phone-mockup { width: 220px; height: 440px; }
+            .stats-inner { grid-template-columns: repeat(2, 1fr); }
+            .features-grid { grid-template-columns: 1fr; }
+            .steps { grid-template-columns: 1fr 1fr; }
+            .admin-grid { grid-template-columns: 1fr; }
+            .download-card { padding: 2.5rem 1.5rem; }
+            .download-card h2 { font-size: 1.6rem; }
+        }
+
+        /* ANIMATIONS */
+        .fade-in {
+            opacity: 0; transform: translateY(30px);
+            transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .fade-in.visible { opacity: 1; transform: translateY(0); }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav>
+        <div class="nav-inner">
+            <a href="#" class="logo">
+                <div class="logo-icon">AP</div>
+                Andes Pádel
+            </a>
+            <div class="nav-links" id="navLinks">
+                <a href="#features">Servicios</a>
+                <a href="#how">Reservar</a>
+                <a href="#admin">Admin</a>
+                <a href="#download">Descargar</a>
+                <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="nav-cta">Reservar Ahora</a>
+            </div>
+            <button class="hamburger" id="hamburger" onclick="document.getElementById('navLinks').classList.toggle('active')">
+                <span></span><span></span><span></span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="hero">
+        <div class="hero-inner">
+            <div>
+                <div class="hero-badge">Plataforma de Reservas Activa</div>
+                <h1>Reserva tu cancha de <span>pádel</span> en segundos</h1>
+                <p>App móvil, panel administrativo y reservas online. Pagos con Stripe y transferencia, notificaciones, torneos y reportes. Todo en una plataforma.</p>
+                <div class="hero-buttons">
+                    <a href="#download" class="btn btn-primary">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                        Descargar App
+                    </a>
+                    <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="btn btn-secondary">
+                        Reservar en Línea
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+                    </a>
+                </div>
+            </div>
+            <div class="hero-visual">
+                <div class="phone-mockup">
+                    <div class="phone-screen">
+                        <div class="court-icon">🏓</div>
+                        <h3>Andes Pádel</h3>
+                        <p>Paso 2 de 4 — Selecciona horario</p>
+                        <div class="slots">
+                            <div class="slot booked">08:00 Reservado</div>
+                            <div class="slot">09:00 Disponible</div>
+                            <div class="slot booked">10:00 Reservado</div>
+                            <div class="slot">11:00 Disponible</div>
+                            <div class="slot">14:00 Disponible</div>
+                            <div class="slot booked">16:00 Reservado</div>
+                            <div class="slot">17:00 Disponible</div>
+                            <div class="slot booked">18:00 Reservado</div>
+                        </div>
+                        <div class="phone-nav">
+                            <span>🏠</span><span>📅</span><span>🏆</span><span>🔔</span><span>👤</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS -->
+    <section class="stats">
+        <div class="stats-inner">
+            <div class="stat fade-in">
+                <div class="stat-num">4</div>
+                <div class="stat-label">Pasos para Reservar</div>
+            </div>
+            <div class="stat fade-in">
+                <div class="stat-num">3</div>
+                <div class="stat-label">Métodos de Pago</div>
+            </div>
+            <div class="stat fade-in">
+                <div class="stat-num">14</div>
+                <div class="stat-label">Tipos de Notificación</div>
+            </div>
+            <div class="stat fade-in">
+                <div class="stat-num">4</div>
+                <div class="stat-label">Idiomas Soportados</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section class="features" id="features">
+        <div class="section-header fade-in">
+            <div class="section-tag">Plataforma Completa</div>
+            <h2>Todo lo que necesitas para gestionar pádel</h2>
+            <p>Más de 70 funcionalidades integradas: desde la reserva del jugador hasta los reportes del administrador.</p>
+        </div>
+        <div class="features-grid">
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📅</div>
+                <h3>Reserva en 4 Pasos</h3>
+                <p>Selecciona cancha, fecha y horario, revisa el resumen y confirma. Wizard intuitivo con duración de 30 a 120 minutos y 2 a 4 jugadores.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">💳</div>
+                <h3>Pagos con Stripe</h3>
+                <p>Acepta tarjeta de crédito/débito vía Stripe, transferencia bancaria con comprobante de pago, y efectivo para recepcionistas. Reembolsos integrados.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📊</div>
+                <h3>Reportes en Tiempo Real</h3>
+                <p>Ingresos por período, tasa de ocupación, top clientes, cancelaciones y no-shows. Exporta a CSV y PDF con reportlab.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🔔</div>
+                <h3>14 Tipos de Notificación</h3>
+                <p>Confirmación, cancelación, recordatorios 2h antes, pagos, transferencias, torneos, noticias. Por email, push e in-app. Configurable por el usuario.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🏆</div>
+                <h3>Torneos y Eventos</h3>
+                <p>Crea torneos con registro de parejas, fechas límite, y recordatorios automáticos. Publica noticias y eventos con notificación push a todos los usuarios.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📱</div>
+                <h3>App Móvil Flutter</h3>
+                <p>Android e iOS. Home con canchas, wizard de reserva, mis reservas, eventos, notificaciones con preferencias, y perfil con cambio de idioma.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🌐</div>
+                <h3>Multi-idioma (i18n)</h3>
+                <p>Español, Inglés, Portugués y Catalán. Catálogos completos de traducción en backend y Flutter. El usuario elige su idioma desde el perfil.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">📈</div>
+                <h3>Pricing Dinámico</h3>
+                <p>Reglas de precio por sede, cancha, día de la semana y franja horaria. El sistema calcula automáticamente el costo de cada reserva.</p>
+            </div>
+            <div class="feature-card fade-in">
+                <div class="feature-icon">🛡️</div>
+                <h3>GDPR y Seguridad</h3>
+                <p>Consentimiento registrado, exportación de datos (portabilidad) y derecho al olvido. Auditoría de acciones admin. JWT con blacklist y throttling.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- HOW IT WORKS -->
+    <section class="how-it-works" id="how">
+        <div class="section-header fade-in">
+            <div class="section-tag">Cómo Reservar</div>
+            <h2>Reserva en 4 pasos</h2>
+            <p>El wizard de la app te guía desde la selección de cancha hasta la confirmación del pago.</p>
+        </div>
+        <div class="steps">
+            <div class="step fade-in">
+                <div class="step-num">1</div>
+                <div class="step-content">
+                    <h3>Elige la Cancha</h3>
+                    <p>Selecciona entre las canchas disponibles. Techada, abierta, con o sin iluminación.</p>
+                </div>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">2</div>
+                <div class="step-content">
+                    <h3>Fecha y Horario</h3>
+                    <p>Calendario de 7 días, slots disponibles en tiempo real. Duración de 30 a 120 minutos.</p>
+                </div>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">3</div>
+                <div class="step-content">
+                    <h3>Resumen y Pago</h3>
+                    <p>Revisa detalles, precio calculado por pricing dinámico. Selecciona método de pago.</p>
+                </div>
+            </div>
+            <div class="step fade-in">
+                <div class="step-num">4</div>
+                <div class="step-content">
+                    <h3>Confirmación</h3>
+                    <p>Pago confirmado, notificación push y email. Recordatorio automático 2 horas antes.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ADMIN PANEL -->
+    <section class="admin-section" id="admin">
+        <div class="section-header fade-in">
+            <div class="section-tag">Panel Administrativo</div>
+            <h2>Control total desde la web</h2>
+            <p>Dashboard con KPIs, calendario de reservas, gestión de canchas, usuarios, pagos y auditoría.</p>
+        </div>
+        <div class="admin-grid">
+            <div class="admin-features fade-in">
+                <div class="admin-feat">
+                    <div class="admin-feat-icon">📋</div>
+                    <div>
+                        <h4>Dashboard con KPIs</h4>
+                        <p>Reservas del día, % ocupación, ingresos, alertas y pagos recientes.</p>
+                    </div>
+                </div>
+                <div class="admin-feat">
+                    <div class="admin-feat-icon">📆</div>
+                    <div>
+                        <h4>Calendario de Reservas</h4>
+                        <p>Vista diaria con slots de 30 min por cancha. Bloquea y desbloquea horarios. Crea reservas manuales.</p>
+                    </div>
+                </div>
+                <div class="admin-feat">
+                    <div class="admin-feat-icon">👥</div>
+                    <div>
+                        <h4>Gestión de Usuarios</h4>
+                        <p>5 roles: cliente, recepcionista, gerente, dueño, superadmin. Filtra, cambia rol y estado.</p>
+                    </div>
+                </div>
+                <div class="admin-feat">
+                    <div class="admin-feat-icon">💰</div>
+                    <div>
+                        <h4>Pagos y Transferencias</h4>
+                        <p>Confirma o rechaza transferencias, procesa reembolsos, sube comprobantes. Filtra por estado y método.</p>
+                    </div>
+                </div>
+                <div class="admin-feat">
+                    <div class="admin-feat-icon">📝</div>
+                    <div>
+                        <h4>Auditoría</h4>
+                        <p>Log de todas las acciones admin: quién, qué, cuándo. Filtrable por acción, entidad y usuario.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="admin-mockup fade-in">
+                <div class="admin-bar">
+                    <div class="admin-dot r"></div>
+                    <div class="admin-dot y"></div>
+                    <div class="admin-dot g"></div>
+                </div>
+                <div class="admin-body">
+                    <div class="admin-row">
+                        <div class="admin-card">
+                            <div class="num">12</div>
+                            <div class="label">Reservas Hoy</div>
+                        </div>
+                        <div class="admin-card">
+                            <div class="num">78%</div>
+                            <div class="label">Ocupación</div>
+                        </div>
+                        <div class="admin-card">
+                            <div class="num">$480</div>
+                            <div class="label">Ingresos Hoy</div>
+                        </div>
+                    </div>
+                    <div class="admin-bar-chart">
+                        <div style="height: 45%"></div>
+                        <div style="height: 65%"></div>
+                        <div style="height: 90%"></div>
+                        <div style="height: 55%"></div>
+                        <div style="height: 75%"></div>
+                        <div style="height: 40%"></div>
+                        <div style="height: 60%"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ROLES -->
+    <section class="features" style="padding-top: 0;">
+        <div class="section-header fade-in">
+            <div class="section-tag">Roles y Permisos</div>
+            <h2>Cada usuario tiene su lugar</h2>
+        </div>
+        <div class="features-grid" style="max-width: 900px; grid-template-columns: repeat(3, 1fr);">
+            <div class="feature-card fade-in" style="text-align: center;">
+                <div class="feature-icon" style="margin: 0 auto 1rem;">👤</div>
+                <h3>Cliente</h3>
+                <p>Reserva canchas, paga online, recibe notificaciones, gestiona perfil e idioma.</p>
+            </div>
+            <div class="feature-card fade-in" style="text-align: center;">
+                <div class="feature-icon" style="margin: 0 auto 1rem;">🎧</div>
+                <h3>Recepcionista</h3>
+                <p>Crea reservas, confirma pagos en efectivo, gestiona check-in de clientes.</p>
+            </div>
+            <div class="feature-card fade-in" style="text-align: center;">
+                <div class="feature-icon" style="margin: 0 auto 1rem;">⚡</div>
+                <h3>Gerente / Dueño</h3>
+                <p>Reportes, configuración de pricing, políticas, usuarios, torneos, auditoría completa.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- LANGUAGES -->
+    <section class="languages fade-in">
+        <div class="section-tag">Multi-idioma</div>
+        <h2 style="font-size: 1.8rem; font-weight: 800; margin-top: 0.5rem;">Disponible en 4 idiomas</h2>
+        <div class="lang-flags">
+            <div class="lang-item">
+                <div class="lang-flag">🇪🇸</div>
+                <span>Español</span>
+            </div>
+            <div class="lang-item">
+                <div class="lang-flag">🇺🇸</div>
+                <span>English</span>
+            </div>
+            <div class="lang-item">
+                <div class="lang-flag">🇧🇷</div>
+                <span>Português</span>
+            </div>
+            <div class="lang-item">
+                <div class="lang-flag">🏴</div>
+                <span>Català</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- DOWNLOAD -->
+    <section class="download" id="download">
+        <div class="download-card fade-in">
+            <h2>Descarga Andes Pádel</h2>
+            <p>App móvil para Android. iOS próximamente. También puedes reservar directamente desde tu navegador.</p>
+            <div class="download-buttons">
+                <a href="https://andespadel.yachaq.io/adminpanel/" class="store-btn" target="_blank">
+                    <span class="store-icon">🤖</span>
+                    <span class="store-text">
+                        <small>Descarga para</small>
+                        <strong>Android</strong>
+                    </span>
+                </a>
+                <a href="https://andespadel.yachaq.io/api/docs/" class="store-btn" target="_blank">
+                    <span class="store-icon">🌐</span>
+                    <span class="store-text">
+                        <small>Reserva desde</small>
+                        <strong>Navegador Web</strong>
+                    </span>
+                </a>
+                <a href="https://andespadel.yachaq.io/adminpanel/login/" class="store-btn" target="_blank">
+                    <span class="store-icon">⚙️</span>
+                    <span class="store-text">
+                        <small>Accede al</small>
+                        <strong>Panel Admin</strong>
+                    </span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer>
+        <p>&copy; 2026 Andes Pádel. Todos los derechos reservados. |
+            <a href="https://andespadel.yachaq.io/api/docs/" target="_blank">API Docs</a> |
+            <a href="https://andespadel.yachaq.io/adminpanel/" target="_blank">Admin</a>
+        </p>
+    </footer>
+
+    <script>
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+        }, { threshold: 0.1 });
+        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+    </script>
+</body>
+</html>

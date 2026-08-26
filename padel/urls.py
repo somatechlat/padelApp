@@ -8,7 +8,15 @@ from drf_spectacular.views import (
     SpectacularSwaggerView,
 )
 
+
+def root_redirect(request):
+    from django.shortcuts import redirect
+    return redirect("/api/docs/")
+
+
 urlpatterns = [
+    path("", root_redirect),
+
     path("admin/", admin.site.urls),
     path("adminpanel/", include("apps.adminpanel.urls")),
     path("api/auth/", include("apps.users.urls")),
