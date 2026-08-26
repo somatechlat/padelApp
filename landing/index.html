@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Andes Pádel — Reserva tu Cancha</title>
+    <link rel="icon" type="image/png" href="assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <style>
@@ -49,16 +50,10 @@
         }
         .logo {
             display: flex; align-items: center; gap: 12px;
-            font-size: 1.3rem; font-weight: 800; color: var(--text);
             text-decoration: none;
         }
-        .logo-icon {
-            width: 40px; height: 40px;
-            background: var(--accent);
-            border-radius: 10px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.1rem; color: var(--brand-deep);
-            font-weight: 900;
+        .logo img {
+            height: 45px; width: auto;
         }
         .nav-links { display: flex; gap: 2rem; align-items: center; }
         .nav-links a {
@@ -166,7 +161,7 @@
             align-items: center; justify-content: center;
             padding: 1.5rem; text-align: center;
         }
-        .phone-screen .court-icon { font-size: 3rem; margin-bottom: 0.8rem; }
+        .phone-screen .logo-small { height: 60px; margin-bottom: 0.8rem; }
         .phone-screen h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.3rem; }
         .phone-screen p { font-size: 0.7rem; color: var(--text-muted); }
         .phone-screen .slots {
@@ -266,9 +261,6 @@
         }
         .step-content h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
         .step-content p { font-size: 0.85rem; color: var(--text-muted); }
-        .step-connector {
-            display: none;
-        }
 
         /* ADMIN SECTION */
         .admin-section {
@@ -293,45 +285,38 @@
         }
         .admin-feat h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.2rem; }
         .admin-feat p { font-size: 0.82rem; color: var(--text-muted); }
-        .admin-mockup {
-            background: var(--surface); border: 1px solid var(--border);
+        .admin-screenshot {
             border-radius: 16px; overflow: hidden;
             box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-        }
-        .admin-bar {
-            background: var(--brand-deep); padding: 10px 16px;
-            display: flex; align-items: center; gap: 8px;
-            border-bottom: 1px solid var(--border);
-        }
-        .admin-dot { width: 8px; height: 8px; border-radius: 50%; }
-        .admin-dot.r { background: #ff5f56; }
-        .admin-dot.y { background: #ffbd2e; }
-        .admin-dot.g { background: #27c93f; }
-        .admin-body { padding: 1.5rem; }
-        .admin-row {
-            display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 0.8rem;
-            margin-bottom: 0.8rem;
-        }
-        .admin-card {
-            background: var(--bg); border-radius: 10px; padding: 1rem;
             border: 1px solid var(--border);
         }
-        .admin-card .num {
-            font-size: 1.4rem; font-weight: 800; color: var(--accent);
+        .admin-screenshot img {
+            width: 100%; height: auto; display: block;
         }
-        .admin-card .label {
-            font-size: 0.7rem; color: var(--text-muted); margin-top: 0.2rem;
+
+        /* SCREENSHOTS GALLERY */
+        .screenshots { padding: 6rem 2rem; border-top: 1px solid var(--border); }
+        .screenshots-grid {
+            max-width: 1200px; margin: 0 auto;
+            display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem;
         }
-        .admin-bar-chart {
-            display: flex; align-items: flex-end; gap: 6px;
-            height: 80px; margin-top: 1rem;
+        .screenshot-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 16px; overflow: hidden;
+            transition: all 0.3s;
         }
-        .admin-bar-chart div {
-            flex: 1; background: var(--brand-light); border-radius: 4px 4px 0 0;
-            opacity: 0.6; transition: opacity 0.3s;
+        .screenshot-card:hover {
+            border-color: var(--accent);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
         }
-        .admin-bar-chart div:hover { opacity: 1; }
-        .admin-bar-chart div:nth-child(3) { background: var(--accent); opacity: 1; }
+        .screenshot-card img {
+            width: 100%; height: auto; display: block;
+        }
+        .screenshot-card .caption {
+            padding: 1rem 1.2rem;
+            font-size: 0.85rem; font-weight: 600; color: var(--text-muted);
+        }
 
         /* DOWNLOAD */
         .download { padding: 6rem 2rem; }
@@ -429,6 +414,7 @@
             .features-grid { grid-template-columns: 1fr; }
             .steps { grid-template-columns: 1fr 1fr; }
             .admin-grid { grid-template-columns: 1fr; }
+            .screenshots-grid { grid-template-columns: 1fr; }
             .download-card { padding: 2.5rem 1.5rem; }
             .download-card h2 { font-size: 1.6rem; }
         }
@@ -447,13 +433,13 @@
     <nav>
         <div class="nav-inner">
             <a href="#" class="logo">
-                <div class="logo-icon">AP</div>
-                Andes Pádel
+                <img src="assets/logo.png" alt="Andes Pádel">
             </a>
             <div class="nav-links" id="navLinks">
                 <a href="#features">Servicios</a>
                 <a href="#how">Reservar</a>
                 <a href="#admin">Admin</a>
+                <a href="#screenshots">Capturas</a>
                 <a href="#download">Descargar</a>
                 <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="nav-cta">Reservar Ahora</a>
             </div>
@@ -469,7 +455,7 @@
             <div>
                 <div class="hero-badge">Plataforma de Reservas Activa</div>
                 <h1>Reserva tu cancha de <span>pádel</span> en segundos</h1>
-                <p>App móvil, panel administrativo y reservas online. Pagos con Stripe y transferencia, notificaciones, torneos y reportes. Todo en una plataforma.</p>
+                <p>App móvil, panel administrativo y reservas online. Pagos con Stripe, transferencia bancaria y efectivo. Notificaciones, torneos y reportes.</p>
                 <div class="hero-buttons">
                     <a href="#download" class="btn btn-primary">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
@@ -484,7 +470,7 @@
             <div class="hero-visual">
                 <div class="phone-mockup">
                     <div class="phone-screen">
-                        <div class="court-icon">🏓</div>
+                        <img src="assets/logo-bw.png" alt="Andes Pádel" class="logo-small">
                         <h3>Andes Pádel</h3>
                         <p>Paso 2 de 4 — Selecciona horario</p>
                         <div class="slots">
@@ -533,53 +519,53 @@
         <div class="section-header fade-in">
             <div class="section-tag">Plataforma Completa</div>
             <h2>Todo lo que necesitas para gestionar pádel</h2>
-            <p>Más de 70 funcionalidades integradas: desde la reserva del jugador hasta los reportes del administrador.</p>
+            <p>Backend Django, API REST, app Flutter y panel administrativo web.</p>
         </div>
         <div class="features-grid">
             <div class="feature-card fade-in">
                 <div class="feature-icon">📅</div>
                 <h3>Reserva en 4 Pasos</h3>
-                <p>Selecciona cancha, fecha y horario, revisa el resumen y confirma. Wizard intuitivo con duración de 30 a 120 minutos y 2 a 4 jugadores.</p>
+                <p>Selecciona cancha, fecha y horario, revisa el resumen y confirma. Duración de 30 a 120 minutos, 2 a 4 jugadores por reserva.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">💳</div>
-                <h3>Pagos con Stripe</h3>
-                <p>Acepta tarjeta de crédito/débito vía Stripe, transferencia bancaria con comprobante de pago, y efectivo para recepcionistas. Reembolsos integrados.</p>
+                <h3>3 Métodos de Pago</h3>
+                <p>Tarjeta de crédito/débito vía Stripe, transferencia bancaria con comprobante de pago, y efectivo para recepcionistas.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">📊</div>
-                <h3>Reportes en Tiempo Real</h3>
-                <p>Ingresos por período, tasa de ocupación, top clientes, cancelaciones y no-shows. Exporta a CSV y PDF con reportlab.</p>
+                <h3>Reportes</h3>
+                <p>Ingresos por período, tasa de ocupación, top clientes, cancelaciones y no-shows. Exporta a CSV y PDF.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🔔</div>
                 <h3>14 Tipos de Notificación</h3>
-                <p>Confirmación, cancelación, recordatorios 2h antes, pagos, transferencias, torneos, noticias. Por email, push e in-app. Configurable por el usuario.</p>
+                <p>Confirmación, cancelación, recordatorios 2h antes, pagos, transferencias, torneos, noticias. Por email, push e in-app.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🏆</div>
                 <h3>Torneos y Eventos</h3>
-                <p>Crea torneos con registro de parejas, fechas límite, y recordatorios automáticos. Publica noticias y eventos con notificación push a todos los usuarios.</p>
+                <p>Crea torneos con registro de parejas, fechas límite y recordatorios automáticos. Publica noticias y eventos.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">📱</div>
                 <h3>App Móvil Flutter</h3>
-                <p>Android e iOS. Home con canchas, wizard de reserva, mis reservas, eventos, notificaciones con preferencias, y perfil con cambio de idioma.</p>
+                <p>Android e iOS. Home con canchas, wizard de reserva, mis reservas, eventos, notificaciones y perfil.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🌐</div>
-                <h3>Multi-idioma (i18n)</h3>
-                <p>Español, Inglés, Portugués y Catalán. Catálogos completos de traducción en backend y Flutter. El usuario elige su idioma desde el perfil.</p>
+                <h3>Multi-idioma</h3>
+                <p>Español, Inglés, Portugués y Catalán. El usuario elige su idioma desde el perfil de la app.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">📈</div>
                 <h3>Pricing Dinámico</h3>
-                <p>Reglas de precio por sede, cancha, día de la semana y franja horaria. El sistema calcula automáticamente el costo de cada reserva.</p>
+                <p>Reglas de precio por sede, cancha, día de la semana y franja horaria (valle/pico).</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🛡️</div>
                 <h3>GDPR y Seguridad</h3>
-                <p>Consentimiento registrado, exportación de datos (portabilidad) y derecho al olvido. Auditoría de acciones admin. JWT con blacklist y throttling.</p>
+                <p>Consentimiento registrado, exportación de datos y derecho al olvido. JWT con blacklist y throttling.</p>
             </div>
         </div>
     </section>
@@ -668,37 +654,43 @@
                     </div>
                 </div>
             </div>
-            <div class="admin-mockup fade-in">
-                <div class="admin-bar">
-                    <div class="admin-dot r"></div>
-                    <div class="admin-dot y"></div>
-                    <div class="admin-dot g"></div>
-                </div>
-                <div class="admin-body">
-                    <div class="admin-row">
-                        <div class="admin-card">
-                            <div class="num">12</div>
-                            <div class="label">Reservas Hoy</div>
-                        </div>
-                        <div class="admin-card">
-                            <div class="num">78%</div>
-                            <div class="label">Ocupación</div>
-                        </div>
-                        <div class="admin-card">
-                            <div class="num">$480</div>
-                            <div class="label">Ingresos Hoy</div>
-                        </div>
-                    </div>
-                    <div class="admin-bar-chart">
-                        <div style="height: 45%"></div>
-                        <div style="height: 65%"></div>
-                        <div style="height: 90%"></div>
-                        <div style="height: 55%"></div>
-                        <div style="height: 75%"></div>
-                        <div style="height: 40%"></div>
-                        <div style="height: 60%"></div>
-                    </div>
-                </div>
+            <div class="admin-screenshot fade-in">
+                <img src="assets/admin-dashboard.png" alt="Panel Admin - Dashboard">
+            </div>
+        </div>
+    </section>
+
+    <!-- SCREENSHOTS -->
+    <section class="screenshots" id="screenshots">
+        <div class="section-header fade-in">
+            <div class="section-tag">Capturas del Sistema</div>
+            <h2>Así se ve Andes Pádel</h2>
+            <p>Panel administrativo completo con dashboard, calendario, gestión de canchas y reportes.</p>
+        </div>
+        <div class="screenshots-grid">
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-calendar.png" alt="Calendario de Reservas">
+                <div class="caption">Calendario de Reservas</div>
+            </div>
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-courts.png" alt="Gestión de Canchas">
+                <div class="caption">Gestión de Canchas</div>
+            </div>
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-bookings.png" alt="Gestión de Reservas">
+                <div class="caption">Gestión de Reservas</div>
+            </div>
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-payments.png" alt="Gestión de Pagos">
+                <div class="caption">Gestión de Pagos</div>
+            </div>
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-reports.png" alt="Reportes">
+                <div class="caption">Reportes e Ingresos</div>
+            </div>
+            <div class="screenshot-card fade-in">
+                <img src="assets/admin-dashboard.png" alt="Dashboard">
+                <div class="caption">Dashboard Principal</div>
             </div>
         </div>
     </section>
@@ -755,14 +747,15 @@
     <!-- DOWNLOAD -->
     <section class="download" id="download">
         <div class="download-card fade-in">
+            <img src="assets/logo.png" alt="Andes Pádel" style="height: 60px; margin-bottom: 1.5rem;">
             <h2>Descarga Andes Pádel</h2>
-            <p>App móvil para Android. iOS próximamente. También puedes reservar directamente desde tu navegador.</p>
+            <p>App móvil para Android. También puedes reservar directamente desde tu navegador.</p>
             <div class="download-buttons">
-                <a href="https://andespadel.yachaq.io/adminpanel/" class="store-btn" target="_blank">
+                <a href="https://andespadel.yachaq.io/api/docs/" class="store-btn" target="_blank">
                     <span class="store-icon">🤖</span>
                     <span class="store-text">
                         <small>Descarga para</small>
-                        <strong>Android</strong>
+                        <strong>Android (APK)</strong>
                     </span>
                 </a>
                 <a href="https://andespadel.yachaq.io/api/docs/" class="store-btn" target="_blank">
