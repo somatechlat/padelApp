@@ -14,7 +14,7 @@ class ApiClient {
         _dio = dio ?? Dio() {
     _dio.options.baseUrl = baseUrl ??
         const String.fromEnvironment('API_BASE_URL',
-            defaultValue: 'http://192.168.100.140:8000/api');
+            defaultValue: 'https://andespadel.yachaq.io/api');
     _dio.options.headers['Accept'] = 'application/json';
     _dio.options.connectTimeout = const Duration(seconds: 10);
     _dio.options.receiveTimeout = const Duration(seconds: 15);
