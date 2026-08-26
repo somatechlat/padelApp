@@ -5,8 +5,9 @@ from padel.settings.base import *  # noqa: F401, F403
 from runsecrets import secrets
 
 DEBUG = False
-ALLOWED_HOSTS = ["andespadel.com", "www.andespadel.com"]
+ALLOWED_HOSTS = ["andespadel.yachaq.io", "andespadel.com", "www.andespadel.com"]
 
+SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
@@ -18,6 +19,7 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 CORS_ALLOWED_ORIGINS = [
+    "https://andespadel.yachaq.io",
     "https://andespadel.com",
     "https://www.andespadel.com",
 ]

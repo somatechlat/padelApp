@@ -16,3 +16,7 @@ mobile/.flutter-plugins
 .coverage
 htmlcov/
 disenio /
+*.apk
+*.zip
+*.pdf
+*.docx
