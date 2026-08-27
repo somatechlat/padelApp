@@ -3,7 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/api_client.dart';
 import 'core/locale_controller.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'core/storage.dart';
 import 'core/theme/app_theme.dart';
 import 'features/auth/auth_state.dart';

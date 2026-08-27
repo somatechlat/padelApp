@@ -7,7 +7,7 @@ import '../../core/format.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/state_views.dart';
 import '../../core/widgets/status_chip.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:padel_app/core/l10n/app_localizations.dart';
 
 class EventsScreen extends StatefulWidget {
   const EventsScreen({super.key});

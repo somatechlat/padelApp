@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 import '../../core/api_client.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/state_views.dart';
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:padel_app/core/l10n/app_localizations.dart';
 
 const _eventTypes = [
   'booking_confirmed',

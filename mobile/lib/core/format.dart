@@ -1,6 +1,6 @@
 import 'package:intl/intl.dart';
 
-import 'package:flutter_gen/gen_l10n/app_localizations.dart';
+import 'package:padel_app/core/l10n/app_localizations.dart';
 
 /// "18:00:00" -> "18:00"
 String timeShort(String? iso) {
