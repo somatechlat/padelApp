@@ -45,5 +45,9 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSCameraUsageDescription</key>
+	<string>AndesPadel needs camera access to take photos of bank transfer proofs for payment verification.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>AndesPadel needs photo library access to select images of bank transfer proofs for payment verification.</string>
 </dict>
 </plist>
