@@ -45,6 +45,24 @@ class Booking(models.Model):
         verbose_name = "reserva"
         verbose_name_plural = "reservas"
         ordering = ("-created_at",)
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_time__gt=models.F("start_time")),
+                name="chk_booking_time_order",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0),
+                name="chk_booking_price_non_negative",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(players__gte=1) & models.Q(players__lte=8),
+                name="chk_booking_players_range",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["court", "date", "start_time"], name="idx_booking_court_date_start"),
+            models.Index(fields=["status"], name="idx_booking_status"),
+        ]
 
     def __str__(self):
         return f"{self.user.email} - {self.court} {self.date} {self.start_time}"
@@ -58,15 +76,25 @@ class Booking(models.Model):
         )
 
     def transition_to(self, new_status):
+        """Transition booking to a new status with row-level locking.
+
+        Uses select_for_update to prevent concurrent status changes.
+        Raises ValueError for illegal transitions.
+        """
+        from django.db import transaction
+
         current = self.status
         allowed = self.LEGAL_TRANSITIONS.get(current, set())
         if new_status not in allowed:
             raise ValueError(f"Transicion ilegal: {current} -> {new_status}")
+        with transaction.atomic():
+            locked = Booking.objects.select_for_update().get(pk=self.pk)
+            locked.status = new_status
+            locked.save(update_fields=["status", "updated_at"])
+            BookingEvent.objects.create(
+                booking=locked, from_status=current, to_status=new_status
+            )
         self.status = new_status
-        self.save(update_fields=["status", "updated_at"])
-        BookingEvent.objects.create(
-            booking=self, from_status=current, to_status=new_status
-        )
         return self
 
 

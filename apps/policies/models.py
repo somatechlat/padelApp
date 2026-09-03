@@ -14,6 +14,11 @@ class CancellationPolicy(models.Model):
     class Meta:
         verbose_name = "politica de cancelacion"
         verbose_name_plural = "politicas de cancelacion"
+        constraints = [
+            models.UniqueConstraint(
+                fields=("venue",), name="uniq_venue_cancellation_policy"
+            ),
+        ]
 
     def __str__(self):
         return f"{self.venue} - gratis {self.free_window_hours}h"

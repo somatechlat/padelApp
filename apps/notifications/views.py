@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import get_object_or_404
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
@@ -38,13 +39,14 @@ class PreferenceListView(APIView):
     def put(self, request):
         serializer = PreferenceSerializer(data=request.data, many=True)
         serializer.is_valid(raise_exception=True)
-        NotificationPreference.objects.filter(user=request.user).delete()
-        for item in serializer.validated_data:
-            NotificationPreference.objects.create(
-                user=request.user,
-                event_type=item["event_type"],
-                channel=item["channel"],
-                enabled=item["enabled"],
-            )
+        with transaction.atomic():
+            NotificationPreference.objects.filter(user=request.user).delete()
+            for item in serializer.validated_data:
+                NotificationPreference.objects.create(
+                    user=request.user,
+                    event_type=item["event_type"],
+                    channel=item["channel"],
+                    enabled=item["enabled"],
+                )
         prefs = NotificationPreference.objects.filter(user=request.user)
         return Response(PreferenceSerializer(prefs, many=True).data)

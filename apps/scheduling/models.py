@@ -23,10 +23,18 @@ class TimeSlot(models.Model):
     class Meta:
         verbose_name = "franja"
         verbose_name_plural = "franjas"
+        ordering = ("date", "start")
         constraints = [
             models.UniqueConstraint(
                 fields=("court", "date", "start"), name="uniq_court_date_start"
-            )
+            ),
+            models.CheckConstraint(
+                condition=models.Q(end__gt=models.F("start")),
+                name="chk_slot_time_order",
+            ),
+        ]
+        indexes = [
+            models.Index(fields=["court", "date", "status"], name="idx_slot_court_date_status"),
         ]
 
     def __str__(self):
@@ -44,6 +52,12 @@ class MaintenanceWindow(models.Model):
     class Meta:
         verbose_name = "mantenimiento"
         verbose_name_plural = "mantenimientos"
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end__gt=models.F("start")),
+                name="chk_maintenance_time_order",
+            ),
+        ]
 
     def __str__(self):
         return f"{self.court} {self.start} - {self.end}"

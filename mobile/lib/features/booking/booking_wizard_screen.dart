@@ -42,11 +42,13 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     try {
       final data = await context.read<ApiClient>().get('/courts/');
       final list = data is Map ? data['results'] : data;
+      if (!mounted) return;
       setState(() {
         _courts = (list as List<dynamic>? ?? []);
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
@@ -60,6 +62,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       final data = await context
           .read<ApiClient>()
           .get('/courts/${court['id']}/availability/', query: {'date': _fmt(_date)});
+      if (!mounted) return;
       setState(() {
         _slots = (data as List<dynamic>? ?? [])
             .where((s) => (s as Map)['status'] == 'available')
@@ -69,6 +72,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
@@ -83,11 +87,13 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         'start_time': _slot!['start'],
         'duration_minutes': _duration,
       });
+      if (!mounted) return;
       setState(() {
         _price = '${data['price']}';
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }

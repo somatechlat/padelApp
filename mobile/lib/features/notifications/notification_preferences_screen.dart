@@ -57,12 +57,14 @@ class _NotificationPreferencesScreenState
           disabled.putIfAbsent(e, () => {}).add(c);
         }
       }
+      if (!mounted) return;
       setState(() {
         _disabled = disabled;
         _loading = false;
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() {
         _loading = false;
         _error = e.toString();

@@ -76,6 +76,20 @@ class Tournament(models.Model):
         verbose_name = "torneo"
         verbose_name_plural = "torneos"
         ordering = ("-created_at",)
+        constraints = [
+            models.CheckConstraint(
+                condition=models.Q(end_date__gte=models.F("start_date")),
+                name="chk_tournament_date_order",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(capacity__gt=0),
+                name="chk_tournament_capacity_positive",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(price__gte=0),
+                name="chk_tournament_price_non_negative",
+            ),
+        ]
 
     @property
     def name_localized(self):

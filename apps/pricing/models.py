@@ -40,6 +40,9 @@ class Holiday(models.Model):
     class Meta:
         verbose_name = "feriado"
         verbose_name_plural = "feriados"
+        constraints = [
+            models.UniqueConstraint(fields=("venue", "date"), name="uniq_venue_holiday_date"),
+        ]
 
     def __str__(self):
         return f"{self.venue} - {self.name} ({self.date})"

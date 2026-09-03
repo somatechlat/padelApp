@@ -180,12 +180,20 @@ class CalendarView(StaffRequiredMixin, TemplateView):
         elif action == "create_booking":
             court_id = request.POST.get("court_id")
             user_id = request.POST.get("user_id")
-            time_str = request.POST.get("start_time")
-            duration = int(request.POST.get("duration", 60))
+            time_str = request.POST.get("start_time", "")
+            try:
+                duration = int(request.POST.get("duration", 60))
+            except (ValueError, TypeError):
+                messages.error(request, "Duracion invalida.")
+                return redirect(request.get_full_path())
             court = get_object_or_404(Court, id=court_id)
             user = get_object_or_404(User, id=user_id)
-            date_val = timezone.datetime.strptime(day_param, "%Y-%m-%d").date()
-            start_time_val = timezone.datetime.strptime(time_str, "%H:%M").time()
+            try:
+                date_val = timezone.datetime.strptime(day_param, "%Y-%m-%d").date()
+                start_time_val = timezone.datetime.strptime(time_str, "%H:%M").time()
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha u hora invalida.")
+                return redirect(request.get_full_path())
 
             end_dt = timezone.datetime.combine(date_val, start_time_val) + timedelta(minutes=duration)
             end_time_val = end_dt.time()
@@ -372,9 +380,13 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
         if action == "create_tournament":
-            title = request.POST.get("title")
-            capacity = int(request.POST.get("max_teams", 16))
-            fee = Decimal(request.POST.get("entry_fee", "0.00"))
+            title = request.POST.get("title", "")
+            try:
+                capacity = int(request.POST.get("max_teams", 16))
+                fee = Decimal(request.POST.get("entry_fee", "0.00"))
+            except (ValueError, TypeError, ArithmeticError):
+                messages.error(request, "Capacidad o tarifa invalida.")
+                return redirect("adminpanel:events")
             start_date = request.POST.get("start_date")
             end_date = request.POST.get("end_date")
             t = Tournament.objects.create(

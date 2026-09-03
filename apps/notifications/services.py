@@ -1,3 +1,4 @@
+import logging
 import os
 
 from django.conf import settings
@@ -127,8 +128,10 @@ class NotificationService:
             body = gettext(template[1])
             try:
                 body = body.format(**data)
-            except Exception:
-                pass
+            except (KeyError, IndexError) as e:
+                logging.getLogger(__name__).warning(
+                    "Notification template format error for %s: %s", event_type, e
+                )
         return title, body
 
     @staticmethod
@@ -147,10 +150,13 @@ class NotificationService:
                     body,
                     settings.DEFAULT_FROM_EMAIL,
                     [user.email],
-                    fail_silently=True,
+                    fail_silently=False,
                 )
             except Exception:
-                pass
+                logging.getLogger(__name__).exception(
+                    "Failed to send email notification to %s for event %s",
+                    user.email, event_type,
+                )
         if "push" in channels:
             NotificationService._send_push(user, title, body, data)
         return Notification.objects.filter(user=user, event_type=event_type).latest("created_at")
@@ -178,4 +184,7 @@ class NotificationService:
             )
             messaging.send_each_for_multicast(message)
         except Exception:
-            pass
+            logging.getLogger(__name__).exception(
+                "Failed to send push notification to user %s for event %s",
+                user.id, event_type,
+            )

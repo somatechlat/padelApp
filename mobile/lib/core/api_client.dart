@@ -61,10 +61,13 @@ class ApiClient {
     if (refresh == null || refresh.isEmpty) return false;
     try {
       final res = await _dio.post('/auth/refresh/', data: {'refresh': refresh});
-      final access = res.data['access'] as String;
-      final newRefresh = res.data['refresh'] as String?;
+      final data = res.data;
+      if (data is! Map) return false;
+      final access = data['access'];
+      if (access is! String || access.isEmpty) return false;
+      final newRefresh = data['refresh'];
       await _storage.write(SecureTokenStorage.accessKey, access);
-      if (newRefresh != null) {
+      if (newRefresh is String && newRefresh.isNotEmpty) {
         await _storage.write(SecureTokenStorage.refreshKey, newRefresh);
       }
       return true;

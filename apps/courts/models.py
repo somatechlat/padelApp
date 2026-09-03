@@ -62,6 +62,10 @@ class CourtSchedule(models.Model):
                 condition=models.Q(weekday__gte=0) & models.Q(weekday__lte=6),
                 name="chk_weekday_range",
             ),
+            models.CheckConstraint(
+                condition=models.Q(close_time__gt=models.F("open_time")),
+                name="chk_schedule_time_order",
+            ),
         ]
 
     def __str__(self):
