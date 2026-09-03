@@ -21,6 +21,7 @@ from apps.policies.models import CancellationPolicy
 from apps.pricing.models import PriceRule
 from apps.scheduling.models import MaintenanceWindow, TimeSlot
 from apps.security.models import AuditLog
+from apps.payments.services import PaymentService
 from apps.security.services import log_event
 
 User = get_user_model()
@@ -196,11 +197,10 @@ class CalendarView(StaffRequiredMixin, TemplateView):
                 start_time=start_time_val,
                 end_time=end_time_val,
                 duration_minutes=duration,
-                total_price=Decimal("30.00"),
-                deposit_amount=Decimal("30.00"),
+                price=Decimal("30.00"),
                 status="confirmed",
             )
-            messages.success(request, f"Reserva manual creada #{booking.id[:8]} para {user.email}.")
+            messages.success(request, f"Reserva manual creada #{booking.id} para {user.email}.")
             log_event(request.user, "admin.booking_create", "Booking", booking.id)
             from apps.notifications.tasks import notify_task
             notify_task.delay(
@@ -341,21 +341,21 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
 
         if action == "confirm_transfer":
             PaymentService.confirm_transfer(payment)
-            messages.success(request, f"Comprobante de transferencia verificado para pago #{payment.id[:8]}.")
+            messages.success(request, f"Comprobante de transferencia verificado para pago #{payment.id}.")
         elif action == "reject_transfer":
             reason = request.POST.get("rejection_reason", "").strip()
             if not reason:
                 messages.error(request, "El motivo de rechazo es obligatorio.")
                 return redirect(request.get_full_path())
             PaymentService.reject_transfer(payment, reason)
-            messages.warning(request, f"Transferencia rechazada para pago #{payment.id[:8]}.")
+            messages.warning(request, f"Transferencia rechazada para pago #{payment.id}.")
         elif action == "refund":
             amount = payment.amount
             PaymentService.refund(payment, amount)
             if payment.booking:
                 payment.booking.status = "cancelled"
                 payment.booking.save(update_fields=["status"])
-            messages.success(request, f"Reembolso procesado para pago #{payment.id[:8]}.")
+            messages.success(request, f"Reembolso procesado para pago #{payment.id}.")
 
         return redirect(request.get_full_path())
 
@@ -374,29 +374,33 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
         action = request.POST.get("action")
         if action == "create_tournament":
             title = request.POST.get("title")
-            category = request.POST.get("category", "Open")
-            max_teams = int(request.POST.get("max_teams", 16))
+            capacity = int(request.POST.get("max_teams", 16))
             fee = Decimal(request.POST.get("entry_fee", "0.00"))
             start_date = request.POST.get("start_date")
             end_date = request.POST.get("end_date")
             t = Tournament.objects.create(
-                title=title,
-                category=category,
-                max_teams=max_teams,
-                entry_fee=fee,
+                name=title,
+                name_es=title,
+                capacity=capacity,
+                price=fee,
                 start_date=start_date,
                 end_date=end_date,
-                status="open"
+                registration_deadline=timezone.now() + timezone.timedelta(days=7),
+                status="open",
+                created_by=request.user,
             )
-            messages.success(request, f"Torneo '{t.title}' creado exitosamente.")
+            messages.success(request, f"Torneo '{t.name}' creado exitosamente.")
             log_event(request.user, "admin.tournament_create", "Tournament", t.id)
         elif action == "create_news":
             title = request.POST.get("title")
             content = request.POST.get("content")
             n = NewsPost(
                 title=title,
-                content=content,
+                title_es=title,
+                body_es=content,
+                created_by=request.user,
             )
+            n.save()
             n.publish()
             messages.success(request, f"Noticia '{n.title}' publicada y notificaciones enviadas.")
             log_event(request.user, "admin.news_create", "NewsPost", n.id)
