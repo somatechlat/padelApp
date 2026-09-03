@@ -48,10 +48,19 @@ class AdminLoginView(TemplateView):
         return super().get(request, *args, **kwargs)
 
     def post(self, request, *args, **kwargs):
+        from django.core.cache import cache
+
+        ip = request.META.get("REMOTE_ADDR", "unknown")
+        cache_key = f"admin_login_fail:{ip}"
+        if cache.get(cache_key, 0) >= 10:
+            messages.error(request, "Demasiados intentos. Intente de nuevo en 15 minutos.")
+            return self.get(request, *args, **kwargs)
+
         email = request.POST.get("email", "").strip()
         password = request.POST.get("password", "")
         user = authenticate(request, username=email, password=password)
         if user is not None:
+            cache.delete(cache_key)
             if getattr(user, "role", None) in STAFF_ROLES or user.is_staff:
                 auth_login(request, user)
                 next_url = request.GET.get("next") or reverse("adminpanel:dashboard")
@@ -59,8 +68,10 @@ class AdminLoginView(TemplateView):
                 messages.success(request, f"Bienvenido al panel, {user.email}.")
                 return redirect(next_url)
             else:
+                cache.set(cache_key, cache.get(cache_key, 0) + 1, 900)
                 messages.error(request, "Acceso denegado: tu cuenta no tiene rol administrativo.")
         else:
+            cache.set(cache_key, cache.get(cache_key, 0) + 1, 900)
             messages.error(request, "Credenciales invalidas. Por favor verifica tu email y contrasena.")
         return self.get(request, *args, **kwargs)
 
@@ -267,11 +278,18 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
         elif action == "schedule_maintenance":
             court_id = request.POST.get("court_id")
             reason = request.POST.get("reason", "Mantenimiento rutinario")
-            start_str = request.POST.get("start")
-            end_str = request.POST.get("end")
+            start_str = request.POST.get("start", "")
+            end_str = request.POST.get("end", "")
             court = get_object_or_404(Court, id=court_id)
-            start_dt = timezone.datetime.fromisoformat(start_str)
-            end_dt = timezone.datetime.fromisoformat(end_str)
+            try:
+                start_dt = timezone.datetime.fromisoformat(start_str)
+                end_dt = timezone.datetime.fromisoformat(end_str)
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha u hora de mantenimiento invalida.")
+                return redirect("adminpanel:courts")
+            if end_dt <= start_dt:
+                messages.error(request, "La fecha de fin debe ser posterior a la de inicio.")
+                return redirect("adminpanel:courts")
             mw = MaintenanceWindow.objects.create(
                 court=court,
                 reason=reason,
@@ -387,15 +405,25 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             except (ValueError, TypeError, ArithmeticError):
                 messages.error(request, "Capacidad o tarifa invalida.")
                 return redirect("adminpanel:events")
-            start_date = request.POST.get("start_date")
-            end_date = request.POST.get("end_date")
+            start_date = request.POST.get("start_date", "")
+            end_date = request.POST.get("end_date", "")
+            try:
+                from datetime import date as date_type
+                sd = date_type.fromisoformat(start_date)
+                ed = date_type.fromisoformat(end_date)
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha de torneo invalida. Use formato YYYY-MM-DD.")
+                return redirect("adminpanel:events")
+            if ed < sd:
+                messages.error(request, "La fecha de fin debe ser igual o posterior a la de inicio.")
+                return redirect("adminpanel:events")
             t = Tournament.objects.create(
                 name=title,
                 name_es=title,
                 capacity=capacity,
                 price=fee,
-                start_date=start_date,
-                end_date=end_date,
+                start_date=sd,
+                end_date=ed,
                 registration_deadline=timezone.now() + timezone.timedelta(days=7),
                 status="open",
                 created_by=request.user,

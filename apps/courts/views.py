@@ -33,7 +33,10 @@ class CourtViewSet(viewsets.ModelViewSet):
             return Response({"detail": "El parametro 'date' es obligatorio"}, status=400)
         from datetime import date as date_type
 
-        day = date_type.fromisoformat(date_str)
+        try:
+            day = date_type.fromisoformat(date_str)
+        except (ValueError, TypeError):
+            return Response({"detail": "Formato de fecha invalido. Use YYYY-MM-DD."}, status=400)
         SlotService.generate_day(court, day)
         slots = SlotService.available_slots(court, day)
         return Response(TimeSlotSerializer(slots, many=True).data)

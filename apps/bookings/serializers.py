@@ -14,7 +14,10 @@ class BookingCreateSerializer(serializers.Serializer):
     def create(self, validated_data):
         from apps.courts.models import Court
 
-        court = Court.objects.get(pk=validated_data["court"])
+        try:
+            court = Court.objects.get(pk=validated_data["court"], status="active")
+        except Court.DoesNotExist:
+            raise serializers.ValidationError({"court": "Cancha no encontrada o inactiva"})
         user = self.context["request"].user
         return BookingService.hold(
             user,
@@ -36,7 +39,10 @@ class BookingPreviewSerializer(serializers.Serializer):
     def validate(self, attrs):
         from apps.courts.models import Court
 
-        court = Court.objects.get(pk=attrs["court"])
+        try:
+            court = Court.objects.get(pk=attrs["court"], status="active")
+        except Court.DoesNotExist:
+            raise serializers.ValidationError({"court": "Cancha no encontrada o inactiva"})
         attrs["_price"] = BookingService.preview(
             court, attrs["date"], attrs["start_time"], attrs["duration_minutes"]
         )

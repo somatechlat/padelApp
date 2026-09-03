@@ -177,16 +177,15 @@ class NewsPost(models.Model):
         return self.body_es or self.body
 
     def publish(self):
-        from apps.notifications.services import NotificationService
-
         self.status = self.Status.PUBLISHED
         self.published_at = timezone.now()
         self.save(update_fields=["status", "published_at"])
+        from apps.notifications.tasks import notify_task
         from django.contrib.auth import get_user_model
 
         for user in get_user_model().objects.filter(status="active").iterator():
-            NotificationService.notify(
-                user,
+            notify_task.delay(
+                user.id,
                 "news_published",
                 self.title_localized,
                 self.body_localized[:200],

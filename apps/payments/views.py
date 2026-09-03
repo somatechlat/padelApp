@@ -27,10 +27,16 @@ class BookingPaymentView(APIView):
             pk=booking_id,
         )
         method = request.data.get("method", "stripe")
+        valid_methods = {c[0] for c in Payment.Method.choices}
+        if method not in valid_methods:
+            return Response(
+                {"detail": f"Metodo de pago invalido. Opciones: {', '.join(valid_methods)}"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         if method == "cash":
             if request.user.role == "cliente":
                 return Response(status=status.HTTP_403_FORBIDDEN)
-            payment = PaymentService.record_cash(booking, request.data.get("amount") or booking.price)
+            payment = PaymentService.record_cash(booking, booking.price)
         elif method == "transfer":
             payment = PaymentService.record_transfer(
                 booking, request.data.get("reference", "")

@@ -185,6 +185,5 @@ class NotificationService:
             messaging.send_each_for_multicast(message)
         except Exception:
             logging.getLogger(__name__).exception(
-                "Failed to send push notification to user %s for event %s",
-                user.id, event_type,
+                "Failed to send push notification to user %s", user.id,
             )

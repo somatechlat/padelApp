@@ -64,13 +64,19 @@ class RegisterView(generics.CreateAPIView):
         with translation.override(user.language_code):
             subject = gettext("Verification code - Andes Padel")
             message = gettext("Your verification code is: {code}").format(code=code.code)
-        send_mail(
-            subject,
-            message,
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=True,
-        )
+        try:
+            send_mail(
+                subject,
+                message,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to send verification email to %s", user.email
+            )
         return Response(
             {"email": user.email, "detail": _("Revisa tu email para verificar la cuenta")},
             status=status.HTTP_201_CREATED,
@@ -150,13 +156,22 @@ class PasswordResetView(APIView):
             # No enumeration: respond identically.
             return Response({"detail": _("Si el email existe, recibira un codigo")})
         code = VerificationCodeService.issue(user, VerificationCode.Purpose.PASSWORD_RESET)
-        send_mail(
-            "Restablecer contrasena - Andes Padel",
-            f"Tu codigo de restablecimiento es: {code.code}",
-            settings.DEFAULT_FROM_EMAIL,
-            [user.email],
-            fail_silently=True,
-        )
+        with translation.override(user.language_code):
+            subject = gettext("Restablecer contrasena - Andes Padel")
+            body = gettext("Tu codigo de restablecimiento es: {code}").format(code=code.code)
+        try:
+            send_mail(
+                subject,
+                body,
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
+        except Exception:
+            import logging
+            logging.getLogger(__name__).exception(
+                "Failed to send password reset email to %s", user.email
+            )
         return Response({"detail": _("Si el email existe, recibira un codigo")})
 
 

@@ -74,7 +74,10 @@ class CustomersReportView(APIView):
 
     def get(self, request):
         start, end = _parse_range(request)
-        limit = min(int(request.GET.get("limit", 10)), 100)
+        try:
+            limit = max(1, min(int(request.GET.get("limit", 10)), 100))
+        except (ValueError, TypeError):
+            limit = 10
         return Response(ReportService.top_customers(start, end, limit=limit))
 
 

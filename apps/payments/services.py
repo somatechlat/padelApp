@@ -117,6 +117,11 @@ class PaymentService:
             status=Payment.Status.CAPTURED,
         )
         log_event(booking.user, "payment.cash_recorded", "Payment", payment.id)
+        NotificationService.notify(
+            booking.user,
+            "payment_success",
+            data={"amount": f"${amount}", "payment_id": payment.id},
+        )
         return payment
 
     @staticmethod
