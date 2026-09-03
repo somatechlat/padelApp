@@ -146,11 +146,12 @@ toc_items = [
     "   4.7. Analítica de Negocio y Reportes",
     "   4.8. Configuración (Políticas y Tarifas)",
     "   4.9. Registro de Auditoría y Seguridad",
-    "5. Documentación de la API (Swagger / ReDoc)",
-    "   5.1. Endpoints Disponibles",
-    "   5.2. Autenticación JWT",
-    "6. Cuentas de Prueba",
-    "7. Solución de Problemas",
+    "5. Cumplimiento GDPR",
+    "6. Documentación de la API (Swagger / ReDoc)",
+    "   6.1. Endpoints Disponibles",
+    "   6.2. Autenticación JWT",
+    "7. Cuentas de Prueba",
+    "8. Solución de Problemas",
 ]
 for item in toc_items:
     p = doc.add_paragraph(item)
@@ -183,11 +184,11 @@ doc.add_heading("Arquitectura del Sistema", level=2)
 add_table(
     ["Componente", "Tecnología", "URL / Acceso"],
     [
-        ["API REST", "Django 5.2 + DRF", "http://[IP]:8000/api/"],
-        ["Documentación API", "drf-spectacular", "http://[IP]:8000/api/docs/"],
-        ["Admin Django", "Django Admin + RBAC", "http://[IP]:8000/admin/"],
-        ["Admin Personalizado", "Django Templates", "http://[IP]:8000/adminpanel/"],
-        ["App Móvil", "Flutter 3.27", "APK Android/iOS"],
+        ["API REST", "Django 5.2 + DRF", "https://andespadel.yachaq.io/api/"],
+        ["Documentación API", "drf-spectacular", "https://andespadel.yachaq.io/api/docs/"],
+        ["Admin Django", "Django Admin + RBAC", "https://andespadel.yachaq.io/admin/"],
+        ["Admin Personalizado", "Django Templates", "https://andespadel.yachaq.io/adminpanel/"],
+        ["App Móvil", "Flutter 3.27", "APK Android / iOS"],
         ["Tareas Asíncronas", "Celery + Redis", "Worker en background"],
     ],
 )
@@ -223,7 +224,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Personalizado (Recomendado para operación diaria)", level=2)
 doc.add_paragraph(
-    "1. Navegue a http://[IP_DEL_SERVIDOR]:8000/adminpanel/\n"
+    "1. Navegue a https://andespadel.yachaq.io/adminpanel/\n"
     "2. Será redirigido a la pantalla de inicio de sesión\n"
     "3. Ingrese su correo electrónico y contraseña\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -235,7 +236,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Django Admin (Gestión técnica avanzada)", level=2)
 doc.add_paragraph(
-    "1. Navegue a http://[IP_DEL_SERVIDOR]:8000/admin/\n"
+    "1. Navegue a https://andespadel.yachaq.io/admin/\n"
     "2. Ingrese su correo electrónico en el campo \"Email\"\n"
     "3. Ingrese su contraseña en el campo \"Contraseña\"\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -338,7 +339,7 @@ add_bullet("Nombre (ej: C1, C2)")
 add_bullet("Tipo de cancha: techada o abierta")
 add_bullet("Iluminación LED disponible (sí/no)")
 add_bullet("Precio base por hora")
-add_bullet("Estado: activa o inactiva")
+add_bullet("Estado: activa, archivada o en mantenimiento")
 add_bullet("Horarios de la cancha (CourtSchedule) — apertura/cierre por día")
 
 add_screenshot("06_admin_courts", "Figura 4: Gestión de canchas")
@@ -389,12 +390,13 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Torneos:", level=3)
-add_bullet("Nombre y categoría (Open, Intermedio, etc.)")
-add_bullet("Máximo de parejas/equipos")
+add_bullet("Nombre del torneo")
+add_bullet("Descripción")
+add_bullet("Capacidad máxima de parejas/equipos")
 add_bullet("Cuota de inscripción ($)")
 add_bullet("Fecha de inicio y fin")
 add_bullet("Fecha límite de inscripción")
-add_bullet("Estado: open, in_progress, completed, cancelled")
+add_bullet("Estado: borrador (draft), inscripciones abiertas (open), inscripciones cerradas (closed), en curso (in_progress), finalizado (finished)")
 
 doc.add_heading("Eventos:", level=3)
 add_bullet("Título y descripción")
@@ -431,7 +433,8 @@ doc.add_paragraph()
 
 doc.add_paragraph(
     "Nota: Los TimeSlots no se crean manualmente. Se generan automáticamente "
-    "mediante el comando 'generate_timeslots' basado en los CourtSchedule de cada cancha."
+    "cuando un cliente solicita disponibilidad para una fecha, basándose en los "
+    "CourtSchedule de cada cancha (horario de apertura/cierre por día de la semana)."
 )
 
 add_screenshot("09_admin_timeslots", "Figura 7: Gestión de horarios")
@@ -530,12 +533,11 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Parámetros configurables:", level=3)
-add_bullet("Nombre de la política")
-add_bullet("Horas de antelación mínima para cancelar sin penalidad (free_cancellation_hours)")
-add_bullet("Porcentaje de penalidad por cancelación tardía (late_cancellation_fee_percent)")
-add_bullet("Porcentaje de penalidad por no-show (no_show_fee_percent)")
-add_bullet("Tiempo de hold en minutos (hold_duration_minutes)")
-add_bullet("Descripción de la política")
+add_bullet("Horas de ventana gratuita (free_window_hours) — Horas mínimas antes de la reserva para cancelar sin cargo")
+add_bullet("Ratio de penalización por cancelación tardía (penalty_ratio) — Porcentaje cobrado si cancela después de la ventana (ej: 0.50 = 50%)")
+add_bullet("Ratio de penalización por no-show (no_show_ratio) — Porcentaje cobrado si el cliente no se presenta (ej: 1.00 = 100%)")
+add_bullet("Tiempo de hold en minutos (hold_minutes) — Duración máxima de un slot en hold antes de expirar")
+add_bullet("Estado activo/inactivo (active)")
 
 add_screenshot("14_admin_policies", "Figura 11: Políticas de cancelación")
 
@@ -643,13 +645,13 @@ doc.add_paragraph(
     "4. Ingrese la hora de inicio (formato HH:MM)\n"
     "5. Seleccione la duración (60, 90 o 120 minutos)\n"
     "6. Haga clic en \"Crear reserva\"\n"
-    "7. Se creará la reserva con estado \"confirmada\" y precio fijo $30.00\n"
+    "7. Se creará la reserva con estado \"confirmada\"\n"
     "8. Se enviará una notificación al cliente vía Celery"
 )
 
 doc.add_paragraph(
-    "Nota: La reserva manual se crea directamente con estado 'confirmed' "
-    "y un precio fijo de $30.00. Las notificaciones se envían "
+    "Nota: La reserva manual se crea directamente con estado 'confirmed'. "
+    "El precio se establece automáticamente. Las notificaciones se envían "
     "asíncronamente mediante Celery."
 )
 
@@ -666,7 +668,7 @@ add_bullet("Columnas: Nombre, Tipo (badge), Iluminación (✓ LED / No), Estado,
 add_bullet("Botón de toggle: Activar/Desactivar cancha con un clic")
 
 doc.add_heading("Acciones disponibles:", level=3)
-add_bullet("Activar/Desactivar cancha — Cambia el estado active/inactive")
+add_bullet("Activar/Archivar cancha — Cambia el estado entre activa y archivada")
 add_bullet("Crear nueva cancha — Nombre, tipo (techada/abierta), iluminación LED")
 add_bullet("Programar mantenimiento — Cancha, motivo, fecha/hora inicio-fin")
 
@@ -858,9 +860,39 @@ add_screenshot("24_custom_admin_audit", "Figura 21: Registro de auditoría y seg
 doc.add_page_break()
 
 # ════════════════════════════════════════════════════════════════════════
+#  GDPR
+# ════════════════════════════════════════════════════════════════════════
+doc.add_heading("Cumplimiento GDPR", level=1)
+
+doc.add_paragraph(
+    "El sistema cumple con el Reglamento General de Protección de Datos (GDPR) "
+    "mediante los siguientes mecanismos accesibles vía API REST:"
+)
+
+doc.add_heading("Consentimiento:", level=2)
+add_bullet("POST /api/auth/me/consent/ — Registra la versión de los términos aceptados por el usuario")
+add_bullet("Cada usuario tiene campos consent_version y consent_ts para rastrear el consentimiento")
+
+doc.add_heading("Exportación de Datos:", level=2)
+add_bullet("GET /api/auth/me/export/ — Exporta todos los datos del usuario en formato JSON")
+add_bullet("Incluye: perfil, reservas, pagos, notificaciones, consentimiento y registros de auditoría")
+
+doc.add_heading("Derecho al Olvido:", level=2)
+add_bullet("POST /api/auth/me/erase/ — Anonimiza permanentemente la cuenta del usuario")
+add_bullet("Los datos personales se eliminan pero los registros financieros se conservan de forma anónima")
+add_bullet("Requiere autenticación activa")
+
+doc.add_paragraph(
+    "Nota: La exportación y eliminación de datos están disponibles solo para el usuario "
+    "autenticado (no pueden ser ejecutadas por administradores en nombre de otro usuario)."
+)
+
+doc.add_page_break()
+
+# ════════════════════════════════════════════════════════════════════════
 #  5. DOCUMENTACIÓN API
 # ════════════════════════════════════════════════════════════════════════
-doc.add_heading("5. Documentación de la API (Swagger / ReDoc)", level=1)
+doc.add_heading("6. Documentación de la API (Swagger / ReDoc)", level=1)
 
 doc.add_paragraph(
     "La API REST del sistema está documentada interactivamente utilizando "
@@ -870,11 +902,11 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Acceso a la documentación:", level=2)
-add_bullet("Swagger UI — http://[IP]:8000/api/docs/")
-add_bullet("ReDoc — http://[IP]:8000/api/redoc/")
-add_bullet("Schema (JSON/YAML) — http://[IP]:8000/api/schema/")
+add_bullet("Swagger UI — https://andespadel.yachaq.io/api/docs/")
+add_bullet("ReDoc — https://andespadel.yachaq.io/api/redoc/")
+add_bullet("Schema (JSON/YAML) — https://andespadel.yachaq.io/api/schema/")
 
-doc.add_heading("5.1. Endpoints Disponibles", level=2)
+doc.add_heading("6.1. Endpoints Disponibles", level=2)
 
 doc.add_heading("Grupos de endpoints principales:", level=3)
 add_table(
@@ -896,7 +928,7 @@ add_table(
 add_screenshot("01_swagger_overview", "Figura 22: Documentación Swagger (vista pública)")
 add_screenshot("02_redoc_overview", "Figura 23: Documentación ReDoc")
 
-doc.add_heading("5.2. Autenticación JWT", level=2)
+doc.add_heading("6.2. Autenticación JWT", level=2)
 doc.add_paragraph(
     "Para acceder a los endpoints protegidos, es necesario autenticarse "
     "utilizando tokens JWT (JSON Web Token). El proceso es:"
@@ -923,7 +955,7 @@ doc.add_page_break()
 # ════════════════════════════════════════════════════════════════════════
 #  6. CUENTAS DE PRUEBA
 # ════════════════════════════════════════════════════════════════════════
-doc.add_heading("6. Cuentas de Prueba", level=1)
+doc.add_heading("7. Cuentas de Prueba", level=1)
 
 doc.add_paragraph(
     "Las siguientes cuentas están disponibles para pruebas en el entorno "
@@ -934,7 +966,10 @@ add_table(
     ["Cuenta", "Correo Electrónico", "Contraseña", "Rol", "Panel"],
     [
         ["Super Administrador", "admin@andespadel.com", "Andes12345!", "superadmin", "Django + Personalizado"],
-        ["Cliente", "cliente@andespadel.com", "Andes12345!", "client", "Solo App Móvil"],
+        ["Gerente", "gerente@andespadel.com", "Andes12345!", "gerente", "Personalizado"],
+        ["Recepcionista", "recepcion@andespadel.com", "Andes12345!", "recepcionista", "Personalizado"],
+        ["Cliente", "cliente@andespadel.com", "Andes12345!", "cliente", "Solo App Móvil"],
+        ["Jugadora", "jugador@andespadel.com", "Andes12345!", "cliente", "Solo App Móvil"],
     ],
 )
 
@@ -950,7 +985,7 @@ doc.add_page_break()
 # ════════════════════════════════════════════════════════════════════════
 #  7. SOLUCIÓN DE PROBLEMAS
 # ════════════════════════════════════════════════════════════════════════
-doc.add_heading("7. Solución de Problemas", level=1)
+doc.add_heading("8. Solución de Problemas", level=1)
 
 problems = [
     ("No puedo iniciar sesión al panel personalizado",
