@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'core/api_client.dart';
 import 'core/locale_controller.dart';
+import 'core/push_notification_service.dart';
 import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'core/storage.dart';
 import 'core/theme/app_theme.dart';
@@ -16,20 +17,24 @@ class AndesPadelApp extends StatelessWidget {
       {super.key,
       required ApiClient api,
       required TokenStorage storage,
-      required LocaleController localeController})
+      required LocaleController localeController,
+      required PushNotificationService pushService})
       : _api = api,
         _auth = AuthState(api: api, storage: storage),
-        _localeController = localeController;
+        _localeController = localeController,
+        _pushService = pushService;
 
   final ApiClient _api;
   final AuthState _auth;
   final LocaleController _localeController;
+  final PushNotificationService _pushService;
 
   @override
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
         Provider<ApiClient>.value(value: _api),
+        Provider<PushNotificationService>.value(value: _pushService),
         ChangeNotifierProvider<AuthState>.value(value: _auth),
         ChangeNotifierProvider<LocaleController>.value(value: _localeController),
       ],
@@ -72,6 +77,7 @@ class _AuthGateState extends State<_AuthGate> {
   void initState() {
     super.initState();
     final locale = context.read<LocaleController>();
+    final pushService = context.read<PushNotificationService>();
     widget.auth.restoreSession().then((_) {
       if (widget.auth.authenticated) {
         widget.auth.loadMe().then((_) {
@@ -83,6 +89,7 @@ class _AuthGateState extends State<_AuthGate> {
             }
           }
         });
+        pushService.registerToken();
       }
     });
   }

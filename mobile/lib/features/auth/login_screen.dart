@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
+import '../../core/push_notification_service.dart';
 import 'auth_state.dart';
 import 'reset_screen.dart';
 import 'register_screen.dart';
@@ -28,6 +29,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.read<AuthState>();
     await auth.login(_email.text, _password.text);
     if (mounted && auth.authenticated) {
+      // Register FCM push notification token after login
+      try {
+        final pushService = context.read<PushNotificationService>();
+        await pushService.registerToken();
+      } catch (_) {}
       Navigator.of(context).pushNamedAndRemoveUntil('/shell', (route) => false);
     }
   }
