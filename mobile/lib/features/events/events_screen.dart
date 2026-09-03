@@ -63,15 +63,16 @@ class _EventsScreenState extends State<EventsScreen> {
   Future<void> _register(Map<String, dynamic> tournament) async {
     final l10n = AppLocalizations.of(context);
     final controller = TextEditingController();
-    final api = context.read<ApiClient>();
-    final id = tournament['id'];
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(l10n.registerNow),
-        content: TextField(
-          controller: controller,
-          textCapitalization: TextCapitalization.words,
+    try {
+      final api = context.read<ApiClient>();
+      final id = tournament['id'];
+      final confirmed = await showDialog<bool>(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: Text(l10n.registerNow),
+          content: TextField(
+            controller: controller,
+            textCapitalization: TextCapitalization.words,
           decoration: InputDecoration(labelText: l10n.partnerName),
         ),
         actions: [
@@ -104,6 +105,8 @@ class _EventsScreenState extends State<EventsScreen> {
       _showMessage(detail is String && detail.isNotEmpty ? detail : l10n.error);
     } catch (_) {
       _showMessage(l10n.error);
+    } finally {
+      controller.dispose();
     }
   }
 

@@ -237,7 +237,7 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
         if action == "toggle_status":
             court_id = request.POST.get("court_id")
             court = get_object_or_404(Court, id=court_id)
-            court.status = "inactive" if court.status == "active" else "active"
+            court.status = "archived" if court.status == "active" else "active"
             court.save()
             messages.success(request, f"Estado de {court.name} cambiado a {court.status}.")
             log_event(request.user, "admin.court_toggle", "Court", court.id)
@@ -353,8 +353,7 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
             amount = payment.amount
             PaymentService.refund(payment, amount)
             if payment.booking:
-                payment.booking.status = "cancelled"
-                payment.booking.save(update_fields=["status"])
+                payment.booking.transition_to("cancelled")
             messages.success(request, f"Reembolso procesado para pago #{payment.id}.")
 
         return redirect(request.get_full_path())

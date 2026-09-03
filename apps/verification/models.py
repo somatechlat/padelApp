@@ -1,3 +1,4 @@
+import hmac
 import secrets as _std
 from datetime import timedelta
 
@@ -69,7 +70,7 @@ class VerificationCodeService:
             return False
         if instance.is_expired:
             return False
-        if instance.code == code:
+        if hmac.compare_digest(instance.code, code):
             instance.verified_at = timezone.now()
             instance.save(update_fields=["verified_at"])
             return True

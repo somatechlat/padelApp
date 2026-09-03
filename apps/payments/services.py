@@ -121,17 +121,16 @@ class PaymentService:
 
     @staticmethod
     def refund(payment, amount):
+        """Process a refund. For transfer/cash payments, just mark as refunded.
+        For Stripe payments, call the Stripe API first."""
         if payment.stripe_payment_intent_id:
-            try:
-                import stripe
+            import stripe
 
-                stripe.api_key = secrets.STRIPE_SECRET_KEY
-                stripe.Refund.create(
-                    payment_intent=payment.stripe_payment_intent_id,
-                    amount=int(amount * 100),
-                )
-            except Exception:
-                pass
+            stripe.api_key = secrets.STRIPE_SECRET_KEY
+            stripe.Refund.create(
+                payment_intent=payment.stripe_payment_intent_id,
+                amount=int(amount * 100),
+            )
         payment.status = Payment.Status.REFUNDED
         payment.save(update_fields=["status", "updated_at"])
         log_event(payment.user, "payment.refund", "Payment", payment.id)

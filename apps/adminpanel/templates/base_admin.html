@@ -359,9 +359,57 @@
   .slot-booked { background: rgba(206, 220, 41, 0.15); border: 1px solid var(--accent); color: var(--accent); }
   .slot-held { background: rgba(255, 193, 7, 0.15); border: 1px solid var(--accent-yellow); color: var(--accent-yellow); }
   .slot-blocked { background: rgba(211, 47, 47, 0.15); border: 1px solid var(--accent-red); color: var(--accent-red); }
+
+  /* ── Responsive: Mobile ── */
+  @media (max-width: 768px) {
+    body { flex-direction: column; }
+    aside {
+      width: 100%;
+      border-right: none;
+      border-bottom: 1px solid var(--border-color);
+    }
+    aside nav {
+      flex-direction: row;
+      flex-wrap: wrap;
+      gap: 4px;
+      padding: 8px;
+    }
+    aside nav a {
+      padding: 8px 12px;
+      font-size: 12px;
+      gap: 6px;
+    }
+    .brand { padding: 12px 16px; }
+    .sidebar-footer { display: none; }
+    header { padding: 0 16px; height: 56px; }
+    .header-title { font-size: 16px; }
+    .content-area { padding: 16px; }
+    .cards-grid { grid-template-columns: 1fr 1fr; gap: 12px; }
+    .table-container { overflow-x: auto; }
+    table { min-width: 600px; }
+    .calendar-table { min-width: 800px; }
+    .section-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+  }
+
+  @media (max-width: 480px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    aside nav a span:first-child { display: none; }
+  }
+
+  /* ── Focus styles for keyboard navigation ── */
+  a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+
+  /* ── Skip to content link ── */
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+  .sr-only-focusable:focus { position: static; width: auto; height: auto; padding: 8px 16px; margin: 0; overflow: visible; clip: auto; background: var(--accent); color: var(--text-dark); z-index: 9999; }
 </style>
 </head>
 <body>
+
+<a href="#main-content" class="sr-only sr-only-focusable">Saltar al contenido</a>
 
 <aside>
   <div class="brand">
@@ -412,7 +460,7 @@
     </div>
   </header>
 
-  <div class="content-area">
+  <div class="content-area" id="main-content">
     {% if messages %}
     <div class="messages">
       {% for message in messages %}

@@ -75,8 +75,8 @@
                 <input type="hidden" name="action" value="reject_transfer">
                 <input type="hidden" name="payment_id" value="{{ p.id }}">
                 <input type="text" name="rejection_reason" placeholder="Motivo..."
-                       style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border);
-                              background: var(--surface); color: var(--text); font-size: 12px; width: 140px;">
+                       style="padding: 4px 8px; border-radius: 6px; border: 1px solid var(--border-color);
+                              background: var(--card-bg); color: var(--text-primary); font-size: 12px; width: 140px;">
                 <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
               </form>
             {% elif p.rejection_reason %}

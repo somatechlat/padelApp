@@ -31,11 +31,13 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     try {
       final data = await context.read<ApiClient>().get('/notifications/');
       final list = data is Map ? data['results'] : data;
+      if (!mounted) return;
       setState(() {
         _notifications = (list as List<dynamic>? ?? []);
         _error = null;
       });
     } catch (e) {
+      if (!mounted) return;
       setState(() => _error = e.toString());
     }
   }
