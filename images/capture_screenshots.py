@@ -7,7 +7,7 @@ import urllib.request
 from pathlib import Path
 from playwright.sync_api import sync_playwright
 
-BASE = "http://localhost:8000"
+BASE = "https://andespadel.yachaq.io"
 OUT = Path(__file__).parent
 ADMIN_USER = "admin@andespadel.com"
 ADMIN_PASS = "Andes12345!"
