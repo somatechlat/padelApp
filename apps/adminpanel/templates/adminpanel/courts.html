@@ -10,14 +10,17 @@
 
 <!-- Modal Nueva Cancha -->
 <div id="modal-court" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
-  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+  <div class="card" style="width: 500px; padding: 32px; gap: 20px; max-height: 90vh; overflow-y: auto;">
     <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Agregar Nueva Cancha</div>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="action" value="create_court">
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DE LA CANCHA</label>
-        <input type="text" name="name" placeholder="Ej. Cancha 3 Central" required>
+        <input type="text" name="name" placeholder="Ej. Cancha Ambacar" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
+        <textarea name="description" rows="3" placeholder="Ej. Cancha techada con iluminacion LED profesional, piso de cristal premium..."></textarea>
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA</label>
         <select name="court_type">
@@ -27,6 +30,9 @@
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO BASE ($)</label>
         <input type="number" name="price_base" step="0.01" min="0" placeholder="Ej. 12.00" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FOTO DE LA CANCHA</label>
+        <input type="file" name="image" accept="image/*" style="font-size: 14px;">
 
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
           <input type="checkbox" name="has_lighting" id="lighting" checked style="width: 18px; height: 18px;">
@@ -43,15 +49,18 @@
 
 <!-- Modal Editar Cancha -->
 <div id="modal-edit-court" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
-  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+  <div class="card" style="width: 500px; padding: 32px; gap: 20px; max-height: 90vh; overflow-y: auto;">
     <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Cancha</div>
-    <form method="post">
+    <form method="post" enctype="multipart/form-data">
       {% csrf_token %}
       <input type="hidden" name="action" value="edit_court">
       <input type="hidden" name="court_id" id="edit-court-id">
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DE LA CANCHA</label>
         <input type="text" name="name" id="edit-court-name" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
+        <textarea name="description" id="edit-court-description" rows="3"></textarea>
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA</label>
         <select name="court_type" id="edit-court-type">
@@ -61,6 +70,10 @@
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO BASE ($)</label>
         <input type="number" name="price_base" id="edit-court-price" step="0.01" min="0" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FOTO DE LA CANCHA</label>
+        <div id="edit-court-image-preview" style="margin-bottom: 8px;"></div>
+        <input type="file" name="image" accept="image/*" style="font-size: 14px;">
 
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
           <input type="checkbox" name="has_lighting" id="edit-court-lighting" style="width: 18px; height: 18px;">
@@ -79,9 +92,11 @@
   <table>
     <thead>
       <tr>
+        <th>Foto</th>
         <th>Nombre</th>
+        <th>Descripcion</th>
         <th>Tipo</th>
-        <th>Iluminacion</th>
+        <th>Precio</th>
         <th>Estado</th>
         <th>Accion</th>
       </tr>
@@ -89,12 +104,20 @@
     <tbody>
       {% for c in courts %}
       <tr>
+        <td>
+          {% if c.image %}
+            <img src="{{ c.image.url }}" alt="{{ c.name }}" style="width: 60px; height: 40px; object-fit: cover; border-radius: 6px;">
+          {% else %}
+            <div style="width: 60px; height: 40px; background: var(--surface); border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 16px;">🏓</div>
+          {% endif %}
+        </td>
         <td style="font-weight: 800; font-size: 16px;">{{ c.name }}</td>
+        <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text-muted); font-size: 12px;">{{ c.description|default:"--" }}</td>
         <td><span class="badge badge-active">{{ c.get_court_type_display }}</span></td>
-        <td>{% if c.has_lighting %}<span style="color: var(--accent); font-weight: 700;">✓ LED</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
+        <td style="font-weight: 700; color: var(--accent);">${{ c.price_base }}</td>
         <td><span class="badge badge-{{ c.status }}">{{ c.status|upper }}</span></td>
         <td style="white-space: nowrap;">
-          <button type="button" class="btn btn-sm btn-outline" onclick="openEditCourt({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.court_type }}', {% if c.has_lighting %}true{% else %}false{% endif %}, '{{ c.price_base }}')">Editar</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditCourt({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.description|escapejs }}', '{{ c.court_type }}', {% if c.has_lighting %}true{% else %}false{% endif %}, '{{ c.price_base }}', {% if c.image %}'{{ c.image.url }}'{% else %}null{% endif %})">Editar</button>
           <form method="post" style="display: inline;">
             {% csrf_token %}
             <input type="hidden" name="action" value="toggle_status">
@@ -112,7 +135,7 @@
         </td>
       </tr>
       {% empty %}
-      <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">No hay canchas registradas.</td></tr>
+      <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">No hay canchas registradas.</td></tr>
       {% endfor %}
     </tbody>
   </table>
@@ -181,12 +204,19 @@
 </div>
 
 <script>
-function openEditCourt(id, name, courtType, hasLighting, price) {
+function openEditCourt(id, name, description, courtType, hasLighting, price, imageUrl) {
   document.getElementById('edit-court-id').value = id;
   document.getElementById('edit-court-name').value = name;
+  document.getElementById('edit-court-description').value = description;
   document.getElementById('edit-court-type').value = courtType;
   document.getElementById('edit-court-price').value = price;
   document.getElementById('edit-court-lighting').checked = hasLighting;
+  var preview = document.getElementById('edit-court-image-preview');
+  if (imageUrl) {
+    preview.innerHTML = '<img src="' + imageUrl + '" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px;">';
+  } else {
+    preview.innerHTML = '';
+  }
   document.getElementById('modal-edit-court').style.display = 'flex';
 }
 </script>

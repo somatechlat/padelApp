@@ -188,86 +188,167 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget _buildCourtCard(
       Map<String, dynamic> court, AppLocalizations l10n, ColorScheme scheme) {
     final name = (court['name'] as String?) ?? '';
+    final description = (court['description'] as String?) ?? '';
     final courtType = court['court_type'] as String?;
     final hasLighting = court['has_lighting'] as bool? ?? false;
     final priceBase = court['price_base'] as String?;
+    final imageUrl = court['image'] as String?;
 
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
-      padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: scheme.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
         border: Border.all(color: scheme.outline),
       ),
+      clipBehavior: Clip.antiAlias,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
+          // Image section
+          if (imageUrl != null && imageUrl.isNotEmpty)
+            AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.network(
+                imageUrl,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => _buildImagePlaceholder(scheme),
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return _buildImagePlaceholder(scheme);
+                },
+              ),
+            )
+          else
+            _buildImagePlaceholder(scheme),
+
+          // Content section
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.md),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Name and tags
+                Row(
                   children: [
-                    Text(
-                      name,
-                      style: TextStyle(
-                        color: scheme.onSurface,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w900,
+                    Expanded(
+                      child: Text(
+                        name,
+                        style: TextStyle(
+                          color: scheme.onSurface,
+                          fontSize: 20,
+                          fontWeight: FontWeight.w900,
+                        ),
                       ),
                     ),
-                    const SizedBox(height: 4),
-                    Text(
-                      '${_courtTypeLabel(l10n, courtType)} · ${hasLighting ? l10n.hasLighting : l10n.noLighting}',
-                      style: TextStyle(
-                        color: scheme.onSurface.withValues(alpha: 0.6),
-                        fontSize: 14,
+                    _buildTag(_courtTypeLabel(l10n, courtType), scheme),
+                    if (hasLighting) ...[
+                      const SizedBox(width: 6),
+                      _buildTag(l10n.hasLighting, scheme),
+                    ],
+                  ],
+                ),
+
+                // Description
+                if (description.isNotEmpty) ...[
+                  const SizedBox(height: 8),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      color: scheme.onSurface.withValues(alpha: 0.6),
+                      fontSize: 13,
+                      height: 1.4,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
+
+                const SizedBox(height: AppSpacing.md),
+
+                // Price and button
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    if (priceBase != null)
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '\$$priceBase',
+                            style: TextStyle(
+                              color: AppColors.accent,
+                              fontSize: 22,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          Text(
+                            l10n.perHour,
+                            style: TextStyle(
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                              fontSize: 11,
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ],
+                      )
+                    else
+                      const SizedBox.shrink(),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.of(context).pushNamed('/bookings/new');
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: AppColors.brand,
+                        foregroundColor: Colors.white,
+                        minimumSize: const Size(100, 48),
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(24)),
+                        elevation: 0,
                       ),
+                      child: Text(l10n.reserve,
+                          style: const TextStyle(
+                              fontWeight: FontWeight.w900, fontSize: 15)),
                     ),
                   ],
                 ),
-              ),
-              Icon(
-                hasLighting ? Icons.light_mode_outlined : Icons.dark_mode_outlined,
-                color: scheme.onSurface.withValues(alpha: 0.5),
-                size: 20,
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              if (priceBase != null)
-                Text(
-                  '\$$priceBase ${l10n.perHour}',
-                  style: TextStyle(
-                    color: AppColors.accent,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                  ),
-                )
-              else
-                const SizedBox.shrink(),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.of(context).pushNamed('/bookings/new');
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.brand,
-                  foregroundColor: Colors.white,
-                  minimumSize: const Size(64, 48),
-                  shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(20)),
-                ),
-                child: Text(l10n.reserve,
-                    style: const TextStyle(fontWeight: FontWeight.w900)),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildImagePlaceholder(ColorScheme scheme) {
+    return Container(
+      width: double.infinity,
+      height: 160,
+      color: scheme.surfaceContainerHighest,
+      child: Center(
+        child: Icon(
+          Icons.sports_tennis_outlined,
+          size: 48,
+          color: scheme.onSurface.withValues(alpha: 0.2),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTag(String label, ColorScheme scheme) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.accentSoft,
+        borderRadius: BorderRadius.circular(6),
+      ),
+      child: Text(
+        label,
+        style: TextStyle(
+          color: AppColors.brand,
+          fontSize: 10,
+          fontWeight: FontWeight.w700,
+        ),
       ),
     );
   }

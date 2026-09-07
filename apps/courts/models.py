@@ -28,9 +28,11 @@ class Court(models.Model):
 
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="courts")
     name = models.CharField(max_length=80)
+    description = models.TextField(blank=True, default="", help_text="Descripcion de la cancha visible para los clientes")
     court_type = models.CharField(max_length=10, choices=CourtType.choices, default=CourtType.TECHADA)
     has_lighting = models.BooleanField(default=False)
     price_base = models.DecimalField(max_digits=8, decimal_places=2)
+    image = models.ImageField(upload_to="courts/%Y/%m/", blank=True, null=True, help_text="Foto de la cancha")
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.ACTIVE)
 
     class Meta:

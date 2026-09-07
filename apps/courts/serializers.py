@@ -18,9 +18,11 @@ class CourtSerializer(serializers.ModelSerializer):
             "id",
             "venue",
             "name",
+            "description",
             "court_type",
             "has_lighting",
             "price_base",
+            "image",
             "status",
         ]
         read_only_fields = ["id"]

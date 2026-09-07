@@ -284,25 +284,32 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
             venue = Venue.objects.first()
             if not venue:
                 venue = Venue.objects.create(name="Andes Padel Club", address="Quito")
-            court = Court.objects.create(
+            court = Court(
                 venue=venue,
                 name=name,
+                description=request.POST.get("description", ""),
                 court_type=court_type,
                 has_lighting=request.POST.get("has_lighting") == "on",
                 price_base=request.POST.get("price_base", "10.00"),
                 status="active"
             )
+            if request.FILES.get("image"):
+                court.image = request.FILES["image"]
+            court.save()
             messages.success(request, f"Cancha '{court.name}' creada exitosamente.")
             log_event(request.user, "admin.court_create", "Court", court.id)
         elif action == "edit_court":
             court_id = request.POST.get("court_id")
             court = get_object_or_404(Court, id=court_id)
             court.name = request.POST.get("name", court.name)
+            court.description = request.POST.get("description", court.description)
             court.court_type = request.POST.get("court_type", court.court_type)
             court.has_lighting = request.POST.get("has_lighting") == "on"
             price = request.POST.get("price_base")
             if price:
                 court.price_base = price
+            if request.FILES.get("image"):
+                court.image = request.FILES["image"]
             court.save()
             messages.success(request, f"Cancha '{court.name}' actualizada.")
             log_event(request.user, "admin.court_edit", "Court", court.id)
