@@ -68,7 +68,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     children: [
                       _buildHeader(l10n, greeting, scheme),
                       const SizedBox(height: AppSpacing.lg),
-                      _buildHeroBanner(l10n, scheme),
+                      _buildHeroBanner(l10n, scheme, greeting),
                       const SizedBox(height: AppSpacing.lg),
                     ],
                   ),
@@ -91,13 +91,42 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(8),
-          child: Image.asset(
-            'assets/images/LOGOTIPO-ANDES-PADEL.png',
-            height: 32,
-            fit: BoxFit.contain,
-          ),
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: Image.asset(
+                'assets/images/LOGOTIPO-ANDES-PADEL.png',
+                height: 52,
+                width: 52,
+                fit: BoxFit.contain,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Andes',
+                  style: TextStyle(
+                    color: scheme.onSurface,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                  ),
+                ),
+                Text(
+                  'Pádel',
+                  style: TextStyle(
+                    color: AppColors.accent,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ],
         ),
         Container(
           decoration: BoxDecoration(
@@ -114,36 +143,62 @@ class _HomeScreenState extends State<HomeScreen> {
     );
   }
 
-  Widget _buildHeroBanner(AppLocalizations l10n, ColorScheme scheme) {
+  Widget _buildHeroBanner(AppLocalizations l10n, ColorScheme scheme, String greeting) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(AppSpacing.lg),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 20),
       decoration: BoxDecoration(
-        color: AppColors.brand,
+        gradient: const LinearGradient(
+          colors: [Color(0xFF002F48), Color(0xFF001A2A)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
         children: [
-          Text(
-            l10n.appTagline,
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.8),
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.appTagline,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: 1,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  greeting,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    height: 1.2,
+                  ),
+                ),
+              ],
             ),
           ),
-          const SizedBox(height: 4),
-          Text(
-            l10n.appTitle,
-            style: const TextStyle(
+          Container(
+            width: 56,
+            height: 56,
+            decoration: BoxDecoration(
+              color: AppColors.accent.withValues(alpha: 0.15),
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: const Icon(
+              Icons.sports_tennis_outlined,
               color: AppColors.accent,
-              fontSize: 32,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -0.5,
+              size: 28,
             ),
           ),
+        ],
+      ),
         ],
       ),
     );

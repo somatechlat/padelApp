@@ -29,16 +29,10 @@ class AuthScaffold extends StatelessWidget {
                 children: [
                   Image.asset(
                     'assets/images/LOGOTIPO-ANDES-PADEL.png',
-                    height: 80,
+                    height: 120,
                     fit: BoxFit.contain,
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    l10n.appTitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
-                  ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: 24),
                   Text(
                     title,
                     textAlign: TextAlign.center,
