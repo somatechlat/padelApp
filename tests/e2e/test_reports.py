@@ -27,7 +27,7 @@ class TestReports:
     def test_reports_shows_revenue_by_court(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")
         content = admin_page.content()
-        assert "cancha" in content.lower() or "court" in content.lower() or "C1" in content
+        assert "cancha" in content.lower() or "court" in content.lower()
 
     def test_reports_shows_top_customers(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")

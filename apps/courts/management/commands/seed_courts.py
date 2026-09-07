@@ -13,8 +13,9 @@ class Command(BaseCommand):
         )
         created_courts = 0
         for name, court_type, price in (
-            ("C1", Court.CourtType.TECHADA, "12.00"),
-            ("C2", Court.CourtType.ABIERTA, "10.00"),
+            ("Cancha Ambacar", Court.CourtType.TECHADA, "12.00"),
+            ("Cancha 2", Court.CourtType.ABIERTA, "10.00"),
+            ("Cancha 3", Court.CourtType.ABIERTA, "10.00"),
         ):
             court, created = Court.objects.get_or_create(
                 venue=venue,

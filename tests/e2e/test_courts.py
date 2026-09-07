@@ -17,12 +17,12 @@ class TestCourts:
     def test_courts_list_shows_courts(self, admin_page: Page):
         admin_page.goto("/adminpanel/courts/")
         rows = admin_page.locator("table tbody tr")
-        assert rows.count() >= 2  # C1 and C2 from seed_demo
+        assert rows.count() >= 3  # Cancha Ambacar, Cancha 2, Cancha 3 from seed_demo
 
     def test_courts_shows_name_and_type(self, admin_page: Page):
         admin_page.goto("/adminpanel/courts/")
         content = admin_page.content()
-        assert "C1" in content or "C2" in content
+        assert "Cancha" in content
 
     def test_courts_toggle_status(self, admin_page: Page):
         admin_page.goto("/adminpanel/courts/")

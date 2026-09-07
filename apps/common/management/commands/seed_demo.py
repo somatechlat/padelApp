@@ -51,8 +51,9 @@ class Command(BaseCommand):
             defaults={"address": "Av. Principal, Quito", "timezone": "America/Guayaquil"},
         )
         for name, court_type, price in (
-            ("C1", Court.CourtType.TECHADA, "12.00"),
-            ("C2", Court.CourtType.ABIERTA, "10.00"),
+            ("Cancha Ambacar", Court.CourtType.TECHADA, "12.00"),
+            ("Cancha 2", Court.CourtType.ABIERTA, "10.00"),
+            ("Cancha 3", Court.CourtType.ABIERTA, "10.00"),
         ):
             court, was_created = Court.objects.get_or_create(
                 venue=venue,
@@ -78,7 +79,7 @@ class Command(BaseCommand):
                 "description_es": "Entrenamiento guiado para todos los niveles.",
                 "start_at": now + timezone.timedelta(days=5),
                 "end_at": now + timezone.timedelta(days=5, hours=2),
-                "location": "Cancha C1",
+                "location": "Cancha Ambacar",
                 "status": Event.Status.PUBLISHED,
                 "created_by": admin,
             },

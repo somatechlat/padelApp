@@ -25,6 +25,9 @@
           <option value="abierta">Abierta (Outdoor)</option>
         </select>
 
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO BASE ($)</label>
+        <input type="number" name="price_base" step="0.01" min="0" placeholder="Ej. 12.00" required>
+
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
           <input type="checkbox" name="has_lighting" id="lighting" checked style="width: 18px; height: 18px;">
           <label for="lighting" style="font-size: 14px; font-weight: 600;">Tiene Iluminacion LED</label>
@@ -33,6 +36,40 @@
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-court').style.display='none'" class="btn btn-outline">Cancelar</button>
         <button type="submit" class="btn">Guardar Cancha</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Cancha -->
+<div id="modal-edit-court" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Cancha</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_court">
+      <input type="hidden" name="court_id" id="edit-court-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DE LA CANCHA</label>
+        <input type="text" name="name" id="edit-court-name" required>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA</label>
+        <select name="court_type" id="edit-court-type">
+          <option value="techada">Techada (Covered)</option>
+          <option value="abierta">Abierta (Outdoor)</option>
+        </select>
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO BASE ($)</label>
+        <input type="number" name="price_base" id="edit-court-price" step="0.01" min="0" required>
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="has_lighting" id="edit-court-lighting" style="width: 18px; height: 18px;">
+          <label for="edit-court-lighting" style="font-size: 14px; font-weight: 600;">Tiene Iluminacion LED</label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-court').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
       </div>
     </form>
   </div>
@@ -56,7 +93,8 @@
         <td><span class="badge badge-active">{{ c.get_court_type_display }}</span></td>
         <td>{% if c.has_lighting %}<span style="color: var(--accent); font-weight: 700;">✓ LED</span>{% else %}<span style="color: var(--text-muted);">No</span>{% endif %}</td>
         <td><span class="badge badge-{{ c.status }}">{{ c.status|upper }}</span></td>
-        <td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditCourt({{ c.id }}, '{{ c.name|escapejs }}', '{{ c.court_type }}', {% if c.has_lighting %}true{% else %}false{% endif %}, '{{ c.price_base }}')">Editar</button>
           <form method="post" style="display: inline;">
             {% csrf_token %}
             <input type="hidden" name="action" value="toggle_status">
@@ -64,6 +102,12 @@
             <button type="submit" class="btn btn-sm btn-outline">
               {% if c.status == 'active' %}Desactivar{% else %}Activar{% endif %}
             </button>
+          </form>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar cancha {{ c.name }}? Esta accion no se puede deshacer.');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_court">
+            <input type="hidden" name="court_id" value="{{ c.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
           </form>
         </td>
       </tr>
@@ -135,4 +179,15 @@
     </tbody>
   </table>
 </div>
+
+<script>
+function openEditCourt(id, name, courtType, hasLighting, price) {
+  document.getElementById('edit-court-id').value = id;
+  document.getElementById('edit-court-name').value = name;
+  document.getElementById('edit-court-type').value = courtType;
+  document.getElementById('edit-court-price').value = price;
+  document.getElementById('edit-court-lighting').checked = hasLighting;
+  document.getElementById('modal-edit-court').style.display = 'flex';
+}
+</script>
 {% endblock %}

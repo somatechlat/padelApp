@@ -271,10 +271,30 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
                 name=name,
                 court_type=court_type,
                 has_lighting=request.POST.get("has_lighting") == "on",
+                price_base=request.POST.get("price_base", "10.00"),
                 status="active"
             )
             messages.success(request, f"Cancha '{court.name}' creada exitosamente.")
             log_event(request.user, "admin.court_create", "Court", court.id)
+        elif action == "edit_court":
+            court_id = request.POST.get("court_id")
+            court = get_object_or_404(Court, id=court_id)
+            court.name = request.POST.get("name", court.name)
+            court.court_type = request.POST.get("court_type", court.court_type)
+            court.has_lighting = request.POST.get("has_lighting") == "on"
+            price = request.POST.get("price_base")
+            if price:
+                court.price_base = price
+            court.save()
+            messages.success(request, f"Cancha '{court.name}' actualizada.")
+            log_event(request.user, "admin.court_edit", "Court", court.id)
+        elif action == "delete_court":
+            court_id = request.POST.get("court_id")
+            court = get_object_or_404(Court, id=court_id)
+            name = court.name
+            court.delete()
+            messages.success(request, f"Cancha '{name}' eliminada.")
+            log_event(request.user, "admin.court_delete", "Court", int(court_id))
         elif action == "schedule_maintenance":
             court_id = request.POST.get("court_id")
             reason = request.POST.get("reason", "Mantenimiento rutinario")
