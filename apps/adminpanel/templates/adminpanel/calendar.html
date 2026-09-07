@@ -76,7 +76,27 @@
               <div>
                 <div style="text-transform: uppercase; font-weight: 800;">{{ slot.get_status_display }}</div>
                 {% for b in day_bookings %}
-                <div style="font-size: 11px; color: var(--text-primary); margin-top: 2px;">{{ b.user.email|truncatechars:18 }}</div>
+                <div style="font-size: 11px; color: var(--text-primary); margin-top: 2px; display: flex; align-items: center; gap: 4px;">
+                  {{ b.user.email|truncatechars:18 }}
+                  {% if b.status == 'confirmed' or b.status == 'pending_payment' %}
+                  <form method="post" style="margin: 0;" onsubmit="return confirm('Cancelar reserva de {{ b.user.email }}?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+                    <input type="hidden" name="action" value="cancel_booking">
+                    <input type="hidden" name="booking_id" value="{{ b.id }}">
+                    <button type="submit" style="background: #dc3545; color: #fff; border: none; border-radius: 4px; padding: 1px 5px; font-size: 9px; cursor: pointer;">Cancelar</button>
+                  </form>
+                  {% if b.status == 'confirmed' %}
+                  <form method="post" style="margin: 0;" onsubmit="return confirm('Marcar no-show a {{ b.user.email }}?');">
+                    {% csrf_token %}
+                    <input type="hidden" name="date" value="{{ day|date:'Y-m-d' }}">
+                    <input type="hidden" name="action" value="mark_noshow">
+                    <input type="hidden" name="booking_id" value="{{ b.id }}">
+                    <button type="submit" style="background: #ff8c00; color: #fff; border: none; border-radius: 4px; padding: 1px 5px; font-size: 9px; cursor: pointer;">No-Show</button>
+                  </form>
+                  {% endif %}
+                  {% endif %}
+                </div>
                 {% endfor %}
               </div>
               <form method="post" style="margin: 0;">

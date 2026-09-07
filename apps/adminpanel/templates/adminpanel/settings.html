@@ -3,8 +3,59 @@
 {% block page_title %}POLITICAS DE CANCELACION & REGLAS DE TARIFA{% endblock %}
 
 {% block content %}
+<!-- POLITICAS DE CANCELACION -->
 <div class="section-header">
   <div class="section-title">Politica de Cancelacion Vigente</div>
+  <button onclick="document.getElementById('modal-policy').style.display='flex'" class="btn">+ Nueva Politica</button>
+</div>
+
+<div id="modal-policy" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Politica de Cancelacion</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_policy">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">HORAS GRATUITAS ANTES DE CANCELAR</label>
+        <input type="number" name="free_window_hours" value="24" min="0" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PENALIZACION CANCELACION TARDIA (0.50 = 50%)</label>
+        <input type="number" step="0.01" name="penalty_ratio" value="0.50" min="0" max="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PENALIZACION NO-SHOW (1.00 = 100%)</label>
+        <input type="number" step="0.01" name="no_show_ratio" value="1.00" min="0" max="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MINUTOS DE HOLD (CHECKOUT)</label>
+        <input type="number" name="hold_minutes" value="10" min="1" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-policy').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Politica</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-edit-policy" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Politica</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_policy">
+      <input type="hidden" name="policy_id" id="edit-policy-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">HORAS GRATUITAS</label>
+        <input type="number" name="free_window_hours" id="edit-policy-hours" min="0" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PENALIZACION TARDIA (0.50 = 50%)</label>
+        <input type="number" step="0.01" name="penalty_ratio" id="edit-policy-penalty" min="0" max="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PENALIZACION NO-SHOW (1.00 = 100%)</label>
+        <input type="number" step="0.01" name="no_show_ratio" id="edit-policy-noshow" min="0" max="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MINUTOS DE HOLD</label>
+        <input type="number" name="hold_minutes" id="edit-policy-hold" min="1" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-policy').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="table-container" style="margin-bottom: 40px;">
@@ -12,55 +63,228 @@
     <thead>
       <tr>
         <th>Ventana Gratuita</th>
-        <th>Penalizacion Cancelacion Tardía</th>
+        <th>Penalizacion Tardia</th>
         <th>Penalizacion No-Show</th>
-        <th>Tiempo de Hold (Checkout)</th>
+        <th>Hold (Checkout)</th>
+        <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for p in policies %}
       <tr>
-        <td style="font-weight: 800; color: var(--accent);">≥ {{ p.free_cancellation_hours }} Horas Antes</td>
-        <td style="font-weight: 700; color: var(--accent-yellow);">{{ p.late_cancellation_fee_percent }}% del Valor</td>
-        <td style="font-weight: 700; color: var(--accent-red);">{{ p.no_show_fee_percent }}% del Valor</td>
-        <td style="font-weight: 700;">{{ p.hold_duration_minutes }} Minutos</td>
+        <td style="font-weight: 800; color: var(--accent);">{{ p.free_window_hours }} Horas Antes</td>
+        <td style="font-weight: 700; color: var(--accent-yellow);">{{ p.penalty_ratio|floatformat:0 }}% del Valor</td>
+        <td style="font-weight: 700; color: var(--accent-red);">{{ p.no_show_ratio|floatformat:0 }}% del Valor</td>
+        <td style="font-weight: 700;">{{ p.hold_minutes }} Minutos</td>
+        <td><span class="badge badge-{% if p.active %}active{% else %}archived{% endif %}">{% if p.active %}ACTIVA{% else %}INACTIVA{% endif %}</span></td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditPolicy({{ p.id }}, '{{ p.free_window_hours }}', '{{ p.penalty_ratio }}', '{{ p.no_show_ratio }}', '{{ p.hold_minutes }}')">Editar</button>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar esta politica?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_policy">
+            <input type="hidden" name="policy_id" value="{{ p.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
       </tr>
       {% empty %}
       <tr>
-        <td style="font-weight: 800; color: var(--accent);">≥ 24 Horas Antes</td>
+        <td style="font-weight: 800; color: var(--accent);">24 Horas Antes</td>
         <td style="font-weight: 700; color: var(--accent-yellow);">50% del Valor</td>
         <td style="font-weight: 700; color: var(--accent-red);">100% del Valor</td>
         <td style="font-weight: 700;">10 Minutos</td>
+        <td><span class="badge badge-active">DEFAULT</span></td>
+        <td>--</td>
       </tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
 
+<!-- REGLAS DE PRECIO -->
 <div class="section-header">
-  <div class="section-title">Reglas de Tarifa por Hora</div>
+  <div class="section-title">Reglas de Tarifa</div>
+  <button onclick="document.getElementById('modal-pricerule').style.display='flex'" class="btn btn-outline">+ Nueva Regla</button>
+</div>
+
+<div id="modal-pricerule" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Regla de Precio</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_pricerule">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DE LA REGLA</label>
+        <input type="text" name="name" placeholder="Ej. Tarifa pico noche" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">ZONA HORARIA</label>
+        <select name="zone">
+          <option value="valle">Valle (baja demanda)</option>
+          <option value="pico">Pico (alta demanda)</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA (opcional)</label>
+        <select name="court_type">
+          <option value="">Todas</option>
+          <option value="techada">Techada</option>
+          <option value="abierta">Abierta</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MULTIPLICADOR (1.0 = precio base, 1.5 = +50%)</label>
+        <input type="number" step="0.001" name="multiplier" value="1.000" min="0" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRIORIDAD</label>
+        <input type="number" name="priority" value="10" min="0">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-pricerule').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Regla</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-edit-pricerule" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Regla de Precio</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_pricerule">
+      <input type="hidden" name="pricerule_id" id="edit-pricerule-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE</label>
+        <input type="text" name="name" id="edit-pricerule-name" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">ZONA</label>
+        <select name="zone" id="edit-pricerule-zone">
+          <option value="valle">Valle</option>
+          <option value="pico">Pico</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE CANCHA</label>
+        <select name="court_type" id="edit-pricerule-courttype">
+          <option value="">Todas</option>
+          <option value="techada">Techada</option>
+          <option value="abierta">Abierta</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MULTIPLICADOR</label>
+        <input type="number" step="0.001" name="multiplier" id="edit-pricerule-multiplier" min="0" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRIORIDAD</label>
+        <input type="number" name="priority" id="edit-pricerule-priority" min="0">
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-pricerule').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
 </div>
 
 <div class="table-container">
   <table>
     <thead>
       <tr>
-        <th>Cancha</th>
-        <th>Rango Horario</th>
-        <th>Dia de la Semana</th>
-        <th>Tarifa por Hora</th>
+        <th>Regla</th>
+        <th>Zona</th>
+        <th>Tipo Cancha</th>
+        <th>Multiplicador</th>
+        <th>Prioridad</th>
+        <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for r in price_rules %}
       <tr>
-        <td style="font-weight: 700;">{{ r.court.name|default:"Todas" }}</td>
-        <td>{{ r.start_time }} a {{ r.end_time }}</td>
-        <td>{{ r.get_day_type_display|default:"Lunes a Domingo" }}</td>
-        <td style="font-weight: 900; color: var(--accent);">${{ r.price_per_hour }} / hora</td>
+        <td style="font-weight: 700;">{{ r.name }}</td>
+        <td><span class="badge badge-active">{{ r.get_zone_display }}</span></td>
+        <td>{{ r.court_type|default:"Todas"|capfirst }}</td>
+        <td style="font-weight: 900; color: var(--accent);">x{{ r.multiplier }}</td>
+        <td>{{ r.priority }}</td>
+        <td><span class="badge badge-{% if r.active %}active{% else %}archived{% endif %}">{% if r.active %}ACTIVA{% else %}INACTIVA{% endif %}</span></td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditPriceRule({{ r.id }}, '{{ r.name|escapejs }}', '{{ r.zone }}', '{{ r.court_type|default:"" }}', '{{ r.multiplier }}', '{{ r.priority }}')">Editar</button>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar regla {{ r.name }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_pricerule">
+            <input type="hidden" name="pricerule_id" value="{{ r.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
       </tr>
       {% empty %}
-      <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Tarifa base estandar: $30.00 / hora.</td></tr>
+      <tr><td colspan="7" style="text-align: center; color: var(--text-muted);">Sin reglas de precio. Tarifa base del sistema aplicada.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function openEditPolicy(id, hours, penalty, noshow, hold) {
+  document.getElementById('edit-policy-id').value = id;
+  document.getElementById('edit-policy-hours').value = hours;
+  document.getElementById('edit-policy-penalty').value = penalty;
+  document.getElementById('edit-policy-noshow').value = noshow;
+  document.getElementById('edit-policy-hold').value = hold;
+  document.getElementById('modal-edit-policy').style.display = 'flex';
+}
+function openEditPriceRule(id, name, zone, courtType, multiplier, priority) {
+  document.getElementById('edit-pricerule-id').value = id;
+  document.getElementById('edit-pricerule-name').value = name;
+  document.getElementById('edit-pricerule-zone').value = zone;
+  document.getElementById('edit-pricerule-courttype').value = courtType;
+  document.getElementById('edit-pricerule-multiplier').value = multiplier;
+  document.getElementById('edit-pricerule-priority').value = priority;
+  document.getElementById('modal-edit-pricerule').style.display = 'flex';
+}
+</script>
+
+<!-- FERIADOS -->
+<div class="section-header" style="margin-top: 40px;">
+  <div class="section-title">Calendario de Feriados</div>
+  <button onclick="document.getElementById('modal-holiday').style.display='flex'" class="btn btn-outline">+ Agregar Feriado</button>
+</div>
+
+<div id="modal-holiday" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Agregar Feriado</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_holiday">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DEL FERIADO</label>
+        <input type="text" name="name" placeholder="Ej. Dia de la Independencia" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA</label>
+        <input type="date" name="date" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-holiday').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Feriado</th>
+        <th>Fecha</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for h in holidays %}
+      <tr>
+        <td style="font-weight: 700;">{{ h.name }}</td>
+        <td>{{ h.date }}</td>
+        <td>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar feriado {{ h.name }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_holiday">
+            <input type="hidden" name="holiday_id" value="{{ h.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Sin feriados configurados.</td></tr>
       {% endfor %}
     </tbody>
   </table>

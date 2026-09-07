@@ -3,12 +3,114 @@
 {% block page_title %}GESTION DE TORNEOS, EVENTOS & NOTICIAS{% endblock %}
 
 {% block content %}
+<!-- EVENTOS -->
+<div class="section-header">
+  <div class="section-title">Eventos</div>
+  <button onclick="document.getElementById('modal-event').style.display='flex'" class="btn">+ Nuevo Evento</button>
+</div>
+
+<div id="modal-event" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Evento</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_event">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
+        <input type="text" name="title" placeholder="Ej. Clinica de verano" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
+        <textarea name="description" rows="3" placeholder="Descripcion del evento..."></textarea>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">LUGAR</label>
+        <input type="text" name="location" placeholder="Ej. Cancha Ambacar">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INICIO</label>
+        <input type="datetime-local" name="start_at" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN</label>
+        <input type="datetime-local" name="end_at" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-event').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Publicar Evento</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-edit-event" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Evento</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_event">
+      <input type="hidden" name="event_id" id="edit-event-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
+        <input type="text" name="title" id="edit-event-title" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
+        <textarea name="description" id="edit-event-description" rows="3"></textarea>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">LUGAR</label>
+        <input type="text" name="location" id="edit-event-location">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INICIO</label>
+        <input type="datetime-local" name="start_at" id="edit-event-start" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN</label>
+        <input type="datetime-local" name="end_at" id="edit-event-end" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-event').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container" style="margin-bottom: 40px;">
+  <table>
+    <thead>
+      <tr>
+        <th>Evento</th>
+        <th>Lugar</th>
+        <th>Inicio</th>
+        <th>Fin</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for e in events %}
+      <tr>
+        <td style="font-weight: 800; font-size: 16px;">{{ e.title_localized }}</td>
+        <td>{{ e.location|default:"--" }}</td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ e.start_at|date:"Y-m-d H:i" }}</td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ e.end_at|date:"Y-m-d H:i" }}</td>
+        <td><span class="badge badge-{{ e.status }}">{{ e.get_status_display }}</span></td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditEvent({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.description_es|escapejs }}', '{{ e.location|escapejs }}', '{{ e.start_at|date:"Y-m-d\\TH:i" }}', '{{ e.end_at|date:"Y-m-d\\TH:i" }}')">Editar</button>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_event">
+            <input type="hidden" name="event_id" value="{{ e.id }}">
+            <button type="submit" class="btn btn-sm btn-outline">{% if e.status == 'published' %}Despublicar{% else %}Publicar{% endif %}</button>
+          </form>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar evento {{ e.title }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_event">
+            <input type="hidden" name="event_id" value="{{ e.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Sin eventos registrados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- TORNEOS -->
 <div class="section-header">
   <div class="section-title">Torneos</div>
   <button onclick="document.getElementById('modal-tournament').style.display='flex'" class="btn">+ Nuevo Torneo</button>
 </div>
 
-<!-- Modal Torneo -->
 <div id="modal-tournament" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
   <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
     <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Nuevo Torneo</div>
@@ -16,27 +118,14 @@
       {% csrf_token %}
       <input type="hidden" name="action" value="create_tournament">
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO DEL TORNEO</label>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DEL TORNEO</label>
         <input type="text" name="title" placeholder="Ej. Torneo Apertura 2026" required>
-
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CATEGORIA</label>
-        <select name="category">
-          <option value="Primera">Primera Categoria</option>
-          <option value="Segunda">Segunda Categoria</option>
-          <option value="Tercera">Tercera Categoria</option>
-          <option value="Open">Open Masculino / Femenino</option>
-          <option value="Mixto">Mixto</option>
-        </select>
-
-        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAXIMO PAREJAS / DUOS</label>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAXIMO PAREJAS</label>
         <input type="number" name="max_teams" value="16" required>
-
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO INSCRIPCION ($)</label>
         <input type="number" step="0.01" name="entry_fee" value="40.00" required>
-
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA INICIO</label>
         <input type="date" name="start_date" required>
-
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA FIN</label>
         <input type="date" name="end_date" required>
       </div>
@@ -48,27 +137,68 @@
   </div>
 </div>
 
+<div id="modal-edit-tournament" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Torneo</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_tournament">
+      <input type="hidden" name="tournament_id" id="edit-tournament-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE</label>
+        <input type="text" name="title" id="edit-tournament-title" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAXIMO PAREJAS</label>
+        <input type="number" name="max_teams" id="edit-tournament-capacity" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PRECIO INSCRIPCION ($)</label>
+        <input type="number" step="0.01" name="entry_fee" id="edit-tournament-price" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA INICIO</label>
+        <input type="date" name="start_date" id="edit-tournament-start" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FECHA FIN</label>
+        <input type="date" name="end_date" id="edit-tournament-end" required>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-tournament').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <div class="table-container" style="margin-bottom: 40px;">
   <table>
     <thead>
       <tr>
         <th>Torneo</th>
-        <th>Categoria</th>
         <th>Cupo Max</th>
         <th>Inscripcion</th>
         <th>Fechas</th>
         <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for t in tournaments %}
       <tr>
-        <td style="font-weight: 800; font-size: 16px;">{{ t.title }}</td>
-        <td><span class="badge badge-active">{{ t.category }}</span></td>
-        <td>{{ t.max_teams }} Parejas</td>
-        <td style="font-weight: 900; color: var(--accent);">${{ t.entry_fee }}</td>
+        <td style="font-weight: 800; font-size: 16px;">{{ t.name_localized }}</td>
+        <td>{{ t.capacity }} Parejas</td>
+        <td style="font-weight: 900; color: var(--accent);">${{ t.price }}</td>
         <td style="color: var(--text-muted); font-size: 12px;">{{ t.start_date }} al {{ t.end_date }}</td>
         <td><span class="badge badge-{{ t.status }}">{{ t.get_status_display }}</span></td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditTournament({{ t.id }}, '{{ t.name|escapejs }}', '{{ t.capacity }}', '{{ t.price }}', '{{ t.start_date|date:"Y-m-d" }}', '{{ t.end_date|date:"Y-m-d" }}')">Editar</button>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_tournament">
+            <input type="hidden" name="tournament_id" value="{{ t.id }}">
+            <button type="submit" class="btn btn-sm btn-outline">{% if t.status == 'open' %}Cerrar Inscripciones{% else %}Abrir Inscripciones{% endif %}</button>
+          </form>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar torneo {{ t.name }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_tournament">
+            <input type="hidden" name="tournament_id" value="{{ t.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
       </tr>
       {% empty %}
       <tr><td colspan="6" style="text-align: center; color: var(--text-muted);">Sin torneos registrados.</td></tr>
@@ -77,12 +207,12 @@
   </table>
 </div>
 
+<!-- NOTICIAS -->
 <div class="section-header">
   <div class="section-title">Noticias & Publicaciones</div>
   <button onclick="document.getElementById('modal-news').style.display='flex'" class="btn btn-outline">+ Nueva Noticia</button>
 </div>
 
-<!-- Modal Noticia -->
 <div id="modal-news" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
   <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
     <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Publicar Noticia</div>
@@ -92,13 +222,33 @@
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
         <input type="text" name="title" placeholder="Ej. Nuevas canchas techadas disponibles" required>
-
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CONTENIDO</label>
         <textarea name="content" rows="4" placeholder="Escribe el anuncio para los jugadores..." required></textarea>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-news').style.display='none'" class="btn btn-outline">Cancelar</button>
         <button type="submit" class="btn">Publicar</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div id="modal-edit-news" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 440px; padding: 32px; gap: 20px;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Noticia</div>
+    <form method="post">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_news">
+      <input type="hidden" name="news_id" id="edit-news-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
+        <input type="text" name="title" id="edit-news-title" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CONTENIDO</label>
+        <textarea name="content" id="edit-news-content" rows="4" required></textarea>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-news').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
       </div>
     </form>
   </div>
@@ -111,19 +261,88 @@
         <th>Titulo</th>
         <th>Fecha Publicacion</th>
         <th>Estado</th>
+        <th>Acciones</th>
       </tr>
     </thead>
     <tbody>
       {% for n in news %}
       <tr>
-        <td style="font-weight: 700;">{{ n.title }}</td>
+        <td style="font-weight: 700;">{{ n.title_localized }}</td>
         <td style="color: var(--text-muted); font-size: 12px;">{{ n.published_at|date:"Y-m-d H:i" }}</td>
-        <td><span class="badge badge-active">Publicado</span></td>
+        <td><span class="badge badge-{{ n.status }}">{{ n.get_status_display }}</span></td>
+        <td style="white-space: nowrap;">
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditNews({{ n.id }}, '{{ n.title|escapejs }}', '{{ n.body_es|escapejs }}')">Editar</button>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar noticia {{ n.title }}?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_news">
+            <input type="hidden" name="news_id" value="{{ n.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
       </tr>
       {% empty %}
-      <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">Sin noticias publicadas.</td></tr>
+      <tr><td colspan="4" style="text-align: center; color: var(--text-muted);">Sin noticias publicadas.</td></tr>
       {% endfor %}
     </tbody>
   </table>
 </div>
+
+<!-- INSCRIPCIONES A TORNEOS -->
+<div class="section-header" style="margin-top: 40px;">
+  <div class="section-title">Inscripciones a Torneos</div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Torneo</th>
+        <th>Jugador</th>
+        <th>Pareja</th>
+        <th>Estado</th>
+        <th>Fecha</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for r in registrations %}
+      <tr>
+        <td style="font-weight: 700;">{{ r.tournament.name_localized }}</td>
+        <td>{{ r.user.email }}</td>
+        <td>{{ r.partner_name|default:"--" }}</td>
+        <td><span class="badge badge-{{ r.status }}">{{ r.get_status_display }}</span></td>
+        <td style="color: var(--text-muted); font-size: 12px;">{{ r.created_at|date:"Y-m-d H:i" }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5" style="text-align: center; color: var(--text-muted);">Sin inscripciones registradas.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function openEditEvent(id, title, desc, location, startAt, endAt) {
+  document.getElementById('edit-event-id').value = id;
+  document.getElementById('edit-event-title').value = title;
+  document.getElementById('edit-event-description').value = desc;
+  document.getElementById('edit-event-location').value = location;
+  document.getElementById('edit-event-start').value = startAt;
+  document.getElementById('edit-event-end').value = endAt;
+  document.getElementById('modal-edit-event').style.display = 'flex';
+}
+function openEditTournament(id, title, capacity, price, startDate, endDate) {
+  document.getElementById('edit-tournament-id').value = id;
+  document.getElementById('edit-tournament-title').value = title;
+  document.getElementById('edit-tournament-capacity').value = capacity;
+  document.getElementById('edit-tournament-price').value = price;
+  document.getElementById('edit-tournament-start').value = startDate;
+  document.getElementById('edit-tournament-end').value = endDate;
+  document.getElementById('modal-edit-tournament').style.display = 'flex';
+}
+function openEditNews(id, title, content) {
+  document.getElementById('edit-news-id').value = id;
+  document.getElementById('edit-news-title').value = title;
+  document.getElementById('edit-news-content').value = content;
+  document.getElementById('modal-edit-news').style.display = 'flex';
+}
+</script>
 {% endblock %}

@@ -188,6 +188,24 @@ class CalendarView(StaffRequiredMixin, TemplateView):
                 slot.save()
                 messages.success(request, f"Horario {slot.start} desbloqueado en {slot.court.name}.")
                 log_event(request.user, "admin.slot_unblock", "TimeSlot", slot.id)
+        elif action == "cancel_booking":
+            booking_id = request.POST.get("booking_id")
+            booking = get_object_or_404(Booking, id=booking_id)
+            try:
+                booking.transition_to("cancelled")
+                messages.success(request, f"Reserva de {booking.user.email} cancelada.")
+                log_event(request.user, "admin.booking_cancel", "Booking", booking.id)
+            except ValueError as e:
+                messages.error(request, str(e))
+        elif action == "mark_noshow":
+            booking_id = request.POST.get("booking_id")
+            booking = get_object_or_404(Booking, id=booking_id)
+            try:
+                booking.transition_to("no_show")
+                messages.success(request, f"Reserva de {booking.user.email} marcada como no-show.")
+                log_event(request.user, "admin.booking_noshow", "Booking", booking.id)
+            except ValueError as e:
+                messages.error(request, str(e))
         elif action == "create_booking":
             court_id = request.POST.get("court_id")
             user_id = request.POST.get("user_id")
@@ -410,14 +428,76 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
+        from apps.events.models import TournamentRegistration
         ctx["tournaments"] = Tournament.objects.all().order_by("-start_date")
         ctx["events"] = Event.objects.all().order_by("-start_at")
         ctx["news"] = NewsPost.objects.all().order_by("-published_at")
+        ctx["registrations"] = TournamentRegistration.objects.select_related("tournament", "user").order_by("-created_at")[:50]
         return ctx
 
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
-        if action == "create_tournament":
+        if action == "create_event":
+            title = request.POST.get("title", "")
+            description = request.POST.get("description", "")
+            location = request.POST.get("location", "")
+            start_at = request.POST.get("start_at", "")
+            end_at = request.POST.get("end_at", "")
+            try:
+                start_dt = timezone.datetime.fromisoformat(start_at)
+                end_dt = timezone.datetime.fromisoformat(end_at)
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha u hora invalida.")
+                return redirect("adminpanel:events")
+            e = Event.objects.create(
+                title=title,
+                title_es=title,
+                description_es=description,
+                location=location,
+                start_at=start_dt,
+                end_at=end_dt,
+                status="published",
+                created_by=request.user,
+            )
+            messages.success(request, f"Evento '{e.title}' creado exitosamente.")
+            log_event(request.user, "admin.event_create", "Event", e.id)
+        elif action == "edit_event":
+            e = get_object_or_404(Event, id=request.POST.get("event_id"))
+            e.title = request.POST.get("title", e.title)
+            e.title_es = e.title
+            e.description_es = request.POST.get("description", e.description_es)
+            e.location = request.POST.get("location", e.location)
+            start_at = request.POST.get("start_at", "")
+            end_at = request.POST.get("end_at", "")
+            if start_at:
+                e.start_at = timezone.datetime.fromisoformat(start_at)
+            if end_at:
+                e.end_at = timezone.datetime.fromisoformat(end_at)
+            e.save()
+            messages.success(request, f"Evento '{e.title}' actualizado.")
+            log_event(request.user, "admin.event_edit", "Event", e.id)
+        elif action == "delete_event":
+            e = get_object_or_404(Event, id=request.POST.get("event_id"))
+            title = e.title
+            e.delete()
+            messages.success(request, f"Evento '{title}' eliminado.")
+            log_event(request.user, "admin.event_delete", "Event", int(request.POST.get("event_id")))
+        elif action == "toggle_event":
+            e = get_object_or_404(Event, id=request.POST.get("event_id"))
+            e.status = "draft" if e.status == "published" else "published"
+            e.save()
+            messages.success(request, f"Evento '{e.title}' ahora es {e.get_status_display()}.")
+            log_event(request.user, "admin.event_toggle", "Event", e.id)
+        elif action == "toggle_tournament":
+            t = get_object_or_404(Tournament, id=request.POST.get("tournament_id"))
+            if t.status == "open":
+                t.status = "closed"
+            elif t.status in ("closed", "draft"):
+                t.status = "open"
+            t.save()
+            messages.success(request, f"Torneo '{t.name}' ahora es {t.get_status_display()}.")
+            log_event(request.user, "admin.tournament_toggle", "Tournament", t.id)
+        elif action == "create_tournament":
             title = request.POST.get("title", "")
             try:
                 capacity = int(request.POST.get("max_teams", 16))
@@ -450,6 +530,30 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             )
             messages.success(request, f"Torneo '{t.name}' creado exitosamente.")
             log_event(request.user, "admin.tournament_create", "Tournament", t.id)
+        elif action == "edit_tournament":
+            t = get_object_or_404(Tournament, id=request.POST.get("tournament_id"))
+            t.name = request.POST.get("title", t.name)
+            t.name_es = t.name
+            try:
+                t.capacity = int(request.POST.get("max_teams", t.capacity))
+                t.price = Decimal(request.POST.get("entry_fee", str(t.price)))
+            except (ValueError, TypeError, ArithmeticError):
+                pass
+            sd = request.POST.get("start_date", "")
+            ed = request.POST.get("end_date", "")
+            if sd:
+                t.start_date = sd
+            if ed:
+                t.end_date = ed
+            t.save()
+            messages.success(request, f"Torneo '{t.name}' actualizado.")
+            log_event(request.user, "admin.tournament_edit", "Tournament", t.id)
+        elif action == "delete_tournament":
+            t = get_object_or_404(Tournament, id=request.POST.get("tournament_id"))
+            name = t.name
+            t.delete()
+            messages.success(request, f"Torneo '{name}' eliminado.")
+            log_event(request.user, "admin.tournament_delete", "Tournament", int(request.POST.get("tournament_id")))
         elif action == "create_news":
             title = request.POST.get("title")
             content = request.POST.get("content")
@@ -463,6 +567,20 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             n.publish()
             messages.success(request, f"Noticia '{n.title}' publicada y notificaciones enviadas.")
             log_event(request.user, "admin.news_create", "NewsPost", n.id)
+        elif action == "edit_news":
+            n = get_object_or_404(NewsPost, id=request.POST.get("news_id"))
+            n.title = request.POST.get("title", n.title)
+            n.title_es = n.title
+            n.body_es = request.POST.get("content", n.body_es)
+            n.save()
+            messages.success(request, f"Noticia '{n.title}' actualizada.")
+            log_event(request.user, "admin.news_edit", "NewsPost", n.id)
+        elif action == "delete_news":
+            n = get_object_or_404(NewsPost, id=request.POST.get("news_id"))
+            title = n.title
+            n.delete()
+            messages.success(request, f"Noticia '{title}' eliminada.")
+            log_event(request.user, "admin.news_delete", "NewsPost", int(request.POST.get("news_id")))
 
         return redirect("adminpanel:events")
 
@@ -510,7 +628,86 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         ctx["policies"] = CancellationPolicy.objects.all()
         ctx["price_rules"] = PriceRule.objects.select_related("venue").all()
+        from apps.pricing.models import Holiday
+        ctx["holidays"] = Holiday.objects.all().order_by("date")
         return ctx
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get("action")
+        venue = Venue.objects.first()
+        if not venue:
+            venue = Venue.objects.create(name="Andes Padel Club", address="Quito")
+
+        if action == "create_policy":
+            CancellationPolicy.objects.create(
+                venue=venue,
+                free_window_hours=int(request.POST.get("free_window_hours", 24)),
+                penalty_ratio=Decimal(request.POST.get("penalty_ratio", "0.50")),
+                no_show_ratio=Decimal(request.POST.get("no_show_ratio", "1.00")),
+                hold_minutes=int(request.POST.get("hold_minutes", 10)),
+            )
+            messages.success(request, "Politica de cancelacion creada.")
+            log_event(request.user, "admin.policy_create", "CancellationPolicy", 0)
+        elif action == "edit_policy":
+            p = get_object_or_404(CancellationPolicy, id=request.POST.get("policy_id"))
+            p.free_window_hours = int(request.POST.get("free_window_hours", p.free_window_hours))
+            p.penalty_ratio = Decimal(request.POST.get("penalty_ratio", str(p.penalty_ratio)))
+            p.no_show_ratio = Decimal(request.POST.get("no_show_ratio", str(p.no_show_ratio)))
+            p.hold_minutes = int(request.POST.get("hold_minutes", p.hold_minutes))
+            p.save()
+            messages.success(request, "Politica actualizada.")
+            log_event(request.user, "admin.policy_edit", "CancellationPolicy", p.id)
+        elif action == "delete_policy":
+            p = get_object_or_404(CancellationPolicy, id=request.POST.get("policy_id"))
+            p.delete()
+            messages.success(request, "Politica eliminada.")
+            log_event(request.user, "admin.policy_delete", "CancellationPolicy", int(request.POST.get("policy_id")))
+        elif action == "create_pricerule":
+            name = request.POST.get("name", "")
+            zone = request.POST.get("zone", "valle")
+            court_type = request.POST.get("court_type") or None
+            PriceRule.objects.create(
+                venue=venue,
+                name=name,
+                zone=zone,
+                court_type=court_type,
+                multiplier=Decimal(request.POST.get("multiplier", "1.000")),
+                priority=int(request.POST.get("priority", 10)),
+            )
+            messages.success(request, f"Regla '{name}' creada.")
+            log_event(request.user, "admin.pricerule_create", "PriceRule", 0)
+        elif action == "edit_pricerule":
+            r = get_object_or_404(PriceRule, id=request.POST.get("pricerule_id"))
+            r.name = request.POST.get("name", r.name)
+            r.zone = request.POST.get("zone", r.zone)
+            r.court_type = request.POST.get("court_type") or None
+            r.multiplier = Decimal(request.POST.get("multiplier", str(r.multiplier)))
+            r.priority = int(request.POST.get("priority", r.priority))
+            r.save()
+            messages.success(request, f"Regla '{r.name}' actualizada.")
+            log_event(request.user, "admin.pricerule_edit", "PriceRule", r.id)
+        elif action == "delete_pricerule":
+            r = get_object_or_404(PriceRule, id=request.POST.get("pricerule_id"))
+            r.delete()
+            messages.success(request, "Regla eliminada.")
+            log_event(request.user, "admin.pricerule_delete", "PriceRule", int(request.POST.get("pricerule_id")))
+        elif action == "create_holiday":
+            from apps.pricing.models import Holiday
+            h = Holiday.objects.create(
+                venue=venue,
+                date=request.POST.get("date", ""),
+                name=request.POST.get("name", ""),
+            )
+            messages.success(request, f"Feriado '{h.name}' creado.")
+            log_event(request.user, "admin.holiday_create", "Holiday", h.id)
+        elif action == "delete_holiday":
+            from apps.pricing.models import Holiday
+            h = get_object_or_404(Holiday, id=request.POST.get("holiday_id"))
+            h.delete()
+            messages.success(request, "Feriado eliminado.")
+            log_event(request.user, "admin.holiday_delete", "Holiday", int(request.POST.get("holiday_id")))
+
+        return redirect("adminpanel:settings")
 
 
 class AuditListView(StaffRequiredMixin, ListView):

@@ -78,6 +78,8 @@ class PaymentService:
     def confirm_transfer(payment):
         payment.status = Payment.Status.CAPTURED
         payment.save(update_fields=["status", "updated_at"])
+        if payment.booking and payment.booking.status == "pending_payment":
+            payment.booking.transition_to("confirmed")
         log_event(payment.user, "payment.transfer_confirmed", "Payment", payment.id)
         NotificationService.notify(
             payment.user,
