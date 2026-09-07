@@ -18,6 +18,14 @@
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
         <input type="text" name="title" placeholder="Ej. Clinica de verano" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CATEGORIA</label>
+        <select name="category">
+          <option value="quedada">Quedada</option>
+          <option value="torneo">Torneo</option>
+          <option value="liga">Liga</option>
+          <option value="academia">Academia</option>
+          <option value="noticia">Noticia</option>
+        </select>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
         <textarea name="description" rows="3" placeholder="Descripcion del evento..."></textarea>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">LUGAR</label>
@@ -45,6 +53,14 @@
       <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO</label>
         <input type="text" name="title" id="edit-event-title" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CATEGORIA</label>
+        <select name="category" id="edit-event-category">
+          <option value="quedada">Quedada</option>
+          <option value="torneo">Torneo</option>
+          <option value="liga">Liga</option>
+          <option value="academia">Academia</option>
+          <option value="noticia">Noticia</option>
+        </select>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DESCRIPCION</label>
         <textarea name="description" id="edit-event-description" rows="3"></textarea>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">LUGAR</label>
@@ -67,9 +83,9 @@
     <thead>
       <tr>
         <th>Evento</th>
+        <th>Categoria</th>
         <th>Lugar</th>
         <th>Inicio</th>
-        <th>Fin</th>
         <th>Estado</th>
         <th>Acciones</th>
       </tr>
@@ -78,12 +94,12 @@
       {% for e in events %}
       <tr>
         <td style="font-weight: 800; font-size: 16px;">{{ e.title_localized }}</td>
+        <td><span class="badge badge-active">{{ e.get_category_display }}</span></td>
         <td>{{ e.location|default:"--" }}</td>
         <td style="color: var(--text-muted); font-size: 12px;">{{ e.start_at|date:"Y-m-d H:i" }}</td>
-        <td style="color: var(--text-muted); font-size: 12px;">{{ e.end_at|date:"Y-m-d H:i" }}</td>
         <td><span class="badge badge-{{ e.status }}">{{ e.get_status_display }}</span></td>
         <td style="white-space: nowrap;">
-          <button type="button" class="btn btn-sm btn-outline" onclick="openEditEvent({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.description_es|escapejs }}', '{{ e.location|escapejs }}', '{{ e.start_at|date:"Y-m-d\\TH:i" }}', '{{ e.end_at|date:"Y-m-d\\TH:i" }}')">Editar</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditEvent({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.description_es|escapejs }}', '{{ e.location|escapejs }}', '{{ e.start_at|date:"Y-m-d\\TH:i" }}', '{{ e.end_at|date:"Y-m-d\\TH:i" }}', '{{ e.category }}')">Editar</button>
           <form method="post" style="display: inline;">
             {% csrf_token %}
             <input type="hidden" name="action" value="toggle_event">
@@ -320,13 +336,14 @@
 </div>
 
 <script>
-function openEditEvent(id, title, desc, location, startAt, endAt) {
+function openEditEvent(id, title, desc, location, startAt, endAt, category) {
   document.getElementById('edit-event-id').value = id;
   document.getElementById('edit-event-title').value = title;
   document.getElementById('edit-event-description').value = desc;
   document.getElementById('edit-event-location').value = location;
   document.getElementById('edit-event-start').value = startAt;
   document.getElementById('edit-event-end').value = endAt;
+  document.getElementById('edit-event-category').value = category || 'quedada';
   document.getElementById('modal-edit-event').style.display = 'flex';
 }
 function openEditTournament(id, title, capacity, price, startDate, endDate) {

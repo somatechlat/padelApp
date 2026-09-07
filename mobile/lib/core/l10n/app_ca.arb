@@ -178,5 +178,12 @@
   "viewDetails": "Veure detalls",
   "reserve": "Reservar",
   "today": "Avui",
-  "thisWeek": "Aquesta setmana"
+  "thisWeek": "Aquesta setmana",
+  "tabQuedadas": "Quedades",
+  "tabTorneos": "Torneigs",
+  "tabLigas": "Lligues",
+  "tabAcademia": "Acadèmia",
+  "noQuedadas": "No hi ha quedades programades",
+  "noLigas": "No hi ha lligues actives",
+  "noAcademia": "No hi ha classes disponibles"
 }

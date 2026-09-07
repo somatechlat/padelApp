@@ -225,5 +225,12 @@
   "tournamentRegistered": "Inscripcion registrada",
   "newsPublished": "Noticia publicada",
   "durationMin": "min",
-  "paymentProcessing": "Procesando pago..."
+  "paymentProcessing": "Procesando pago...",
+  "tabQuedadas": "Quedadas",
+  "tabTorneos": "Torneos",
+  "tabLigas": "Ligas",
+  "tabAcademia": "Academia",
+  "noQuedadas": "No hay quedadas programadas",
+  "noLigas": "No hay ligas activas",
+  "noAcademia": "No hay clases disponibles"
 }

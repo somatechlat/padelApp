@@ -9,6 +9,13 @@ class Event(models.Model):
         PUBLISHED = "published", "Publicado"
         CANCELLED = "cancelled", "Cancelado"
 
+    class Category(models.TextChoices):
+        QUEDADA = "quedada", "Quedada"
+        TORNEO = "torneo", "Torneo"
+        LIGA = "liga", "Liga"
+        ACADEMIA = "academia", "Academia"
+        NOTICIA = "noticia", "Noticia"
+
     class PublishedManager(models.Manager):
         def get_queryset(self):
             return super().get_queryset().filter(status=Event.Status.PUBLISHED)
@@ -20,6 +27,7 @@ class Event(models.Model):
     start_at = models.DateTimeField(null=True, blank=True)
     end_at = models.DateTimeField(null=True, blank=True)
     location = models.CharField(max_length=200, blank=True)
+    category = models.CharField(max_length=10, choices=Category.choices, default=Category.QUEDADA)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="events_created"

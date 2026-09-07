@@ -12,7 +12,7 @@ class EventSerializer(serializers.ModelSerializer):
         fields = (
             "id", "title", "title_es", "title_localized",
             "description", "description_es", "description_localized",
-            "start_at", "end_at", "location", "status", "created_at",
+            "start_at", "end_at", "location", "category", "status", "created_at",
         )
         read_only_fields = ("created_at",)
 

@@ -225,5 +225,12 @@
   "tournamentRegistered": "Tournament registered",
   "newsPublished": "News published",
   "durationMin": "min",
-  "paymentProcessing": "Processing payment..."
+  "paymentProcessing": "Processing payment...",
+  "tabQuedadas": "Meetups",
+  "tabTorneos": "Tournaments",
+  "tabLigas": "Leagues",
+  "tabAcademia": "Academy",
+  "noQuedadas": "No meetups scheduled",
+  "noLigas": "No active leagues",
+  "noAcademia": "No classes available"
 }

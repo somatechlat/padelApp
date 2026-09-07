@@ -29,8 +29,13 @@ class EventViewSet(viewsets.ModelViewSet):
         if not self.request.user or not self.request.user.is_authenticated:
             return qs.none()
         if self.request.user.role in ("recepcionista", "gerente", "dueno", "superadmin"):
-            return qs
-        return Event.published.all()
+            pass
+        else:
+            qs = Event.published.all()
+        category = self.request.query_params.get("category")
+        if category:
+            qs = qs.filter(category=category)
+        return qs
 
     def get_permissions(self):
         if self.action in ("create", "update", "partial_update", "destroy"):

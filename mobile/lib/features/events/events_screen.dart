@@ -17,9 +17,10 @@ class EventsScreen extends StatefulWidget {
 }
 
 class _EventsScreenState extends State<EventsScreen> {
-  List<dynamic>? _tournaments;
-  List<dynamic>? _events;
-  List<dynamic>? _news;
+  List<dynamic>? _quedadas;
+  List<dynamic>? _torneos;
+  List<dynamic>? _ligas;
+  List<dynamic>? _academia;
   String? _error;
 
   @override
@@ -32,9 +33,10 @@ class _EventsScreenState extends State<EventsScreen> {
     try {
       final api = context.read<ApiClient>();
       final results = await Future.wait([
+        api.get('/events/', query: {'category': 'quedada'}),
         api.get('/tournaments/'),
-        api.get('/events/'),
-        api.get('/news/'),
+        api.get('/events/', query: {'category': 'liga'}),
+        api.get('/events/', query: {'category': 'academia'}),
       ]);
       List<dynamic> list(dynamic data) {
         final l = data is Map ? data['results'] : data;
@@ -43,9 +45,10 @@ class _EventsScreenState extends State<EventsScreen> {
 
       if (!mounted) return;
       setState(() {
-        _tournaments = list(results[0]);
-        _events = list(results[1]);
-        _news = list(results[2]);
+        _quedadas = list(results[0]);
+        _torneos = list(results[1]);
+        _ligas = list(results[2]);
+        _academia = list(results[3]);
         _error = null;
       });
     } catch (_) {
@@ -116,15 +119,17 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.events),
           bottom: TabBar(
+            isScrollable: true,
             tabs: [
-              Tab(text: l10n.tournaments),
-              Tab(text: l10n.events),
-              Tab(text: l10n.news),
+              Tab(text: l10n.tabQuedadas),
+              Tab(text: l10n.tabTorneos),
+              Tab(text: l10n.tabLigas),
+              Tab(text: l10n.tabAcademia),
             ],
           ),
         ),
@@ -137,23 +142,84 @@ class _EventsScreenState extends State<EventsScreen> {
     if (_error != null) {
       return ErrorState(onRetry: _load);
     }
-    if (_tournaments == null || _events == null || _news == null) {
+    if (_quedadas == null || _torneos == null || _ligas == null || _academia == null) {
       return const Center(child: CircularProgressIndicator());
     }
     return RefreshIndicator(
       onRefresh: _load,
       child: TabBarView(
         children: [
+          _buildEventList(l10n, _quedadas!, Icons.people_outline, l10n.noQuedadas),
           _buildTournaments(l10n),
-          _buildEvents(l10n),
-          _buildNews(l10n),
+          _buildEventList(l10n, _ligas!, Icons.leaderboard_outlined, l10n.noLigas),
+          _buildEventList(l10n, _academia!, Icons.school_outlined, l10n.noAcademia),
         ],
       ),
     );
   }
 
+  Widget _buildEventList(AppLocalizations l10n, List<dynamic> events, IconData icon, String emptyText) {
+    if (events.isEmpty) {
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: EmptyState(icon: icon, title: emptyText),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: events.length,
+      itemBuilder: (context, i) {
+        final e = events[i] as Map<String, dynamic>;
+        final when = dateShort(l10n, e['start_at'] as String?);
+        final location = (e['location'] as String?) ?? '';
+        final description = (e['description_localized'] as String?) ?? '';
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    (e['title_localized'] as String?) ?? '',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (location.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.location_on_outlined, size: 14, color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: 4),
+                        Text(location, style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ],
+                  if (when.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.schedule_outlined, size: 14, color: Theme.of(context).colorScheme.primary),
+                        const SizedBox(width: 4),
+                        Text(when, style: Theme.of(context).textTheme.bodySmall),
+                      ],
+                    ),
+                  ],
+                  if (description.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(description, style: Theme.of(context).textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildTournaments(AppLocalizations l10n) {
-    if (_tournaments!.isEmpty) {
+    if (_torneos!.isEmpty) {
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
         child: EmptyState(
@@ -164,9 +230,9 @@ class _EventsScreenState extends State<EventsScreen> {
     }
     return ListView.builder(
       padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: _tournaments!.length,
+      itemCount: _torneos!.length,
       itemBuilder: (context, i) {
-        final t = _tournaments![i] as Map<String, dynamic>;
+        final t = _torneos![i] as Map<String, dynamic>;
         final status = (t['status'] as String?) ?? '';
         final open = status == 'open';
         final confirmed = (t['confirmed_count'] as num?)?.toInt() ?? 0;
@@ -230,84 +296,6 @@ class _EventsScreenState extends State<EventsScreen> {
                     ],
                   ),
                 ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildEvents(AppLocalizations l10n) {
-    if (_events!.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: EmptyState(
-          icon: Icons.event_outlined,
-          title: l10n.noEvents,
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: _events!.length,
-      itemBuilder: (context, i) {
-        final e = _events![i] as Map<String, dynamic>;
-        final when = dateShort(l10n, e['start_at'] as String?);
-        final location = (e['location'] as String?) ?? '';
-        final description = (e['description_localized'] as String?) ?? '';
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.event_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text((e['title_localized'] as String?) ?? ''),
-              subtitle: Text(
-                [
-                  [when, location].where((x) => x.isNotEmpty).join(' · '),
-                  if (description.isNotEmpty) description,
-                ].join('\n'),
-              ),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildNews(AppLocalizations l10n) {
-    if (_news!.isEmpty) {
-      return SingleChildScrollView(
-        physics: const AlwaysScrollableScrollPhysics(),
-        child: EmptyState(
-          icon: Icons.article_outlined,
-          title: l10n.noNews,
-        ),
-      );
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: _news!.length,
-      itemBuilder: (context, i) {
-        final n = _news![i] as Map<String, dynamic>;
-        final when = dateShort(l10n, n['published_at'] as String?);
-        final body = (n['body_localized'] as String?) ?? '';
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.article_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text((n['title_localized'] as String?) ?? ''),
-              subtitle: Text(
-                [when, body].join('\n'),
-                maxLines: 4,
-                overflow: TextOverflow.ellipsis,
               ),
             ),
           ),

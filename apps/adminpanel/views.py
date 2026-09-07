@@ -441,6 +441,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             title = request.POST.get("title", "")
             description = request.POST.get("description", "")
             location = request.POST.get("location", "")
+            category = request.POST.get("category", "quedada")
             start_at = request.POST.get("start_at", "")
             end_at = request.POST.get("end_at", "")
             try:
@@ -454,6 +455,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
                 title_es=title,
                 description_es=description,
                 location=location,
+                category=category,
                 start_at=start_dt,
                 end_at=end_dt,
                 status="published",
@@ -467,6 +469,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             e.title_es = e.title
             e.description_es = request.POST.get("description", e.description_es)
             e.location = request.POST.get("location", e.location)
+            e.category = request.POST.get("category", e.category)
             start_at = request.POST.get("start_at", "")
             end_at = request.POST.get("end_at", "")
             if start_at:

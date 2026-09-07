@@ -178,5 +178,12 @@
   "viewDetails": "Ver detalhes",
   "reserve": "Reservar",
   "today": "Hoje",
-  "thisWeek": "Esta semana"
+  "thisWeek": "Esta semana",
+  "tabQuedadas": "Encontros",
+  "tabTorneos": "Torneios",
+  "tabLigas": "Ligas",
+  "tabAcademia": "Academia",
+  "noQuedadas": "Nenhum encontro programado",
+  "noLigas": "Nenhuma liga ativa",
+  "noAcademia": "Nenhuma aula disponível"
 }
