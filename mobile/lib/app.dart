@@ -88,8 +88,13 @@ class _AuthGateState extends State<_AuthGate> {
               locale.setLanguage(code);
             }
           }
-        });
-        pushService.registerToken();
+        }).catchError((_) {});
+        pushService.registerToken().catchError((_) {});
+      }
+    }).catchError((_) {
+      // Always ensure app shows login even if restore fails
+      if (!widget.auth.initialized) {
+        widget.auth.notifyListeners();
       }
     });
   }

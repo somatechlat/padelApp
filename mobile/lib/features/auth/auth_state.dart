@@ -24,9 +24,13 @@ class AuthState extends ChangeNotifier {
   Map<String, dynamic>? get user => _user;
 
   Future<void> restoreSession() async {
-    final access = await _storage.read(SecureTokenStorage.accessKey);
-    if (access != null && access.isNotEmpty) {
-      _authenticated = true;
+    try {
+      final access = await _storage.read(SecureTokenStorage.accessKey);
+      if (access != null && access.isNotEmpty) {
+        _authenticated = true;
+      }
+    } catch (_) {
+      // Storage error — treat as not authenticated
     }
     _initialized = true;
     notifyListeners();

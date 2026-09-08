@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app.dart';
@@ -13,7 +14,11 @@ Future<void> main() async {
   final localeController = LocaleController(storage: storage);
   final pushService = PushNotificationService(api: api);
   await localeController.load();
-  await pushService.initialize();
+  try {
+    await pushService.initialize();
+  } catch (e) {
+    debugPrint('Push notification init failed: $e');
+  }
   runApp(AndesPadelApp(
     api: api,
     storage: storage,
