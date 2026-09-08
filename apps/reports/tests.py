@@ -85,14 +85,14 @@ class TestOperationalReports:
         today = timezone.localdate()
         from apps.scheduling.models import TimeSlot
 
+        from datetime import timedelta
         for t in ("10:00", "10:30", "11:00", "11:30"):
+            start = timezone.datetime.strptime(t, "%H:%M")
+            end = start + timedelta(minutes=30)
             TimeSlot.objects.create(
                 court=court, date=today,
-                start=timezone.datetime.strptime(t, "%H:%M").time(),
-                end=timezone.datetime.strptime(
-                    timezone.datetime.strptime(t, "%H:%M").replace(minute=30).strftime("%H:%M"),
-                    "%H:%M",
-                ).time(),
+                start=start.time(),
+                end=end.time(),
                 status=TimeSlot.Status.AVAILABLE,
             )
         TimeSlot.objects.filter(start__in=("10:00", "10:30")).update(
