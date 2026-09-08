@@ -310,6 +310,9 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
                 court.price_base = price
             if request.FILES.get("image"):
                 court.image = request.FILES["image"]
+            if request.POST.get("remove_image") == "1":
+                court.image.delete(save=False)
+                court.image = None
             court.save()
             messages.success(request, f"Cancha '{court.name}' actualizada.")
             log_event(request.user, "admin.court_edit", "Court", court.id)

@@ -73,7 +73,11 @@
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FOTO DE LA CANCHA</label>
         <div id="edit-court-image-preview" style="margin-bottom: 8px;"></div>
-        <input type="file" name="image" accept="image/*" style="font-size: 14px;">
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="file" name="image" accept="image/*" style="font-size: 14px; flex: 1;">
+          <button type="button" id="btn-remove-image" class="btn btn-sm" style="background: #dc3545; color: #fff; display: none;" onclick="document.getElementById('edit-remove-image').value='1'; document.getElementById('edit-court-image-preview').innerHTML='<span style=\'color: var(--accent-red);\'>Foto se eliminara al guardar</span>'; this.style.display='none';">Quitar Foto</button>
+        </div>
+        <input type="hidden" name="remove_image" id="edit-remove-image" value="0">
 
         <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
           <input type="checkbox" name="has_lighting" id="edit-court-lighting" style="width: 18px; height: 18px;">
@@ -211,11 +215,15 @@ function openEditCourt(id, name, description, courtType, hasLighting, price, ima
   document.getElementById('edit-court-type').value = courtType;
   document.getElementById('edit-court-price').value = price;
   document.getElementById('edit-court-lighting').checked = hasLighting;
+  document.getElementById('edit-remove-image').value = '0';
   var preview = document.getElementById('edit-court-image-preview');
+  var removeBtn = document.getElementById('btn-remove-image');
   if (imageUrl) {
     preview.innerHTML = '<img src="' + imageUrl + '" style="width: 120px; height: 80px; object-fit: cover; border-radius: 8px;">';
+    removeBtn.style.display = 'inline-block';
   } else {
-    preview.innerHTML = '';
+    preview.innerHTML = '<span style="color: var(--text-muted); font-size: 12px;">Sin foto</span>';
+    removeBtn.style.display = 'none';
   }
   document.getElementById('modal-edit-court').style.display = 'flex';
 }
