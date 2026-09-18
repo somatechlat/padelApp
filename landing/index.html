@@ -26,7 +26,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; }
         html { scroll-behavior: smooth; }
         body {
-            font-family: 'Inter', -apple-system, sans-serif;
+            font-family: "Inter", -apple-system, sans-serif;
             background: var(--bg);
             color: var(--text);
             line-height: 1.6;
@@ -50,9 +50,7 @@
             display: flex; align-items: center; gap: 14px;
             text-decoration: none;
         }
-        .logo img {
-            height: 55px; width: auto;
-        }
+        .logo img { height: 55px; width: auto; }
         .logo-text {
             font-size: 1.1rem; font-weight: 800; color: var(--text);
             letter-spacing: -0.5px;
@@ -61,8 +59,7 @@
         .nav-links { display: flex; gap: 2rem; align-items: center; }
         .nav-links a {
             color: var(--text-muted); text-decoration: none;
-            font-size: 0.9rem; font-weight: 500;
-            transition: color 0.2s;
+            font-size: 0.9rem; font-weight: 500; transition: color 0.2s;
         }
         .nav-links a:hover { color: var(--accent); }
         .nav-cta {
@@ -75,147 +72,159 @@
             display: none; background: none; border: none; cursor: pointer;
             flex-direction: column; gap: 5px; padding: 5px;
         }
-        .hamburger span {
-            width: 24px; height: 2px; background: var(--text);
+        .hamburger span { width: 24px; height: 2px; background: var(--text); transition: all 0.3s; }
+
+        /* EVENT CAROUSEL */
+        .event-carousel {
+            position: relative; width: 100%; height: 60vh; min-height: 400px;
+            overflow: hidden; margin-top: 70px;
+        }
+        .carousel-track {
+            display: flex; height: 100%;
+            transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        .carousel-slide {
+            min-width: 100%; height: 100%; position: relative;
+        }
+        .carousel-slide img {
+            width: 100%; height: 100%; object-fit: cover;
+            filter: brightness(0.45);
+        }
+        .carousel-caption {
+            position: absolute; bottom: 0; left: 0; right: 0;
+            padding: 3rem 2rem 2rem;
+            background: linear-gradient(to top, rgba(0,18,25,0.9) 0%, transparent 100%);
+        }
+        .carousel-caption h2 {
+            font-size: 2rem; font-weight: 800; margin-bottom: 0.5rem;
+            max-width: 800px; margin-left: auto; margin-right: auto;
+        }
+        .carousel-caption p {
+            font-size: 1rem; color: var(--text-muted);
+            max-width: 600px; margin: 0 auto;
+        }
+        .carousel-dots {
+            position: absolute; bottom: 1rem; left: 50%; transform: translateX(-50%);
+            display: flex; gap: 8px; z-index: 10;
+        }
+        .carousel-dots .dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: rgba(255,255,255,0.3); cursor: pointer;
             transition: all 0.3s;
         }
+        .carousel-dots .dot.active { background: var(--accent); transform: scale(1.2); }
 
-        /* HERO — full-bleed image with overlay */
+        /* HERO */
         .hero {
-            min-height: 100vh;
-            position: relative;
-            display: flex; align-items: center;
-            overflow: hidden;
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            background: linear-gradient(180deg, var(--bg) 0%, rgba(0,47,72,0.15) 50%, var(--bg) 100%);
         }
-        .hero-bg {
-            position: absolute; inset: 0; z-index: 0;
-        }
-        .hero-bg img {
-            width: 100%; height: 100%; object-fit: cover;
-            filter: brightness(0.35) saturate(1.1);
-        }
-        .hero-overlay {
-            position: absolute; inset: 0; z-index: 1;
-            background: linear-gradient(
-                135deg,
-                rgba(0, 18, 25, 0.92) 0%,
-                rgba(0, 47, 72, 0.7) 40%,
-                rgba(0, 18, 25, 0.5) 100%
-            );
-        }
-        .hero-content {
-            position: relative; z-index: 2;
-            max-width: 1200px; margin: 0 auto; width: 100%;
-            padding: 140px 2rem 100px;
-            display: grid; grid-template-columns: 1.2fr 1fr; gap: 4rem;
-            align-items: center;
-        }
-        .hero-left {}
         .hero-logo {
-            height: 130px; width: auto;
+            height: 180px; width: auto;
             margin-bottom: 2rem;
             filter: drop-shadow(0 6px 30px rgba(0,0,0,0.6));
         }
-        .hero-badge {
-            display: inline-flex; align-items: center; gap: 8px;
-            background: rgba(206,220,41,0.12); border: 1px solid rgba(206,220,41,0.25);
-            padding: 8px 18px; border-radius: 50px;
-            font-size: 0.8rem; color: var(--accent); font-weight: 600;
-            margin-bottom: 1.5rem;
-            letter-spacing: 1px; text-transform: uppercase;
-        }
-        .hero-badge::before {
-            content: ''; width: 6px; height: 6px;
-            background: var(--accent); border-radius: 50%;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
         .hero h1 {
-            font-size: 3.6rem; font-weight: 900; line-height: 1.05;
-            margin-bottom: 1.2rem;
+            font-size: 3.2rem; font-weight: 900; line-height: 1.1;
+            margin-bottom: 1rem; max-width: 700px; margin-left: auto; margin-right: auto;
         }
         .hero h1 span { color: var(--accent); }
         .hero p {
-            font-size: 1.1rem; color: var(--text-muted);
-            margin-bottom: 2.5rem; max-width: 500px;
-        }
-        .hero-buttons { display: flex; gap: 1rem; flex-wrap: wrap; }
-        .btn {
-            display: inline-flex; align-items: center; gap: 10px;
-            padding: 14px 32px; border-radius: 10px;
-            font-size: 0.95rem; font-weight: 700;
-            text-decoration: none; border: none; cursor: pointer;
-            transition: all 0.25s;
-        }
-        .btn-primary { background: var(--accent); color: var(--brand-deep); }
-        .btn-primary:hover {
-            background: var(--accent-hover); transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(206,220,41,0.25);
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.08); color: var(--text);
-            border: 1px solid rgba(255,255,255,0.2);
-            backdrop-filter: blur(10px);
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.15);
-            border-color: var(--accent);
-        }
-        .hero-right {
-            display: flex; justify-content: center; align-items: center;
-        }
-        .hero-stats {
-            display: grid; grid-template-columns: 1fr 1fr; gap: 16px;
-            width: 100%; max-width: 380px;
-        }
-        .hero-stat {
-            background: rgba(255,255,255,0.06);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 16px; padding: 24px 20px;
-            backdrop-filter: blur(10px);
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .hero-stat:hover {
-            border-color: var(--accent);
-            background: rgba(206,220,41,0.06);
-            transform: translateY(-2px);
-        }
-        .hero-stat .num {
-            font-size: 2.2rem; font-weight: 900; color: var(--accent);
-            line-height: 1;
-        }
-        .hero-stat .label {
-            font-size: 0.75rem; color: var(--text-muted);
-            margin-top: 6px; font-weight: 500; text-transform: uppercase;
-            letter-spacing: 0.5px;
+            font-size: 1.15rem; color: var(--text-muted);
+            margin-bottom: 2.5rem; max-width: 550px; margin-left: auto; margin-right: auto;
         }
 
-        /* PHOTO GALLERY STRIP */
-        .gallery-strip {
-            display: grid; grid-template-columns: repeat(4, 1fr);
-            gap: 0;
-            border-top: 3px solid var(--accent);
+        /* RESERVA TU CANCHA - CTA */
+        .reserva-cta {
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+        .reserva-cta h2 {
+            font-size: 2.5rem; font-weight: 900; margin-bottom: 0.5rem;
+        }
+        .reserva-cta h2 span { color: var(--accent); }
+        .reserva-cta p {
+            font-size: 1.05rem; color: var(--text-muted);
+            margin-bottom: 2rem; max-width: 500px; margin-left: auto; margin-right: auto;
+        }
+        .reserva-btn {
+            display: inline-flex; align-items: center; gap: 12px;
+            background: var(--accent); color: var(--brand-deep);
+            padding: 18px 48px; border-radius: 14px;
+            font-size: 1.2rem; font-weight: 800;
+            text-decoration: none; border: none; cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: 0 4px 20px rgba(206,220,41,0.3);
+        }
+        .reserva-btn:hover {
+            background: var(--accent-hover); transform: translateY(-3px);
+            box-shadow: 0 8px 35px rgba(206,220,41,0.4);
+        }
+        .reserva-btn svg { width: 24px; height: 24px; }
+
+        /* CLUB INFO */
+        .club-info {
+            padding: 4rem 2rem;
+            background: var(--surface);
+            border-top: 1px solid var(--border);
             border-bottom: 1px solid var(--border);
         }
-        .gallery-strip .photo {
-            height: 260px; overflow: hidden; position: relative;
+        .club-info-inner {
+            max-width: 1000px; margin: 0 auto;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 3rem;
+            align-items: center;
         }
-        .gallery-strip .photo img {
-            width: 100%; height: 100%; object-fit: cover;
-            transition: transform 0.5s;
+        .club-info-text h3 {
+            font-size: 1.8rem; font-weight: 800; margin-bottom: 1rem;
         }
-        .gallery-strip .photo:hover img {
-            transform: scale(1.05);
+        .club-info-text p {
+            font-size: 1rem; color: var(--text-muted); margin-bottom: 1.5rem;
+            line-height: 1.8;
         }
-        .gallery-strip .photo .overlay {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,18,25,0.7) 0%, transparent 50%);
-            display: flex; align-items: flex-end; padding: 16px;
+        .club-info-items {
+            display: flex; flex-direction: column; gap: 1rem;
         }
-        .gallery-strip .photo .overlay span {
-            font-size: 0.8rem; font-weight: 700; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 1px;
+        .club-info-item {
+            display: flex; align-items: center; gap: 14px;
+        }
+        .club-info-item .icon {
+            width: 44px; height: 44px; min-width: 44px;
+            background: rgba(206,220,41,0.1); border-radius: 12px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.2rem;
+        }
+        .club-info-item a {
+            color: var(--accent); text-decoration: none; font-weight: 600;
+            transition: color 0.2s;
+        }
+        .club-info-item a:hover { color: var(--accent-hover); text-decoration: underline; }
+        .club-info-item span { color: var(--text-muted); font-size: 0.95rem; }
+        .club-info-map {
+            border-radius: 16px; overflow: hidden;
+            border: 1px solid var(--border);
+            height: 350px;
+        }
+        .club-info-map iframe {
+            width: 100%; height: 100%; border: none;
+        }
+        .whatsapp-float {
+            position: fixed; bottom: 24px; right: 24px; z-index: 99;
+            width: 60px; height: 60px; border-radius: 50%;
+            background: #25D366; color: white;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 2rem; text-decoration: none;
+            box-shadow: 0 4px 20px rgba(37,211,102,0.4);
+            transition: all 0.3s;
+            animation: whatsapp-pulse 2s infinite;
+        }
+        .whatsapp-float:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 30px rgba(37,211,102,0.6);
+        }
+        @keyframes whatsapp-pulse {
+            0%, 100% { box-shadow: 0 4px 20px rgba(37,211,102,0.4); }
+            50% { box-shadow: 0 4px 30px rgba(37,211,102,0.7); }
         }
 
         /* FEATURES */
@@ -223,8 +232,7 @@
         .section-header { text-align: center; margin-bottom: 4rem; }
         .section-tag {
             font-size: 0.8rem; font-weight: 700; color: var(--accent);
-            text-transform: uppercase; letter-spacing: 2px;
-            margin-bottom: 0.8rem;
+            text-transform: uppercase; letter-spacing: 2px; margin-bottom: 0.8rem;
         }
         .section-header h2 { font-size: 2.5rem; font-weight: 800; }
         .section-header p {
@@ -237,100 +245,20 @@
         }
         .feature-card {
             background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; padding: 2rem;
-            transition: all 0.3s;
+            border-radius: 16px; padding: 2rem; transition: all 0.3s;
         }
         .feature-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
+            border-color: var(--accent); transform: translateY(-4px);
             box-shadow: 0 12px 40px rgba(0,0,0,0.3);
         }
         .feature-icon {
             width: 50px; height: 50px;
-            background: rgba(206,220,41,0.1);
-            border-radius: 12px;
+            background: rgba(206,220,41,0.1); border-radius: 12px;
             display: flex; align-items: center; justify-content: center;
             font-size: 1.5rem; margin-bottom: 1.2rem;
         }
         .feature-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.5rem; }
         .feature-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
-
-        /* BOOKING STEPS */
-        .how-it-works {
-            padding: 6rem 2rem;
-            background: linear-gradient(180deg, var(--bg) 0%, rgba(0,47,72,0.15) 50%, var(--bg) 100%);
-        }
-        .steps {
-            max-width: 1000px; margin: 0 auto;
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 2rem;
-        }
-        .step { text-align: center; }
-        .step-num {
-            width: 60px; height: 60px;
-            background: var(--accent); border-radius: 16px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.5rem; font-weight: 900; color: var(--brand-deep);
-            margin: 0 auto 1rem;
-        }
-        .step-content h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
-        .step-content p { font-size: 0.85rem; color: var(--text-muted); }
-
-        /* PHOTO BANNER — full width */
-        .photo-banner {
-            position: relative; height: 400px; overflow: hidden;
-        }
-        .photo-banner img {
-            width: 100%; height: 100%; object-fit: cover;
-            filter: brightness(0.4);
-        }
-        .photo-banner-content {
-            position: absolute; inset: 0;
-            display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
-            text-align: center; padding: 2rem;
-        }
-        .photo-banner-content h2 {
-            font-size: 2.8rem; font-weight: 900; margin-bottom: 1rem;
-        }
-        .photo-banner-content h2 span { color: var(--accent); }
-        .photo-banner-content p {
-            font-size: 1.1rem; color: var(--text-muted);
-            max-width: 500px; margin-bottom: 2rem;
-        }
-
-        /* CONTACT */
-        .contact {
-            padding: 6rem 2rem;
-            background: linear-gradient(180deg, var(--bg) 0%, rgba(0,47,72,0.1) 100%);
-        }
-        .contact-grid {
-            max-width: 1000px; margin: 0 auto;
-            display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem;
-        }
-        .contact-card {
-            background: var(--surface); border: 1px solid var(--border);
-            border-radius: 16px; padding: 2rem;
-            text-align: center;
-            transition: all 0.3s;
-        }
-        .contact-card:hover {
-            border-color: var(--accent);
-            transform: translateY(-4px);
-        }
-        .contact-icon {
-            width: 56px; height: 56px;
-            background: rgba(206,220,41,0.1);
-            border-radius: 14px;
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.6rem; margin: 0 auto 1rem;
-        }
-        .contact-card h3 { font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
-        .contact-card p { font-size: 0.88rem; color: var(--text-muted); line-height: 1.6; }
-        .contact-card a {
-            color: var(--accent); text-decoration: none; font-weight: 600;
-            font-size: 0.95rem; transition: color 0.2s;
-        }
-        .contact-card a:hover { color: var(--accent-hover); text-decoration: underline; }
 
         /* DOWNLOAD */
         .download { padding: 6rem 2rem; }
@@ -342,20 +270,16 @@
             text-align: center; position: relative; overflow: hidden;
         }
         .download-card::before {
-            content: '';
-            position: absolute; top: -100px; right: -100px;
+            content: ""; position: absolute; top: -100px; right: -100px;
             width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(206,220,41,0.1) 0%, transparent 70%);
             border-radius: 50%;
         }
         .download-card img {
-            height: 70px; margin-bottom: 1.5rem;
+            height: 80px; margin-bottom: 1.5rem;
             filter: drop-shadow(0 4px 20px rgba(0,0,0,0.3));
         }
-        .download-card h2 {
-            font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem;
-            position: relative;
-        }
+        .download-card h2 { font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem; position: relative; }
         .download-card p {
             font-size: 1rem; color: var(--text-muted);
             margin-bottom: 2rem; max-width: 450px;
@@ -369,8 +293,7 @@
             display: inline-flex; align-items: center; gap: 12px;
             background: rgba(0,0,0,0.4); border: 1px solid var(--border);
             padding: 14px 28px; border-radius: 12px;
-            text-decoration: none; color: var(--text);
-            transition: all 0.25s;
+            text-decoration: none; color: var(--text); transition: all 0.25s;
         }
         .store-btn:hover {
             border-color: var(--accent); background: rgba(206,220,41,0.08);
@@ -383,17 +306,14 @@
 
         /* FOOTER */
         footer {
-            padding: 3rem 2rem;
-            border-top: 1px solid var(--border);
+            padding: 3rem 2rem; border-top: 1px solid var(--border);
         }
         .footer-inner {
             max-width: 1200px; margin: 0 auto;
             display: flex; justify-content: space-between; align-items: center;
             flex-wrap: wrap; gap: 1rem;
         }
-        .footer-brand {
-            display: flex; align-items: center; gap: 10px;
-        }
+        .footer-brand { display: flex; align-items: center; gap: 10px; }
         .footer-brand img { height: 30px; }
         .footer-brand span { font-size: 0.8rem; color: var(--text-muted); }
         .footer-links { display: flex; gap: 1.5rem; }
@@ -420,36 +340,28 @@
                 border-bottom: 1px solid var(--border);
             }
             .hamburger { display: flex; }
-            .hero-content { grid-template-columns: 1fr; text-align: center; padding-top: 120px; }
-            .hero h1 { font-size: 2.4rem; }
-            .hero p { margin: 0 auto 2rem; }
-            .hero-buttons { justify-content: center; }
-            .hero-logo { height: 100px; }
-            .hero-right { margin-top: 2rem; }
-            .hero-stats { max-width: 320px; margin: 0 auto; }
-            .gallery-strip { grid-template-columns: 1fr 1fr; }
-            .gallery-strip .photo { height: 180px; }
+            .event-carousel { height: 50vh; min-height: 300px; }
+            .carousel-caption h2 { font-size: 1.4rem; }
+            .hero { padding: 3rem 1.5rem; }
+            .hero-logo { height: 120px; }
+            .hero h1 { font-size: 2rem; }
+            .reserva-cta h2 { font-size: 1.8rem; }
+            .reserva-btn { padding: 16px 36px; font-size: 1rem; }
+            .club-info-inner { grid-template-columns: 1fr; }
+            .club-info-map { height: 250px; }
             .features-grid { grid-template-columns: 1fr; }
-            .steps { grid-template-columns: 1fr 1fr; }
-            .photo-banner { height: 300px; }
-            .photo-banner-content h2 { font-size: 1.8rem; }
-            .contact-grid { grid-template-columns: 1fr 1fr; }
             .download-card { padding: 2.5rem 1.5rem; }
             .download-card h2 { font-size: 1.6rem; }
             .footer-inner { flex-direction: column; text-align: center; }
         }
 
-        /* ANIMATIONS */
         .fade-in {
             opacity: 0; transform: translateY(30px);
             transition: all 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
         .fade-in.visible { opacity: 1; transform: translateY(0); }
-
         @media (prefers-reduced-motion: reduce) {
             .fade-in { opacity: 1; transform: none; transition: none; }
-            .hero-badge::before { animation: none; }
-            .gallery-strip .photo:hover img { transform: none; }
         }
     </style>
 </head>
@@ -463,201 +375,157 @@
                 <span class="logo-text">Andes <span>Pádel</span></span>
             </a>
             <div class="nav-links" id="navLinks">
+                <a href="#reservar">Reservar</a>
                 <a href="#servicios">Servicios</a>
-                <a href="#como-reservar">Reservar</a>
-                <a href="#galeria">Galería</a>
+                <a href="#club">El Club</a>
                 <a href="#contacto">Contacto</a>
                 <a href="#descargar">Descargar</a>
                 <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="nav-cta">Reservar Ahora</a>
             </div>
-            <button class="hamburger" id="hamburger" onclick="document.getElementById('navLinks').classList.toggle('active')">
+            <button class="hamburger" id="hamburger" onclick="document.getElementById(navLinks).classList.toggle(active)">
                 <span></span><span></span><span></span>
             </button>
         </div>
     </nav>
 
-    <!-- HERO -->
-    <section class="hero">
-        <div class="hero-bg">
-            <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&q=80" alt="Cancha de pádel" loading="eager">
+    <!-- EVENT CAROUSEL -->
+    <section class="event-carousel">
+        <div class="carousel-track" id="carouselTrack">
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=1600&q=80" alt="Cancha de pádel">
+                <div class="carousel-caption">
+                    <h2>Torneo Abierto de Pádel 2026</h2>
+                    <p>Inscripciones abiertas para todas las categorías. ¡No te quedes sin tu lugar!</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1626248801379-51a082719e21?w=1600&q=80" alt="Quedadas de pádel">
+                <div class="carousel-caption">
+                    <h2>Quedadas Todos los Viernes</h2>
+                    <p>Únete a nuestras quedadas por nivel. Conoce jugadores y forma parte de la comunidad.</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=1600&q=80" alt="Academia de pádel">
+                <div class="carousel-caption">
+                    <h2>Academia - Clases para Todos los Niveles</h2>
+                    <p>Entrenamiento profesional con instructores certificados. Desde principiante hasta avanzado.</p>
+                </div>
+            </div>
+            <div class="carousel-slide">
+                <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=1600&q=80" alt="Liga de pádel">
+                <div class="carousel-caption">
+                    <h2>Liga Interna - Temporada 2026</h2>
+                    <p>Compite en nuestra liga interna por categorías. Rankings, premios y diversión garantizada.</p>
+                </div>
+            </div>
         </div>
-        <div class="hero-overlay"></div>
-        <div class="hero-content">
-            <div class="hero-left">
-                <img src="assets/logo.png" alt="Andes Pádel Club" class="hero-logo">
-                <div class="hero-badge">Quito, Ecuador</div>
-                <h1>Reserva tu cancha de <span>pádel</span> en segundos</h1>
-                <p>App móvil, pagos online, torneos, quedadas y la comunidad de pádel más activa de Quito. Todo desde tu celular.</p>
-                <div class="hero-buttons">
-                    <a href="#descargar" class="btn btn-primary">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                        Descargar App
-                    </a>
-                    <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="btn btn-secondary">
-                        Reservar en Línea
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
-                    </a>
-                </div>
-            </div>
-            <div class="hero-right">
-                <div class="hero-stats">
-                    <div class="hero-stat">
-                        <div class="num">3</div>
-                        <div class="label">Canchas</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="num">4</div>
-                        <div class="label">Pasos para Reservar</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="num">3</div>
-                        <div class="label">Métodos de Pago</div>
-                    </div>
-                    <div class="hero-stat">
-                        <div class="num">4</div>
-                        <div class="label">Idiomas</div>
-                    </div>
-                </div>
-            </div>
+        <div class="carousel-dots" id="carouselDots">
+            <div class="dot active" onclick="goToSlide(0)"></div>
+            <div class="dot" onclick="goToSlide(1)"></div>
+            <div class="dot" onclick="goToSlide(2)"></div>
+            <div class="dot" onclick="goToSlide(3)"></div>
         </div>
     </section>
 
-    <!-- PHOTO GALLERY STRIP -->
-    <section class="gallery-strip" id="galeria">
-        <div class="photo">
-            <img src="https://images.unsplash.com/photo-1626248801379-51a082719e21?w=600&q=80" alt="Jugadores de pádel" loading="lazy">
-            <div class="overlay"><span>Quedadas</span></div>
-        </div>
-        <div class="photo">
-            <img src="https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=600&q=80" alt="Cancha de pádel" loading="lazy">
-            <div class="overlay"><span>Torneos</span></div>
-        </div>
-        <div class="photo">
-            <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=600&q=80" alt="Pádel club" loading="lazy">
-            <div class="overlay"><span>Ligas</span></div>
-        </div>
-        <div class="photo">
-            <img src="https://images.unsplash.com/photo-1571019614242-c5c5dee9f50b?w=600&q=80" alt="Academia de pádel" loading="lazy">
-            <div class="overlay"><span>Academia</span></div>
+    <!-- HERO -->
+    <section class="hero">
+        <img src="assets/logo.png" alt="Andes Pádel Club" class="hero-logo">
+        <h1>Tu cancha de <span>pádel</span> en Quito</h1>
+        <p>Reserva desde tu celular, paga como quieras, y únete a la comunidad de pádel más activa de Quito.</p>
+    </section>
+
+    <!-- RESERVA TU CANCHA -->
+    <section class="reserva-cta" id="reservar">
+        <h2><span>Reserva</span> tu Cancha</h2>
+        <p>Selecciona la fecha, elige tu cancha y confirma. Todo en menos de 2 minutos.</p>
+        <a href="https://andespadel.yachaq.io/api/docs/" target="_blank" class="reserva-btn">
+            Reservar Ahora
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </a>
+    </section>
+
+    <!-- CLUB INFO -->
+    <section class="club-info" id="club">
+        <div class="club-info-inner">
+            <div class="club-info-text">
+                <h3>Andes Pádel Club</h3>
+                <p>El club de pádel más completo de Quito. 3 canchas, academia, torneos, quedadas y una comunidad increíble. Ven a visitarnos.</p>
+                <div class="club-info-items">
+                    <div class="club-info-item">
+                        <div class="icon">📍</div>
+                        <div>
+                            <a href="https://maps.google.com/?q=Rodriguez+Labandera+y+Ernesto+Alban+Quito+Ecuador" target="_blank">
+                                Rodríguez Labandera y Ernesto Albán esquina<br>Quito, Ecuador
+                            </a>
+                        </div>
+                    </div>
+                    <div class="club-info-item">
+                        <div class="icon">💬</div>
+                        <div>
+                            <a href="https://wa.me/593992676842" target="_blank">WhatsApp: 099 267 6842</a>
+                        </div>
+                    </div>
+                    <div class="club-info-item">
+                        <div class="icon">✉️</div>
+                        <div>
+                            <a href="mailto:andespadelclub@gmail.com">andespadelclub@gmail.com</a>
+                        </div>
+                    </div>
+                    <div class="club-info-item">
+                        <div class="icon">📸</div>
+                        <div>
+                            <a href="https://instagram.com/andespadelec" target="_blank">@andespadelec</a>
+                        </div>
+                    </div>
+                    <div class="club-info-item">
+                        <div class="icon">🕐</div>
+                        <div><span>Lunes a Domingo: 08:00 - 22:00</span></div>
+                    </div>
+                </div>
+            </div>
+            <div class="club-info-map">
+                <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3989.78!2d-78.48!3d-0.18!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2zMMKwMTAnNDguMCJTIDc4wrAyOCc0OC4wIlc!5e0!3m2!1ses!2sec!4v1" allowfullscreen loading="lazy" referrerpolicy="no-referrer-when-downgrade"></iframe>
+            </div>
         </div>
     </section>
 
     <!-- FEATURES -->
     <section class="features" id="servicios">
         <div class="section-header fade-in">
-            <div class="section-tag">Plataforma Completa</div>
+            <div class="section-tag">Servicios</div>
             <h2>Todo lo que necesitas para tu pádel</h2>
-            <p>Reserva, paga, compite y conecta con la comunidad desde una sola app.</p>
         </div>
         <div class="features-grid">
             <div class="feature-card fade-in">
                 <div class="feature-icon">📅</div>
                 <h3>Reserva Inteligente</h3>
-                <p>Elige fecha y hora, el sistema muestra canchas disponibles con precio en tiempo real. Sin llamadas, sin WhatsApp.</p>
+                <p>Elige fecha y hora, elige tu cancha con precio en tiempo real. Sin llamadas.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">💳</div>
                 <h3>3 Métodos de Pago</h3>
-                <p>Tarjeta con Stripe, transferencia bancaria con comprobante, o efectivo en recepción. Tú eliges.</p>
+                <p>Tarjeta, transferencia bancaria o efectivo en recepción.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🏆</div>
                 <h3>Torneos y Ligas</h3>
-                <p>Inscríbete a torneos por categoría, ligas internas y competencias. Registro de parejas online.</p>
+                <p>Inscríbete a torneos por categoría y ligas internas.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🤝</div>
                 <h3>Quedadas</h3>
-                <p>Únete a quedadas por categoría. Conoce jugadores de tu nivel y forma parte de la comunidad.</p>
+                <p>Únete a quedadas por nivel. Conoce jugadores de tu categoría.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🎓</div>
                 <h3>Academia</h3>
-                <p>Clínicas, clases grupales y entrenamientos. Reserva tu espacio en la academia directo desde la app.</p>
+                <p>Clases grupales y entrenamientos con instructores certificados.</p>
             </div>
             <div class="feature-card fade-in">
                 <div class="feature-icon">🔔</div>
                 <h3>Notificaciones</h3>
-                <p>Recordatorios 2 horas antes, confirmaciones, alertas de torneos y novedades. Push y email.</p>
-            </div>
-        </div>
-    </section>
-
-    <!-- HOW IT WORKS -->
-    <section class="how-it-works" id="como-reservar">
-        <div class="section-header fade-in">
-            <div class="section-tag">Cómo Reservar</div>
-            <h2>Reserva en 4 pasos simples</h2>
-            <p>Desde que abres la app hasta tu cancha confirmada, menos de 2 minutos.</p>
-        </div>
-        <div class="steps">
-            <div class="step fade-in">
-                <div class="step-num">1</div>
-                <div class="step-content">
-                    <h3>Fecha y Horario</h3>
-                    <p>Elige el día, duración y cantidad de jugadores.</p>
-                </div>
-            </div>
-            <div class="step fade-in">
-                <div class="step-num">2</div>
-                <div class="step-content">
-                    <h3>Elige tu Cancha</h3>
-                    <p>Ve las canchas disponibles con su precio. Techada o abierta, con o sin luz.</p>
-                </div>
-            </div>
-            <div class="step fade-in">
-                <div class="step-num">3</div>
-                <div class="step-content">
-                    <h3>Resumen y Pago</h3>
-                    <p>Revisa el detalle y paga con tarjeta, transferencia o efectivo.</p>
-                </div>
-            </div>
-            <div class="step fade-in">
-                <div class="step-num">4</div>
-                <div class="step-content">
-                    <h3>¡Listo!</h3>
-                    <p>Confirmación instantánea. Recordatorio automático 2 horas antes.</p>
-                </div>
-            </div>
-        </div>
-    </section>
-
-    <!-- PHOTO BANNER -->
-    <section class="photo-banner">
-        <img src="https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=1600&q=80" alt="Comunidad Andes Pádel" loading="lazy">
-        <div class="photo-banner-content">
-            <h2>La comunidad de <span>pádel</span> de Quito</h2>
-            <p>Quedadas, torneos, ligas y academia. Más que canchas, somos una comunidad.</p>
-            <a href="#descargar" class="btn btn-primary">Únete Ahora</a>
-        </div>
-    </section>
-
-    <!-- CONTACT -->
-    <section class="contact" id="contacto">
-        <div class="section-header fade-in">
-            <div class="section-tag">Contacto</div>
-            <h2>Visítanos o Escríbenos</h2>
-        </div>
-        <div class="contact-grid">
-            <div class="contact-card fade-in">
-                <div class="contact-icon">📍</div>
-                <h3>Ubicación</h3>
-                <p>Rodríguez Labandera y<br>Ernesto Albán esquina<br>Quito, Ecuador</p>
-            </div>
-            <div class="contact-card fade-in">
-                <div class="contact-icon">💬</div>
-                <h3>WhatsApp</h3>
-                <p><a href="https://wa.me/593992676842" target="_blank">099 267 6842</a></p>
-            </div>
-            <div class="contact-card fade-in">
-                <div class="contact-icon">✉️</div>
-                <h3>Email</h3>
-                <p><a href="mailto:andespadelclub@gmail.com">andespadelclub@gmail.com</a></p>
-            </div>
-            <div class="contact-card fade-in">
-                <div class="contact-icon">📸</div>
-                <h3>Instagram</h3>
-                <p><a href="https://instagram.com/andespadelec" target="_blank">@andespadelec</a></p>
+                <p>Recordatorios automáticos y alertas de torneos y novedades.</p>
             </div>
         </div>
     </section>
@@ -665,7 +533,7 @@
     <!-- DOWNLOAD -->
     <section class="download" id="descargar">
         <div class="download-card fade-in">
-            <img src="assets/logo.png" alt="Andes Pádel" style="height: 80px;">
+            <img src="assets/logo.png" alt="Andes Pádel">
             <h2>Descarga Andes Pádel</h2>
             <p>App móvil para Android. También puedes reservar desde tu navegador.</p>
             <div class="download-buttons">
@@ -702,21 +570,40 @@
                 <span>© 2026 Andes Pádel Club</span>
             </div>
             <div class="footer-links">
+                <a href="#reservar">Reservar</a>
                 <a href="#servicios">Servicios</a>
-                <a href="#como-reservar">Reservar</a>
+                <a href="#club">El Club</a>
                 <a href="#contacto">Contacto</a>
-                <a href="https://andespadel.yachaq.io/api/docs/" target="_blank">API Docs</a>
-                <a href="https://andespadel.yachaq.io/adminpanel/" target="_blank">Admin</a>
+                <a href="https://andespadel.yachaq.io/api/docs/" target="_blank">API</a>
             </div>
             <p class="footer-copy">Rodríguez Labandera y Ernesto Albán esquina, Quito · WhatsApp 099 267 6842 · andespadelclub@gmail.com</p>
         </div>
     </footer>
 
+    <!-- WHATSAPP FLOATING BUTTON -->
+    <a href="https://wa.me/593992676842" target="_blank" class="whatsapp-float" title="Contáctanos por WhatsApp">💬</a>
+
     <script>
+        // Carousel
+        let currentSlide = 0;
+        const totalSlides = 4;
+        const track = document.getElementById("carouselTrack");
+        const dots = document.querySelectorAll(".carousel-dots .dot");
+
+        function goToSlide(n) {
+            currentSlide = n;
+            track.style.transform = "translateX(-" + (n * 100) + "%)";
+            dots.forEach((d, i) => d.classList.toggle("active", i === n));
+        }
+        setInterval(() => {
+            goToSlide((currentSlide + 1) % totalSlides);
+        }, 5000);
+
+        // Fade-in observer
         const observer = new IntersectionObserver((entries) => {
-            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+            entries.forEach(e => { if (e.isIntersecting) e.target.classList.add("visible"); });
         }, { threshold: 0.1 });
-        document.querySelectorAll('.fade-in').forEach(el => observer.observe(el));
+        document.querySelectorAll(".fade-in").forEach(el => observer.observe(el));
     </script>
 </body>
 </html>

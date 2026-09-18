@@ -23,6 +23,26 @@ class AuthState extends ChangeNotifier {
   String? get error => _error;
   Map<String, dynamic>? get user => _user;
 
+  static String _humanError(Object e) {
+    final s = e.toString().toLowerCase();
+    if (s.contains('401') || s.contains('invalid') || s.contains('credentials') || s.contains('no active account')) {
+      return 'Email o contraseña incorrectos';
+    }
+    if (s.contains('423') || s.contains('locked') || s.contains('blocked')) {
+      return 'Cuenta temporalmente bloqueada. Intenta más tarde.';
+    }
+    if (s.contains('400') && s.contains('verify')) {
+      return 'Verifica tu email antes de iniciar sesión';
+    }
+    if (s.contains('connection') || s.contains('network') || s.contains('socket')) {
+      return 'Sin conexión a internet. Verifica tu red.';
+    }
+    if (s.contains('timeout')) {
+      return 'El servidor no responde. Intenta más tarde.';
+    }
+    return 'Ocurrió un error. Intenta de nuevo.';
+  }
+
   Future<void> restoreSession() async {
     try {
       final access = await _storage.read(SecureTokenStorage.accessKey);
@@ -43,7 +63,7 @@ class AuthState extends ChangeNotifier {
     try {
       await action();
     } catch (e) {
-      _error = e.toString();
+      _error = _humanError(e);
     } finally {
       _loading = false;
       notifyListeners();
@@ -130,7 +150,6 @@ class AuthState extends ChangeNotifier {
     }
   }
 
-  /// Merge a partial user payload (e.g. language change) into the cached user.
   void applyUserPatch(Map<String, dynamic> data) {
     final current = _user;
     if (current != null) {

@@ -16,25 +16,23 @@ class BookingWizardScreen extends StatefulWidget {
 }
 
 class _BookingWizardScreenState extends State<BookingWizardScreen> {
-  static const _durations = [30, 60, 90, 120];
-  static const _playersOptions = [2, 3, 4];
+  static const _durations = [60, 90, 120];
 
   int _step = 0;
   List<dynamic>? _courts;
   List<dynamic> _slots = [];
   Map<String, dynamic>? _court;
   Map<String, dynamic>? _slot;
-  DateTime _date = DateTime.now().add(const Duration(days: 1));
+  DateTime _date = DateTime.now();
   int _duration = 60;
-  int _players = 4;
   String? _price;
   String? _error;
   bool _submitting = false;
+  bool _loadingSlots = false;
 
   @override
   void initState() {
     super.initState();
-    _date = DateTime.now();
     _loadCourts();
   }
 
@@ -58,10 +56,11 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Future<void> _loadAvailability() async {
     final court = _court;
     if (court == null) return;
+    setState(() => _loadingSlots = true);
     try {
       final data = await context
           .read<ApiClient>()
-          .get('/courts/${court['id']}/availability/', query: {'date': _fmt(_date)});
+          .get('/courts/${court["id"]}/availability/', query: {'date': _fmt(_date)});
       if (!mounted) return;
       setState(() {
         _slots = (data as List<dynamic>? ?? [])
@@ -70,10 +69,14 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         _slot = null;
         _price = null;
         _error = null;
+        _loadingSlots = false;
       });
     } catch (e) {
       if (!mounted) return;
-      setState(() => _error = e.toString());
+      setState(() {
+        _error = e.toString();
+        _loadingSlots = false;
+      });
     }
   }
 
@@ -89,7 +92,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       });
       if (!mounted) return;
       setState(() {
-        _price = '${data['price']}';
+        _price = '${data["price"]}';
         _error = null;
       });
     } catch (e) {
@@ -114,14 +117,11 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         'date': _fmt(_date),
         'start_time': slot['start'],
         'duration_minutes': _duration,
-        'players': _players,
       });
       final bookingId = booking['id'];
       await api.post('/bookings/$bookingId/confirm/');
       if (mounted) {
-        setState(() {
-          _submitting = false;
-        });
+        setState(() => _submitting = false);
         final paymentResult = await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => PaymentMethodScreen(
@@ -130,11 +130,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             ),
           ),
         );
-        if (mounted) {
-          setState(() {
-            _step = 3;
-          });
-        }
+        if (mounted) setState(() => _step = 3);
       }
     } catch (e) {
       if (mounted) {
@@ -146,22 +142,22 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     }
   }
 
+  void _selectDate(DateTime d) {
+    setState(() {
+      _date = d;
+      _court = null;
+      _slot = null;
+      _slots = [];
+      _price = null;
+    });
+  }
+
   void _selectCourt(Map<String, dynamic> court) {
     setState(() {
       _court = court;
       _slot = null;
       _price = null;
-      _step = 1;
       _error = null;
-    });
-    _loadAvailability();
-  }
-
-  void _selectDate(DateTime d) {
-    setState(() {
-      _date = d;
-      _slot = null;
-      _price = null;
     });
     _loadAvailability();
   }
@@ -170,6 +166,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final steps = [
+      l10n.selectDate,
       l10n.stepCourt,
       l10n.stepSchedule,
       l10n.stepSummary,
@@ -195,12 +192,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text(
-              _error!,
-              style: TextStyle(
-                color: Theme.of(context).colorScheme.error,
-              ),
-            ),
+            Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
             const SizedBox(height: 12),
             OutlinedButton(onPressed: _loadCourts, child: Text(l10n.retry)),
           ],
@@ -209,54 +201,26 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     }
     switch (_step) {
       case 0:
-        return _buildCourtStep(l10n);
+        return _buildDateStep(l10n);
       case 1:
-        return _buildScheduleStep(l10n);
+        return _buildCourtStep(l10n);
       case 2:
+        return _buildScheduleStep(l10n);
+      case 3:
         return _buildSummaryStep(l10n);
       default:
         return _buildDoneStep(l10n);
     }
   }
 
-  Widget _buildCourtStep(AppLocalizations l10n) {
-    final courts = _courts;
-    if (courts == null) {
-      return const Center(child: CircularProgressIndicator());
-    }
-    return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      itemCount: courts.length,
-      itemBuilder: (context, i) {
-        final c = courts[i] as Map<String, dynamic>;
-        return Padding(
-          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-          child: Card(
-            child: ListTile(
-              leading: Icon(
-                Icons.sports_tennis_outlined,
-                color: Theme.of(context).colorScheme.primary,
-              ),
-              title: Text('${c['name']}'),
-              subtitle: Text(
-                  '${c['court_type']} · \$${c['price_base']} ${l10n.perHour}'),
-              trailing: const Icon(Icons.chevron_right),
-              onTap: () => _selectCourt(c),
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildScheduleStep(AppLocalizations l10n) {
+  Widget _buildDateStep(AppLocalizations l10n) {
     final today = DateTime.now();
     final dates = List.generate(7, (i) => today.add(Duration(days: i)));
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
         Text(l10n.selectDate, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.xs),
+        const SizedBox(height: AppSpacing.md),
         SizedBox(
           height: 72,
           child: ListView.separated(
@@ -266,7 +230,6 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             itemBuilder: (context, i) {
               final d = dates[i];
               final selected = _date.year == d.year && _date.month == d.month && _date.day == d.day;
-              final today = d.day == DateTime.now().day && d.month == DateTime.now().month;
               return ChoiceChip(
                 label: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -277,62 +240,125 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                 ),
                 selected: selected,
                 onSelected: (_) => _selectDate(d),
-                tooltip: today ? '${d.day}/${d.month}' : '${d.day}/${d.month}',
               );
             },
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Row(
-          children: [
-            Expanded(
-              child: _dropdown<int>(
-                l10n.duration,
-                _duration,
-                _durations,
-                (v) => '$v ${l10n.durationMin}',
-                (v) => setState(() {
-                  _duration = v;
-                  _price = null;
-                  _slot = null;
-                }),
+        Text(l10n.duration, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.sm),
+        Wrap(
+          spacing: AppSpacing.sm,
+          children: _durations.map((d) {
+            return ChoiceChip(
+              label: Text('$d min'),
+              selected: _duration == d,
+              onSelected: (_) => setState(() {
+                _duration = d;
+                _court = null;
+                _slot = null;
+                _slots = [];
+                _price = null;
+              }),
+            );
+          }).toList(),
+        ),
+        const SizedBox(height: AppSpacing.xl),
+        FilledButton(
+          onPressed: () => setState(() => _step = 1),
+          child: Text(l10n.next),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCourtStep(AppLocalizations l10n) {
+    final courts = _courts;
+    if (courts == null) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        Text(l10n.stepCourt, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          DateFormat('EEEE, d MMM', l10n.localeName).format(_date),
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
+              ),
+        ),
+        const SizedBox(height: AppSpacing.md),
+        ...courts.map((c) {
+          final court = c as Map<String, dynamic>;
+          return Padding(
+            padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+            child: Card(
+              child: ListTile(
+                leading: Icon(
+                  Icons.sports_tennis_outlined,
+                  color: Theme.of(context).colorScheme.primary,
+                ),
+                title: Text('${court["name"]}'),
+                subtitle: Text(
+                    '${court["court_type"]} · $_price$${court["price_base"]} ${l10n.perHour}'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () {
+                  _selectCourt(court);
+                  setState(() => _step = 2);
+                },
               ),
             ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: _dropdown<int>(
-                l10n.minPlayers,
-                _players,
-                _playersOptions,
-                (v) => '$v',
-                (v) => setState(() => _players = v),
+          );
+        }),
+        const SizedBox(height: AppSpacing.md),
+        TextButton(
+          onPressed: () => setState(() {
+            _step = 0;
+            _error = null;
+          }),
+          child: Text(l10n.back),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildScheduleStep(AppLocalizations l10n) {
+    return ListView(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      children: [
+        Text('${_court?["name"] ?? ""}', style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          '${DateFormat("EEEE, d MMM", l10n.localeName).format(_date)} · $_duration min',
+          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Theme.of(context).colorScheme.onSurfaceVariant,
               ),
-            ),
-          ],
         ),
         const SizedBox(height: AppSpacing.lg),
         if (_error != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
-        if (_slots.isEmpty && _error == null)
+        if (_loadingSlots)
+          const Center(child: Padding(
+            padding: EdgeInsets.all(32),
+            child: CircularProgressIndicator(),
+          ))
+        else if (_slots.isEmpty && _error == null)
           Padding(
             padding: const EdgeInsets.symmetric(vertical: 24),
             child: Center(child: Text(l10n.noAvailableSlots)),
           )
         else ...[
-          const SizedBox(height: AppSpacing.lg),
           Text(l10n.selectSlot, style: Theme.of(context).textTheme.titleMedium),
-          const SizedBox(height: AppSpacing.xs),
+          const SizedBox(height: AppSpacing.sm),
           Wrap(
             spacing: AppSpacing.xs,
             runSpacing: AppSpacing.xs,
             children: _slots.map((s) {
-              final start = timeShort('${s['start']}');
+              final start = timeShort('${s["start"]}');
               final selected = _slot == s;
               return ChoiceChip(
                 label: Text(start),
@@ -350,7 +376,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           children: [
             TextButton(
               onPressed: () => setState(() {
-                _step = 0;
+                _step = 1;
                 _error = null;
               }),
               child: Text(l10n.back),
@@ -360,7 +386,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
               onPressed: _slot == null
                   ? null
                   : () {
-                      setState(() => _step = 2);
+                      setState(() => _step = 3);
                       _previewPrice();
                     },
               child: Text(l10n.next),
@@ -368,35 +394,6 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           ],
         ),
       ],
-    );
-  }
-
-  Widget _dropdown<T>(
-    String label,
-    T value,
-    List<T> options,
-    String Function(T) format,
-    ValueChanged<T> onChanged,
-  ) {
-    return InputDecorator(
-      decoration: InputDecoration(
-        labelText: label,
-        border: const OutlineInputBorder(),
-        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
-      ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButton<T>(
-          value: value,
-          isExpanded: true,
-          items: [
-            for (final option in options)
-              DropdownMenuItem(value: option, child: Text(format(option))),
-          ],
-          onChanged: (v) {
-            if (v != null) onChanged(v);
-          },
-        ),
-      ),
     );
   }
 
@@ -411,23 +408,18 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('${court['name']}',
-                    style: Theme.of(context).textTheme.titleLarge),
+                Text('${court["name"]}', style: Theme.of(context).textTheme.titleLarge),
                 const SizedBox(height: AppSpacing.xs),
-                _row(l10n.selectDate,
-                    DateFormat('EEEE, d MMM', l10n.localeName).format(_date)),
+                _row(l10n.selectDate, DateFormat('EEEE, d MMM', l10n.localeName).format(_date)),
                 _row(l10n.duration, '$_duration min'),
-                _row(l10n.minPlayers, '$_players'),
-                if (_slot != null)
-                  _row(l10n.selectSlot, timeShort('${_slot!['start']}')),
+                if (_slot != null) _row(l10n.selectSlot, timeShort('${_slot!["start"]}')),
                 const Divider(height: AppSpacing.lg),
                 Row(
                   children: [
-                    Text(l10n.total,
-                        style: Theme.of(context).textTheme.titleMedium),
+                    Text(l10n.total, style: Theme.of(context).textTheme.titleMedium),
                     const Spacer(),
                     Text(
-                      _price == null ? l10n.loading : '\$$_price',
+                      _price == null ? l10n.loading : '$_price$_price',
                       style: Theme.of(context).textTheme.titleLarge?.copyWith(
                             color: Theme.of(context).colorScheme.primary,
                           ),
@@ -442,32 +434,23 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         if (_error != null)
           Padding(
             padding: const EdgeInsets.only(bottom: 12),
-            child: Text(
-              _error!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            ),
+            child: Text(_error!, style: TextStyle(color: Theme.of(context).colorScheme.error)),
           ),
         Row(
           children: [
             TextButton(
-              onPressed: _submitting
-                  ? null
-                  : () => setState(() {
-                        _step = 1;
-                        _error = null;
-                      }),
+              onPressed: _submitting ? null : () => setState(() {
+                    _step = 2;
+                    _error = null;
+                  }),
               child: Text(l10n.back),
             ),
             const Spacer(),
             FilledButton(
               onPressed: _submitting ? null : _submitBooking,
               child: _submitting
-                  ? const SizedBox(
-                      height: 20,
-                      width: 20,
-                      child: CircularProgressIndicator(strokeWidth: 2),
-                    )
-                  : Text('${l10n.confirm} · \$$_price'),
+                  ? const SizedBox(height: 20, width: 20, child: CircularProgressIndicator(strokeWidth: 2))
+                  : Text('${l10n.confirm} · $_price$_price'),
             ),
           ],
         ),
@@ -495,21 +478,14 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              Icons.check_circle_outlined,
-              color: Theme.of(context).colorScheme.primary,
-              size: 72,
-            ),
+            Icon(Icons.check_circle_outlined, color: Theme.of(context).colorScheme.primary, size: 72),
             const SizedBox(height: AppSpacing.md),
-            Text(l10n.paymentSuccess,
-                style: Theme.of(context).textTheme.titleLarge),
+            Text(l10n.paymentSuccess, style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: AppSpacing.xs),
             Text(l10n.paymentPending, textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             FilledButton(
-              onPressed: () {
-                Navigator.of(context).popUntil((route) => route.isFirst);
-              },
+              onPressed: () => Navigator.of(context).popUntil((route) => route.isFirst),
               child: Text(l10n.bookings),
             ),
           ],

@@ -29,7 +29,6 @@ class _LoginScreenState extends State<LoginScreen> {
     final auth = context.read<AuthState>();
     await auth.login(_email.text, _password.text);
     if (mounted && auth.authenticated) {
-      // Register FCM push notification token after login
       try {
         final pushService = context.read<PushNotificationService>();
         await pushService.registerToken();
@@ -51,16 +50,25 @@ class _LoginScreenState extends State<LoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Icon(
-                    Icons.sports_tennis_outlined,
-                    size: 56,
-                    color: Theme.of(context).colorScheme.primary,
+                  // Andes Padel Logo
+                  Image.asset(
+                    'assets/logo.png',
+                    width: 140,
+                    height: 140,
+                    fit: BoxFit.contain,
+                    errorBuilder: (_, __, ___) => Icon(
+                      Icons.sports_tennis_outlined,
+                      size: 80,
+                      color: Theme.of(context).colorScheme.primary,
+                    ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 20),
                   Text(
                     l10n.appTitle,
                     textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.headlineMedium,
+                    style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          fontWeight: FontWeight.w800,
+                        ),
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -111,12 +119,28 @@ class _LoginScreenState extends State<LoginScreen> {
                       if (auth.error != null) {
                         return Padding(
                           padding: const EdgeInsets.only(bottom: 12),
-                          child: Text(
-                            auth.error!,
-                            style: TextStyle(
-                              color: Theme.of(context).colorScheme.error,
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Theme.of(context).colorScheme.errorContainer,
+                              borderRadius: BorderRadius.circular(8),
                             ),
-                            textAlign: TextAlign.center,
+                            child: Row(
+                              children: [
+                                Icon(Icons.error_outline,
+                                    color: Theme.of(context).colorScheme.error, size: 20),
+                                const SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    auth.error!,
+                                    style: TextStyle(
+                                      color: Theme.of(context).colorScheme.onErrorContainer,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       }
