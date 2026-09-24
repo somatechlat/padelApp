@@ -442,6 +442,9 @@
     <a href="{% url 'adminpanel:settings' %}" class="{% if request.resolver_match.url_name == 'settings' %}active{% endif %}">
       <span>⚙️</span> Ajustes
     </a>
+    <a href="{% url 'adminpanel:banners' %}" class="{% if request.resolver_match.url_name == 'banners' %}active{% endif %}">
+      <span>🖼️</span> Banners
+    </a>
     <a href="{% url 'adminpanel:audit' %}" class="{% if request.resolver_match.url_name == 'audit' %}active{% endif %}">
       <span>🛡️</span> Auditoria
     </a>

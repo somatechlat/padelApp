@@ -1,0 +1,36 @@
+GOOGLE PLAY — Content rating questionnaire (suggested answers)
+
+Store listing questionnaire (IARC):
+
+  Violence
+    None / Cartoon violence: NO
+
+  Sexual content & nudity
+    None: NO
+
+  Language
+    None / Mild: NO
+
+  Controlled substances
+    None: NO
+
+  User interaction
+    Users can interact? YES
+      - Users can communicate (match chat / open matches): YES
+      - Users can enter personal information (phone, name): YES
+      - Location sharing: NO
+      - Digital purchases (in-app payments via Stripe): YES
+
+  In-app purchases / digital goods: YES (court bookings)
+
+  Ads: NO
+
+  Shares location: NO
+  In-app browser: NO
+
+  Rating result to expect: PEGI 3 / ESRB Everyone / USK 0  (pick "All ages")
+  Google Play category: Sports
+
+  Note: There is no gambling, no user-generated media sharing, no
+  real-money contests beyond standard booking fees. Tournaments award
+  participation, not cash prizes — keep that phrasing if asked.

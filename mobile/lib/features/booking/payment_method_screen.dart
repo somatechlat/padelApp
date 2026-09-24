@@ -3,6 +3,7 @@ import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/friendly_error.dart';
 import '../../core/theme/app_theme.dart';
 import 'transfer_proof_screen.dart';
 
@@ -35,13 +36,6 @@ class PaymentMethodScreen extends StatelessWidget {
                   ),
             ),
           ),
-          _MethodTile(
-            icon: Icons.credit_card_outlined,
-            title: l10n.payWithCard,
-            subtitle: l10n.cardDescription,
-            onTap: () => _payWithCard(context),
-          ),
-          const SizedBox(height: AppSpacing.sm),
           _MethodTile(
             icon: Icons.account_balance_outlined,
             title: l10n.payWithTransfer,
@@ -85,28 +79,7 @@ class PaymentMethodScreen extends StatelessWidget {
     );
   }
 
-  Future<void> _payWithCard(BuildContext context) async {
-    final l10n = AppLocalizations.of(context);
-    final api = context.read<ApiClient>();
-    try {
-      final payment = await api.post(
-        '/bookings/$bookingId/payments/',
-        data: {'method': 'stripe'},
-      );
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.paymentProcessing)),
-        );
-        Navigator.of(context).pop(payment);
-      }
-    } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
-        );
-      }
-    }
-  }
+  // Card payments are disabled for now — only transfer and pay-at-venue.
 
   Future<void> _payWithTransfer(BuildContext context) async {
     final api = context.read<ApiClient>();
@@ -126,10 +99,11 @@ class PaymentMethodScreen extends StatelessWidget {
         );
       }
     } catch (e) {
+      debugPrint('TRANSFER pay failed: $e');
       if (context.mounted) {
         final l10n = AppLocalizations.of(context);
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
+          SnackBar(content: Text(friendlyErrorMessage(e, l10n))),
         );
       }
     }
@@ -144,12 +118,16 @@ class PaymentMethodScreen extends StatelessWidget {
         data: {'method': 'cash', 'amount': amount},
       );
       if (context.mounted) {
-        Navigator.of(context).pop({'method': 'cash'});
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.cashDescription)),
+        );
+        Navigator.of(context).pop(true);
       }
     } catch (e) {
+      debugPrint('CASH pay failed: $e');
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.error)),
+          SnackBar(content: Text(friendlyErrorMessage(e, l10n))),
         );
       }
     }

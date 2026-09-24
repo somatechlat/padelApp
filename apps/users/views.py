@@ -18,9 +18,11 @@ from apps.users.serializers import (
     PasswordResetConfirmSerializer,
     PasswordResetRequestSerializer,
     RegisterSerializer,
+    SkillLevelSerializer,
     UserSerializer,
     VerifySerializer,
 )
+from apps.users.models import SkillLevel
 from apps.verification.models import VerificationCode, VerificationCodeService
 
 User = get_user_model()
@@ -44,6 +46,16 @@ class AuthThrottle(SimpleRateThrottle):
         return self.cache_format % {"scope": self.scope, "ident": self.get_ident(request)}
 
 
+class SkillLevelListView(generics.ListAPIView):
+    """Public combo-box options for 'Nivel de juego' (editable in admin)."""
+
+    serializer_class = SkillLevelSerializer
+    permission_classes = []
+
+    def get_queryset(self):
+        return SkillLevel.objects.filter(is_active=True)
+
+
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
     permission_classes = []
@@ -56,6 +68,9 @@ class RegisterView(generics.CreateAPIView):
                 return Response(serializer.errors, status=status.HTTP_409_CONFLICT)
             return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
         user = serializer.save()
+        # Seed from Accept-Language once at registration only. After that the
+        # in-app language picker is the single source of truth (login no longer
+        # overwrites it).
         lang = _negotiate_language(request)
         if lang and lang != user.language_code:
             user.language_code = lang
@@ -118,13 +133,9 @@ class LoginView(APIView):
             log_event(None, "auth.login_failed", "User", before={"email": email}, ip=ip)
             raise
         log_event(None, "auth.login", "User", email, ip=ip)
-        lang = _negotiate_language(request)
-        if lang:
-            user = serializer.validated_data["_user"]
-            if user.language_code != lang:
-                user.language_code = lang
-                user.save(update_fields=["language_code"])
-                serializer.validated_data["user"]["language_code"] = lang
+        # Do NOT rewrite language_code from Accept-Language on login. The
+        # in-app picker owns the language; following the device locale here
+        # flipped whole accounts (and the app UI) to Portuguese unprompted.
         return Response(serializer.validated_data)
 
 

@@ -34,6 +34,8 @@
       <tr>
         <th>Usuario</th>
         <th>Nombre</th>
+        <th>Nivel</th>
+        <th>Nacimiento</th>
         <th>Rol Actual</th>
         <th>Estado</th>
         <th>Registro</th>
@@ -45,7 +47,9 @@
       {% for u in users_list %}
       <tr>
         <td style="font-weight: 700;">{{ u.email }}</td>
-        <td>{{ u.full_name|default:"--" }}</td>
+        <td>{{ u.full_name|default:u.first_name|default:"--" }}</td>
+        <td>{{ u.skill_level.name|default:"--" }}</td>
+        <td>{{ u.birth_date|date:"Y-m-d"|default:"--" }}</td>
         <td><span class="badge badge-active">{{ u.get_role_display }}</span></td>
         <td><span class="badge badge-{{ u.status }}">{{ u.get_status_display }}</span></td>
         <td style="color: var(--text-muted); font-size: 12px;">{{ u.date_joined|date:"Y-m-d" }}</td>

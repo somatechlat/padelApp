@@ -1,23 +1,36 @@
 import 'package:flutter/material.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
+import '../../../core/widgets/brand_logo.dart';
 
+/// Shared auth layout: Andes brand logo on top, then title/subtitle and form.
 class AuthScaffold extends StatelessWidget {
   const AuthScaffold({
     super.key,
     required this.title,
     required this.subtitle,
     required this.child,
+    this.appBarTitle,
+    this.showBackButton = false,
   });
 
   final String title;
   final String subtitle;
   final Widget child;
 
+  /// When set, shows an [AppBar] with this title (implies back navigation).
+  final String? appBarTitle;
+  final bool showBackButton;
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final logoHeight = BrandLogo.authHeight(context);
+    final showAppBar = showBackButton || appBarTitle != null;
     return Scaffold(
+      appBar: showAppBar
+          ? AppBar(title: appBarTitle != null ? Text(appBarTitle!) : null)
+          : null,
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
@@ -27,12 +40,13 @@ class AuthScaffold extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Image.asset(
-                    'assets/images/LOGOTIPO-ANDES-PADEL.png',
-                    height: 120,
-                    fit: BoxFit.contain,
+                  Center(
+                    child: BrandLogo(
+                      height: logoHeight,
+                      semanticLabel: l10n.appTitle,
+                    ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 32),
                   Text(
                     title,
                     textAlign: TextAlign.center,

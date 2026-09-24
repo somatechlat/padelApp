@@ -1,6 +1,6 @@
 SHELL := /bin/bash
 
-.PHONY: up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql
+.PHONY: up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios
 
 up:
 	docker compose up -d
@@ -49,6 +49,13 @@ flrun:
 flapk: flbuild
 	cp mobile/build/app/outputs/flutter-apk/app-debug.apk ./padelapp-debug.apk
 	@echo "APK ready: ./padelapp-debug.apk"
+
+# Build iOS release IPA + upload to TestFlight in one shot.
+# Bumps build number automatically. SPM packages are cached after the first ever run.
+# Usage: ASC_USER='info@loyallia.com' ASC_PASSWORD='xxxx-xxxx-xxxx-xxxx' make ship-ios
+ship-ios:
+	chmod +x mobile/tool/release_ipa.sh
+	./mobile/tool/release_ipa.sh
 
 shell:
 	docker compose exec backend python manage.py shell

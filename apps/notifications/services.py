@@ -29,6 +29,9 @@ TRANSACTIONAL_EVENTS = {
     "tournament_registered",
     "news_published",
     "event_published",
+    "admin_booking_created",
+    "admin_cash_booking",
+    "open_match_created",
 }
 DEFAULT_CHANNELS = ("email", "push", "inapp")
 
@@ -98,6 +101,18 @@ MESSAGE_TEMPLATES = {
     ),
     "event_published": (
         "New event",
+        "{title}",
+    ),
+    "admin_booking_created": (
+        "Nueva reserva",
+        "Nueva reserva de {user}: {court} el {date} a las {time} ({duration} min).",
+    ),
+    "admin_cash_booking": (
+        "Reserva pago en el establecimiento",
+        "{user} reservó {court} el {date} a las {time} y pagará en el establecimiento.",
+    ),
+    "open_match_created": (
+        "Nuevo partido en tu categoría",
         "{title}",
     ),
 }
@@ -187,3 +202,53 @@ class NotificationService:
             logging.getLogger(__name__).exception(
                 "Failed to send push notification to user %s", user.id,
             )
+
+    @staticmethod
+    def notify_admins(event_type, data=None, title="", body=""):
+        """Alert club admins by push + in-app and the alert email from settings.
+
+        The reservation alert email is configured in Admin > Ajustes
+        (`Venue.booking_alert_email`). Push goes to every active staff account
+        that has a registered device when `booking_alert_push` is on.
+        """
+        from django.contrib.auth import get_user_model
+
+        from apps.courts.models import Venue
+
+        data = data or {}
+        if not title and not body:
+            # Localize with Spanish (club ops language) so admins always read
+            # the alert in the club default.
+            title, body = NotificationService._localize(
+                type("U", (), {"language_code": "es"})(), event_type, data
+            )
+
+        User = get_user_model()
+        admins = User.objects.filter(
+            role__in=("recepcionista", "gerente", "dueno", "superadmin"),
+            is_active=True,
+        )
+        venue = Venue.objects.first()
+        push_enabled = venue.booking_alert_push if venue else True
+
+        for admin in admins:
+            Notification.objects.create(
+                user=admin, event_type=event_type, title=title, body=body, data=data
+            )
+            if push_enabled:
+                NotificationService._send_push(admin, title, body, data)
+
+        if venue and venue.booking_alert_email:
+            try:
+                send_mail(
+                    title,
+                    body,
+                    settings.DEFAULT_FROM_EMAIL,
+                    [venue.booking_alert_email],
+                    fail_silently=False,
+                )
+            except Exception:
+                logging.getLogger(__name__).exception(
+                    "Failed to send admin booking alert email to %s",
+                    venue.booking_alert_email,
+                )

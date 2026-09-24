@@ -9,6 +9,9 @@ class CancellationPolicy(models.Model):
     penalty_ratio = models.DecimalField(max_digits=4, decimal_places=2, default="0.50")
     no_show_ratio = models.DecimalField(max_digits=4, decimal_places=2, default="1.00")
     hold_minutes = models.PositiveIntegerField(default=10)
+    # Concurrent temporary checkouts per user (a 90-min booking is ONE hold,
+    # not three 30-min rows). Default is generous so real players never hit it.
+    max_holds_per_user = models.PositiveIntegerField(default=5)
     active = models.BooleanField(default=True)
 
     class Meta:

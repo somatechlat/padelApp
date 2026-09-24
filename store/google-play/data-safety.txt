@@ -1,0 +1,25 @@
+GOOGLE PLAY — Data safety form answers
+
+Does your app collect or share any of the required data types?
+  YES
+
+Data types (personal):
+  • Name                          — collected, linked to identity, not shared, app functionality
+  • Email address                 — collected, linked to identity, not shared, app functionality
+  • Photos (transfer proof)       — collected, linked to identity, not shared, app functionality
+  • Purchase history              — collected, linked to identity, not shared, app functionality
+  • User IDs                      — collected, linked to identity, not shared, app functionality
+  • Crash logs                    — collected, not linked to identity, not shared, app functionality/diagnostics
+
+Is this data collected, shared, or both?
+  Collected (not sold, not shared with advertisers)
+
+Is data collection optional or required?
+  Required for account + bookings. Erase available in-app.
+
+Security practices
+  • Data is encrypted in transit: YES (HTTPS/TLS)
+  • Data can be requested for deletion: YES (in-app erase)
+  • Independent security review: NO
+
+Financial info (card numbers) is handled by Stripe — NOT collected by the app.

@@ -107,6 +107,9 @@ class AppLocalizationsCa extends AppLocalizations {
   String get homeWelcome => 'Hola';
 
   @override
+  String get eventsEmpty => 'Properament noves quedades i esdeveniments.';
+
+  @override
   String get homeSubtitle => 'Troba la teva pista i reserva en segons';
 
   @override
@@ -120,6 +123,15 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get bookings => 'Les meves reserves';
+
+  @override
+  String get navBookings => 'Reserves';
+
+  @override
+  String get navEvents => 'Events';
+
+  @override
+  String get navNotifications => 'Avisos';
 
   @override
   String get noBookings => 'Encara no tens reserves';
@@ -202,6 +214,15 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get markRead => 'Marcar com a llegida';
+
+  @override
+  String get markAllRead => 'Marca-les totes com a llegides';
+
+  @override
+  String get unread => 'Sense llegir';
+
+  @override
+  String get newBadge => 'Nova';
 
   @override
   String get profile => 'Perfil';
@@ -468,7 +489,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get payWithTransfer => 'Transferencia bancaria';
 
   @override
-  String get payWithCash => 'Efectivo en cancha';
+  String get payWithCash => 'Pago en el establecimiento';
 
   @override
   String get cardDescription => 'Débito o crédito vía Stripe';
@@ -478,7 +499,7 @@ class AppLocalizationsCa extends AppLocalizations {
       'Realiza una transferencia y sube tu comprobante';
 
   @override
-  String get cashDescription => 'Paga al llegar a la cancha';
+  String get cashDescription => 'Paga en el establecimiento al llegar';
 
   @override
   String get transferInstructions => 'Datos para transferencia';
@@ -577,4 +598,61 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get paymentProcessing => 'Procesando pago...';
+
+  @override
+  String get tabQuedadas => 'Quedades';
+
+  @override
+  String get tabTorneos => 'Torneigs';
+
+  @override
+  String get tabLigas => 'Lligues';
+
+  @override
+  String get tabAcademia => 'Acadèmia';
+
+  @override
+  String get noQuedadas => 'No hi ha quedades programades';
+
+  @override
+  String get noLigas => 'No hi ha lligues actives';
+
+  @override
+  String get noAcademia => 'No hi ha classes disponibles';
+
+  @override
+  String get reserveYourCourt => 'Reserva la teva pista';
+
+  @override
+  String get reserveNow => 'Reserva ara';
+
+  @override
+  String get clubContact => 'Contacte del club';
+
+  @override
+  String get clubInfo => 'Informació del club';
+
+  @override
+  String get openMaps => 'Obrir mapa';
+
+  @override
+  String get call => 'Trucar';
+
+  @override
+  String get write => 'Escriure';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get showPassword => 'Mostra la contrasenya';
+
+  @override
+  String get hidePassword => 'Amaga la contrasenya';
+
+  @override
+  String get extraInfo => 'Informació addicional';
 }

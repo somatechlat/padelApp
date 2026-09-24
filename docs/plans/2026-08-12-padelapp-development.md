@@ -1,6 +1,6 @@
 # PadelApp (Andes Pádel) — Full Development Plan (Docker-First)
 
-> **For Claude:** REQUIRED SUB-SKILL: Use superpowers:executing-plans to implement this plan phase-by-phase.
+> Implement this plan phase-by-phase.
 
 **Goal:** Deliver a production-ready padel court reservation system — Django REST API + Flutter mobile app + web admin panel — for Andes Pádel (Quito), per SRS `docs/srs/` v1.1.
 

@@ -105,6 +105,9 @@ class AppLocalizationsEs extends AppLocalizations {
   String get homeWelcome => 'Hola';
 
   @override
+  String get eventsEmpty => 'Próximamente nuevas quedadas y eventos.';
+
+  @override
   String get homeSubtitle => 'Encuentra tu cancha y reserva en segundos';
 
   @override
@@ -118,6 +121,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get bookings => 'Mis reservas';
+
+  @override
+  String get navBookings => 'Reservas';
+
+  @override
+  String get navEvents => 'Eventos';
+
+  @override
+  String get navNotifications => 'Alertas';
 
   @override
   String get noBookings => 'No tienes reservas todavía';
@@ -200,6 +212,15 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get markRead => 'Marcar leída';
+
+  @override
+  String get markAllRead => 'Marcar todas leídas';
+
+  @override
+  String get unread => 'Sin leer';
+
+  @override
+  String get newBadge => 'Nueva';
 
   @override
   String get profile => 'Perfil';
@@ -461,7 +482,7 @@ class AppLocalizationsEs extends AppLocalizations {
   String get payWithTransfer => 'Transferencia bancaria';
 
   @override
-  String get payWithCash => 'Efectivo en cancha';
+  String get payWithCash => 'Pago en el establecimiento';
 
   @override
   String get cardDescription => 'Débito o crédito vía Stripe';
@@ -471,7 +492,7 @@ class AppLocalizationsEs extends AppLocalizations {
       'Realiza una transferencia y sube tu comprobante';
 
   @override
-  String get cashDescription => 'Paga al llegar a la cancha';
+  String get cashDescription => 'Paga en el establecimiento al llegar';
 
   @override
   String get transferInstructions => 'Datos para transferencia';
@@ -570,4 +591,61 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get paymentProcessing => 'Procesando pago...';
+
+  @override
+  String get tabQuedadas => 'Quedadas';
+
+  @override
+  String get tabTorneos => 'Torneos';
+
+  @override
+  String get tabLigas => 'Ligas';
+
+  @override
+  String get tabAcademia => 'Academia';
+
+  @override
+  String get noQuedadas => 'No hay quedadas programadas';
+
+  @override
+  String get noLigas => 'No hay ligas activas';
+
+  @override
+  String get noAcademia => 'No hay clases disponibles';
+
+  @override
+  String get reserveYourCourt => 'Reserva tu cancha';
+
+  @override
+  String get reserveNow => 'Reserva ahora';
+
+  @override
+  String get clubContact => 'Contacto del club';
+
+  @override
+  String get clubInfo => 'Información del club';
+
+  @override
+  String get openMaps => 'Abrir mapa';
+
+  @override
+  String get call => 'Llamar';
+
+  @override
+  String get write => 'Escribir';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get showPassword => 'Mostrar contraseña';
+
+  @override
+  String get hidePassword => 'Ocultar contraseña';
+
+  @override
+  String get extraInfo => 'Información adicional';
 }

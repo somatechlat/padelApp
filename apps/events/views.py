@@ -7,12 +7,15 @@ from rest_framework.response import Response
 from apps.events.models import (
     Event,
     NewsPost,
+    OpenMatch,
+    OpenMatchPlayer,
     Tournament,
     TournamentRegistration,
 )
 from apps.events.serializers import (
     EventSerializer,
     NewsPostSerializer,
+    OpenMatchSerializer,
     TournamentRegistrationSerializer,
     TournamentSerializer,
 )
@@ -58,12 +61,7 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         return qs.filter(status__in=(Tournament.Status.OPEN, Tournament.Status.IN_PROGRESS))
 
     def get_permissions(self):
-        if self.action in ("create", "update", "partial_update", "destroy"):
-            return (IsStaffRole(),)
         return (IsAuthenticated(),)
-
-    def perform_create(self, serializer):
-        serializer.save(created_by=self.request.user)
 
     @action(detail=True, methods=["post"])
     def register(self, request, pk=None):

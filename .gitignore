@@ -20,3 +20,15 @@ disenio /
 *.zip
 *.pdf
 *.docx
+
+# Signing / secrets — never commit
+distribution.cer
+*.mobileprovision
+firebase-service-account.json
+AndesPadel-AppStore.ipa
+runsecrets/
+local_test.sqlite3
+mobile/android/build/
+mobile/android/*.hprof
+.mimocode/
+.playwright-cli/

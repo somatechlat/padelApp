@@ -1,9 +1,11 @@
 """Playwright E2E test fixtures for Andes Padel admin panel."""
 
+import os
+
 import pytest
 from playwright.sync_api import sync_playwright, Page, BrowserContext
 
-BASE_URL = "https://andespadel.yachaq.io"
+BASE_URL = os.environ.get("E2E_BASE_URL", "https://andespadel.yachaq.io")
 
 ADMIN_EMAIL = "admin@andespadel.com"
 ADMIN_PASSWORD = "Andes12345!"

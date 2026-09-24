@@ -294,6 +294,12 @@ abstract class AppLocalizations {
   /// **'Hola'**
   String get homeWelcome;
 
+  /// No description provided for @eventsEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'Próximamente nuevas quedadas y eventos.'**
+  String get eventsEmpty;
+
   /// No description provided for @homeSubtitle.
   ///
   /// In es, this message translates to:
@@ -323,6 +329,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Mis reservas'**
   String get bookings;
+
+  /// No description provided for @navBookings.
+  ///
+  /// In es, this message translates to:
+  /// **'Reservas'**
+  String get navBookings;
+
+  /// No description provided for @navEvents.
+  ///
+  /// In es, this message translates to:
+  /// **'Eventos'**
+  String get navEvents;
+
+  /// No description provided for @navNotifications.
+  ///
+  /// In es, this message translates to:
+  /// **'Alertas'**
+  String get navNotifications;
 
   /// No description provided for @noBookings.
   ///
@@ -485,6 +509,24 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Marcar leída'**
   String get markRead;
+
+  /// No description provided for @markAllRead.
+  ///
+  /// In es, this message translates to:
+  /// **'Marcar todas leídas'**
+  String get markAllRead;
+
+  /// No description provided for @unread.
+  ///
+  /// In es, this message translates to:
+  /// **'Sin leer'**
+  String get unread;
+
+  /// No description provided for @newBadge.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva'**
+  String get newBadge;
 
   /// No description provided for @profile.
   ///
@@ -987,7 +1029,7 @@ abstract class AppLocalizations {
   /// No description provided for @payWithCash.
   ///
   /// In es, this message translates to:
-  /// **'Efectivo en cancha'**
+  /// **'Pago en el establecimiento'**
   String get payWithCash;
 
   /// No description provided for @cardDescription.
@@ -1005,7 +1047,7 @@ abstract class AppLocalizations {
   /// No description provided for @cashDescription.
   ///
   /// In es, this message translates to:
-  /// **'Paga al llegar a la cancha'**
+  /// **'Paga en el establecimiento al llegar'**
   String get cashDescription;
 
   /// No description provided for @transferInstructions.
@@ -1199,6 +1241,120 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Procesando pago...'**
   String get paymentProcessing;
+
+  /// No description provided for @tabQuedadas.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedadas'**
+  String get tabQuedadas;
+
+  /// No description provided for @tabTorneos.
+  ///
+  /// In es, this message translates to:
+  /// **'Torneos'**
+  String get tabTorneos;
+
+  /// No description provided for @tabLigas.
+  ///
+  /// In es, this message translates to:
+  /// **'Ligas'**
+  String get tabLigas;
+
+  /// No description provided for @tabAcademia.
+  ///
+  /// In es, this message translates to:
+  /// **'Academia'**
+  String get tabAcademia;
+
+  /// No description provided for @noQuedadas.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay quedadas programadas'**
+  String get noQuedadas;
+
+  /// No description provided for @noLigas.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay ligas activas'**
+  String get noLigas;
+
+  /// No description provided for @noAcademia.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay clases disponibles'**
+  String get noAcademia;
+
+  /// No description provided for @reserveYourCourt.
+  ///
+  /// In es, this message translates to:
+  /// **'Reserva tu cancha'**
+  String get reserveYourCourt;
+
+  /// No description provided for @reserveNow.
+  ///
+  /// In es, this message translates to:
+  /// **'Reserva ahora'**
+  String get reserveNow;
+
+  /// No description provided for @clubContact.
+  ///
+  /// In es, this message translates to:
+  /// **'Contacto del club'**
+  String get clubContact;
+
+  /// No description provided for @clubInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Información del club'**
+  String get clubInfo;
+
+  /// No description provided for @openMaps.
+  ///
+  /// In es, this message translates to:
+  /// **'Abrir mapa'**
+  String get openMaps;
+
+  /// No description provided for @call.
+  ///
+  /// In es, this message translates to:
+  /// **'Llamar'**
+  String get call;
+
+  /// No description provided for @write.
+  ///
+  /// In es, this message translates to:
+  /// **'Escribir'**
+  String get write;
+
+  /// No description provided for @whatsapp.
+  ///
+  /// In es, this message translates to:
+  /// **'WhatsApp'**
+  String get whatsapp;
+
+  /// No description provided for @instagram.
+  ///
+  /// In es, this message translates to:
+  /// **'Instagram'**
+  String get instagram;
+
+  /// No description provided for @showPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Mostrar contraseña'**
+  String get showPassword;
+
+  /// No description provided for @hidePassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Ocultar contraseña'**
+  String get hidePassword;
+
+  /// No description provided for @extraInfo.
+  ///
+  /// In es, this message translates to:
+  /// **'Información adicional'**
+  String get extraInfo;
 }
 
 class _AppLocalizationsDelegate

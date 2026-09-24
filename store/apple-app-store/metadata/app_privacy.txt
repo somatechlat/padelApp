@@ -1,0 +1,24 @@
+APPLE APP PRIVACY — "App Privacy" questionnaire answers
+(Based on what the app actually collects. Adjust if you add analytics later.)
+
+Data Used to Track You
+  → None
+
+Data Linked to Identity
+  • Name                          — App Functionality, Account
+  • Email Address                 — App Functionality, Account
+  • Phone Number (optional)       — App Functionality, Account
+  • Other User Content (transfer proof photos) — App Functionality
+  • Purchase History / Payments   — App Functionality (via Stripe; card data never touches our servers)
+  • Identifiers (user id)         — App Functionality
+
+Data Not Linked to Identity
+  • Diagnostics (crash logs)      — App Functionality
+  • Usage Data (if Firebase Analytics enabled) — Analytics
+
+Third-party SDKs
+  • Stripe (payments)        — Purchase History / Payment info
+  • Firebase Cloud Messaging — Push token (Identifiers), Diagnostics
+  • Firebase Analytics       — Usage Data (only if you enable it)
+
+Data Deletion: offered in-app (Account → Erase) and by request.

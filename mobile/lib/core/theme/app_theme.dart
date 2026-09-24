@@ -45,7 +45,7 @@ abstract final class AppSpacing {
   static const radius = 12.0;
   static const radiusCard = 16.0;
   static const radiusDialog = 20.0;
-  static const buttonHeight = 48.0;
+  static const buttonHeight = 52.0;
 }
 
 abstract final class AppTheme {
@@ -136,7 +136,19 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, height: 1.1),
+        ),
+      ),
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(64, AppSpacing.buttonHeight),
+          backgroundColor: brandBg,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(AppSpacing.radius),
+          ),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, height: 1.1),
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
@@ -146,15 +158,16 @@ abstract final class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, height: 1.1),
         ),
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
+          minimumSize: const Size(64, 44),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppSpacing.radius),
           ),
-          textStyle: const TextStyle(fontWeight: FontWeight.w600),
+          textStyle: const TextStyle(fontWeight: FontWeight.w600, height: 1.1),
         ),
       ),
       chipTheme: ChipThemeData(
@@ -172,13 +185,17 @@ abstract final class AppTheme {
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
         indicatorColor: AppColors.accentSoft,
-        height: 68,
+        height: 72,
+        labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
+          // Short nav labels + ellipsis keep long strings from stretching.
           return TextStyle(
             fontSize: 12,
+            height: 1.15,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
             color: selected ? navSelected : muted,
+            overflow: TextOverflow.ellipsis,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
@@ -242,27 +259,27 @@ abstract final class AppTheme {
       textTheme: TextTheme(
         headlineMedium: TextStyle(
           color: onSurface,
-          fontSize: 28,
+          fontSize: 32,
           fontWeight: FontWeight.w700,
         ),
         titleLarge: TextStyle(
           color: onSurface,
-          fontSize: 20,
+          fontSize: 24,
           fontWeight: FontWeight.w700,
         ),
         titleMedium: TextStyle(
           color: onSurface,
-          fontSize: 16,
+          fontSize: 18,
           fontWeight: FontWeight.w600,
         ),
         titleSmall: TextStyle(
           color: onSurface,
-          fontSize: 14,
+          fontSize: 16,
           fontWeight: FontWeight.w600,
         ),
-        bodyLarge: TextStyle(color: onSurface, fontSize: 16),
-        bodyMedium: TextStyle(color: onSurface, fontSize: 14),
-        bodySmall: TextStyle(color: muted, fontSize: 12),
+        bodyLarge: TextStyle(color: onSurface, fontSize: 17),
+        bodyMedium: TextStyle(color: onSurface, fontSize: 16),
+        bodySmall: TextStyle(color: muted, fontSize: 14),
       ),
     );
   }

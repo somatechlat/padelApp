@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/friendly_error.dart';
 import '../../core/theme/app_theme.dart';
 import '../../core/widgets/state_views.dart';
 import 'package:padel_app/core/l10n/app_localizations.dart';
@@ -64,10 +65,12 @@ class _NotificationPreferencesScreenState
         _error = null;
       });
     } catch (e) {
+      debugPrint('NOTIF prefs load failed: $e');
       if (!mounted) return;
+      final l10n = AppLocalizations.of(context);
       setState(() {
         _loading = false;
-        _error = e.toString();
+        _error = friendlyErrorMessage(e, l10n);
       });
     }
   }

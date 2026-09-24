@@ -3,14 +3,32 @@ from django.utils.translation import gettext_lazy as _
 from rest_framework import serializers
 
 from apps.notifications.models import DeviceToken
+from apps.users.models import SkillLevel
 
 User = get_user_model()
 
 
+class SkillLevelSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SkillLevel
+        fields = ["id", "name", "order", "is_active"]
+        read_only_fields = ["id"]
+
+
 class RegisterSerializer(serializers.Serializer):
+    """Account creation form: Nombre, Apellido, Correo, Clave,
+    Fecha de nacimiento, Nivel de juego (categoría)."""
+
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
-    full_name = serializers.CharField(max_length=120)
+    first_name = serializers.CharField(max_length=60)
+    last_name = serializers.CharField(max_length=60)
+    birth_date = serializers.DateField(required=False, allow_null=True)
+    skill_level = serializers.PrimaryKeyRelatedField(
+        queryset=SkillLevel.objects.filter(is_active=True),
+        required=False,
+        allow_null=True,
+    )
     phone = serializers.CharField(max_length=20, required=False, allow_blank=True)
     consent_version = serializers.CharField()
 
@@ -29,17 +47,23 @@ class RegisterSerializer(serializers.Serializer):
         return value
 
     def create(self, validated_data):
+        first = validated_data["first_name"].strip()
+        last = validated_data["last_name"].strip()
         user = User.objects.create_user(
             email=validated_data["email"],
             password=validated_data["password"],
-            full_name=validated_data["full_name"],
+            first_name=first,
+            last_name=last,
+            full_name=f"{first} {last}".strip(),
+            birth_date=validated_data.get("birth_date"),
+            skill_level=validated_data.get("skill_level"),
             phone=validated_data.get("phone", ""),
             consent_version=validated_data["consent_version"],
         )
         from django.utils import timezone
 
         user.consent_ts = timezone.now()
-        user.save(update_fields=["consent_ts"])
+        user.save(update_fields=["consent_ts", "full_name", "first_name", "last_name", "skill_level"])
         return user
 
 
@@ -103,14 +127,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = [
             "email",
+            "first_name",
+            "last_name",
             "full_name",
+            "birth_date",
+            "skill_level",
+            "skill_level_name",
             "phone",
             "language_code",
             "role",
             "status",
             "email_verified",
         ]
-        read_only_fields = ["email", "role", "status", "email_verified"]
+        read_only_fields = ["email", "role", "status", "email_verified", "full_name", "skill_level_name"]
+
+    skill_level_name = serializers.CharField(
+        source="skill_level.name", read_only=True, default=None, allow_null=True
+    )
 
 
 class PasswordResetRequestSerializer(serializers.Serializer):

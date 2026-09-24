@@ -1,16 +1,27 @@
 import pytest
 from django.contrib.auth import get_user_model
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client
 from django.utils import timezone
 
 from apps.bookings.models import Booking
-from apps.courts.models import Court, Venue
+from apps.courts.models import Court, PromoBanner, Venue, resolve_i18n
 from apps.payments.admin import PaymentAdmin
 from apps.payments.models import Payment
 from apps.security.models import AuditLog
 from apps.security.services import log_event
 
 pytestmark = pytest.mark.django_db
+
+MINIMAL_PNG = (
+    b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01\x00\x00\x00\x01"
+    b"\x08\x02\x00\x00\x00\x90wS\xde\x00\x00\x00\x0cIDATx\x9cc\xf8\x0f\x00"
+    b"\x00\x01\x01\x00\x05\x18\xd8N\x00\x00\x00\x00IEND\xaeB`\x82"
+)
+
+
+def _png(name="banner.png"):
+    return SimpleUploadedFile(name, MINIMAL_PNG, content_type="image/png")
 
 
 @pytest.fixture
@@ -67,6 +78,22 @@ def payment(booking):
         amount="10.00",
         status=Payment.Status.CONFIRMED,
     )
+
+
+@pytest.fixture
+def staff_user():
+    User = get_user_model()
+    return User.objects.create_user(
+        email="admin@test.com", password="pass12345", role="dueno", is_staff=True
+    )
+
+
+@pytest.fixture
+def banner():
+    b = PromoBanner(title_i18n={"es": "Torneo"}, active=True, sort_order=1)
+    b.image = _png()
+    b.save()
+    return b
 
 
 class TestAuditLog:
@@ -146,3 +173,332 @@ class TestAdminRBAC:
         client.force_login(staff_users["dueno"])
         resp = client.get("/admin/payments/payment/")
         assert resp.status_code == 200
+
+
+class TestVenueClubProfile:
+    def test_contact_bank_i18n_fields_exist(self, venue):
+        venue.phone = "099 267 6842"
+        venue.email = "andespadelclub@gmail.com"
+        venue.whatsapp_number = "593992676842"
+        venue.whatsapp_message = "Hola"
+        venue.instagram_url = "https://instagram.com/andespadelec"
+        venue.maps_query = "Rodriguez Labandera y Ernesto Alban"
+        venue.maps_url = "https://maps.google.com/?q=Andes+Padel"
+        venue.bank_name = "Banco Pichincha"
+        venue.bank_account_number = "21001234567890"
+        venue.bank_account_holder = "Andes Padel S.A."
+        venue.bank_account_code = "1799999999"
+        venue.bank_extra = "Cuenta corriente"
+        venue.home_section_title_i18n = {"es": "Reserva tu cancha", "en": "Book your court"}
+        venue.home_greeting_tagline_i18n = {"es": "Bienvenido", "en": "Welcome"}
+        venue.save()
+        venue.refresh_from_db()
+        assert venue.whatsapp_number == "593992676842"
+        assert venue.bank_name == "Banco Pichincha"
+        assert venue.home_section_title_for("es") == "Reserva tu cancha"
+        assert venue.home_section_title_for("en") == "Book your court"
+
+    def test_logo_optional(self, venue):
+        assert not venue.logo
+
+    def test_resolve_i18n_fallback(self):
+        assert resolve_i18n({"es": "Hola", "en": "Hi"}, "en") == "Hi"
+        assert resolve_i18n({"es": "Hola"}, "en") == "Hola"
+        assert resolve_i18n({}, "es") == ""
+        assert resolve_i18n(None, "es") == ""
+
+
+class TestPromoBannerModel:
+    def test_title_resolution(self, banner):
+        assert banner.title_for("es") == "Torneo"
+        assert banner.title_for("en") == "Torneo"
+
+    def test_is_visible_now_respects_active_and_window(self, banner):
+        assert banner.is_visible_now() is True
+        banner.active = False
+        assert banner.is_visible_now() is False
+        banner.active = True
+        banner.starts_at = timezone.now() + timezone.timedelta(days=1)
+        banner.ends_at = timezone.now() + timezone.timedelta(days=2)
+        assert banner.is_visible_now() is False
+        banner.starts_at = timezone.now() - timezone.timedelta(days=1)
+        banner.ends_at = timezone.now() + timezone.timedelta(days=1)
+        assert banner.is_visible_now() is True
+
+    def test_image_required_on_model(self):
+        b = PromoBanner(title_i18n={"es": "Sin imagen"})
+        b.image = None
+        with pytest.raises(Exception):
+            b.save()
+
+
+class TestSettingsClubAdmin:
+    def test_settings_get_renders_club_fields(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        resp = client.get("/adminpanel/settings/")
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        for name in (
+            "address",
+            "phone",
+            "whatsapp_number",
+            "email",
+            "instagram_url",
+            "bank_name",
+            "bank_account_number",
+            "bank_account_holder",
+            "bank_account_code",
+            "bank_extra",
+            "home_section_title_es",
+            "home_section_title_en",
+            "home_section_title_pt",
+            "home_section_title_ca",
+            "home_greeting_tagline_es",
+            "home_greeting_tagline_en",
+            "home_greeting_tagline_pt",
+            "home_greeting_tagline_ca",
+        ):
+            assert f'name="{name}"' in content, f"settings.html missing field {name}"
+
+    def test_update_club_persists_contact_bank_i18n(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/settings/",
+            {
+                "action": "update_club",
+                "name": "Andes Padel Club",
+                "address": "Rodriguez Labandera y Ernesto Alban, Quito",
+                "maps_query": "Andes Padel Quito",
+                "maps_url": "https://maps.google.com/?q=Andes",
+                "phone": "099 267 6842",
+                "email": "andespadelclub@gmail.com",
+                "whatsapp_number": "593992676842",
+                "whatsapp_message": "Hola, quiero reservar",
+                "instagram_url": "https://instagram.com/andespadelec",
+                "bank_name": "Banco Pichincha",
+                "bank_account_number": "21001234567890",
+                "bank_account_holder": "Andes Padel S.A.",
+                "bank_account_code": "1799999999",
+                "bank_extra": "Cuenta corriente",
+                "home_section_title_es": "Reserva tu cancha",
+                "home_section_title_en": "Book your court",
+                "home_section_title_pt": "Reserve sua quadra",
+                "home_section_title_ca": "Reserva la teva pista",
+                "home_greeting_tagline_es": "Bienvenido",
+                "home_greeting_tagline_en": "Welcome",
+                "home_greeting_tagline_pt": "Bem-vindo",
+                "home_greeting_tagline_ca": "Benvingut",
+            },
+        )
+        assert resp.status_code == 302
+        venue.refresh_from_db()
+        assert venue.whatsapp_number == "593992676842"
+        assert venue.instagram_url == "https://instagram.com/andespadelec"
+        assert venue.bank_account_number == "21001234567890"
+        assert venue.home_section_title_for("es") == "Reserva tu cancha"
+        assert venue.home_greeting_tagline_for("en") == "Welcome"
+        assert AuditLog.objects.filter(action="admin.club_update").exists()
+
+    def test_update_club_logo_upload_and_remove(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/settings/",
+            {"action": "update_club", "logo": _png("logo.png")},
+        )
+        assert resp.status_code == 302
+        venue.refresh_from_db()
+        assert venue.logo
+        resp = client.post(
+            "/adminpanel/settings/",
+            {"action": "update_club", "remove_logo": "1"},
+        )
+        venue.refresh_from_db()
+        assert not venue.logo
+
+    def test_update_club_strips_empty_i18n(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post(
+            "/adminpanel/settings/",
+            {
+                "action": "update_club",
+                "home_section_title_es": "Reserva tu cancha",
+                "home_section_title_en": "   ",
+                "home_greeting_tagline_es": "Hola",
+                "home_greeting_tagline_en": "",
+            },
+        )
+        venue.refresh_from_db()
+        assert venue.home_section_title_i18n == {"es": "Reserva tu cancha"}
+        assert venue.home_greeting_tagline_i18n == {"es": "Hola"}
+
+
+class TestBannersAdminCRUD:
+    def test_banners_page_requires_staff(self, client):
+        resp = client.get("/adminpanel/banners/")
+        assert resp.status_code in (302, 403)
+
+    def test_banners_get_lists_and_fields(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        resp = client.get("/adminpanel/banners/")
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        for name in (
+            "image",
+            "title_es",
+            "title_en",
+            "title_pt",
+            "title_ca",
+            "subtitle_es",
+            "link_type",
+            "link_url",
+            "sort_order",
+            "starts_at",
+            "ends_at",
+            "active",
+            "remove_image",
+        ):
+            assert f'name="{name}"' in content, f"banners.html missing field {name}"
+        for action in (
+            "create_banner",
+            "edit_banner",
+            "toggle_banner",
+            "move_banner",
+            "delete_banner",
+        ):
+            assert f'value="{action}"' in content, f"banners.html missing action {action}"
+
+    def test_create_banner_requires_image(self, client, staff_user):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/banners/",
+            {"action": "create_banner", "title_es": "Sin imagen"},
+        )
+        assert resp.status_code == 302
+        assert PromoBanner.objects.count() == 0
+
+    def test_create_banner_with_image(self, client, staff_user):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "create_banner",
+                "image": _png(),
+                "title_es": "Torneo de Verano",
+                "title_en": "Summer Open",
+                "subtitle_es": "Inscribete",
+                "link_type": "url",
+                "link_url": "https://example.com/evento",
+                "sort_order": "3",
+                "active": "on",
+            },
+        )
+        assert resp.status_code == 302
+        b = PromoBanner.objects.get()
+        assert b.title_i18n == {"es": "Torneo de Verano", "en": "Summer Open"}
+        assert b.subtitle_i18n == {"es": "Inscribete"}
+        assert b.link_type == "url"
+        assert b.active is True
+        assert b.sort_order == 3
+        assert b.image
+        assert AuditLog.objects.filter(action="admin.banner_create").exists()
+
+    def test_edit_banner_updates_fields(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "edit_banner",
+                "banner_id": str(banner.id),
+                "title_es": "Titulo Editado",
+                "title_en": "Edited",
+                "link_type": "whatsapp",
+                "link_url": "https://wa.me/593992676842",
+                "sort_order": "7",
+            },
+        )
+        assert resp.status_code == 302
+        banner.refresh_from_db()
+        assert banner.title_for("es") == "Titulo Editado"
+        assert banner.link_type == "whatsapp"
+        assert banner.sort_order == 7
+
+    def test_edit_banner_image_upload_and_remove(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        old_name = banner.image.name
+        resp = client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "edit_banner",
+                "banner_id": str(banner.id),
+                "image": _png("nueva.png"),
+            },
+        )
+        assert resp.status_code == 302
+        banner.refresh_from_db()
+        assert banner.image
+        assert banner.image.name != old_name
+
+        client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "edit_banner",
+                "banner_id": str(banner.id),
+                "remove_image": "1",
+            },
+        )
+        banner.refresh_from_db()
+        assert not banner.image
+
+    def test_toggle_banner(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        assert banner.active is True
+        client.post(
+            "/adminpanel/banners/",
+            {"action": "toggle_banner", "banner_id": str(banner.id)},
+        )
+        banner.refresh_from_db()
+        assert banner.active is False
+        client.post(
+            "/adminpanel/banners/",
+            {"action": "toggle_banner", "banner_id": str(banner.id)},
+        )
+        banner.refresh_from_db()
+        assert banner.active is True
+
+    def test_move_banner_reorders(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "move_banner",
+                "banner_id": str(banner.id),
+                "direction": "up",
+            },
+        )
+        banner.refresh_from_db()
+        assert banner.sort_order == 0
+
+    def test_delete_banner(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        bid = banner.id
+        resp = client.post(
+            "/adminpanel/banners/",
+            {"action": "delete_banner", "banner_id": str(bid)},
+        )
+        assert resp.status_code == 302
+        assert not PromoBanner.objects.filter(id=bid).exists()
+        assert AuditLog.objects.filter(action="admin.banner_delete").exists()
+
+    def test_invalid_dates_rejected(self, client, staff_user):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "create_banner",
+                "image": _png(),
+                "title_es": "Fechas malas",
+                "starts_at": "not-a-date",
+            },
+        )
+        assert resp.status_code == 302
+        assert PromoBanner.objects.count() == 0

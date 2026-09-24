@@ -1,0 +1,38 @@
+APPLE — App Store age rating questionnaire (suggested answers)
+
+Age Rating (IARC) — select:
+
+  Violence & Fear
+    None
+
+  Medical / Alcohol / Tobacco / Drugs
+    None
+
+  Sexual Content / Nudity
+    None
+
+  Profanity / Crude Humor
+    None
+
+  Gambling / Contests
+    None  (tournaments are participation-based, no cash prizes)
+
+  Horror / Mature Themes
+    None
+
+  Controlled substances
+    None
+
+  User-generated content
+    YES, but restricted (transfer-proof photos + match listings).
+    Select: "Unrestricted web browsing: NO"
+            "User-generated content: YES, with moderation/reporting"
+    → Resulting rating: 4+ (or 9+ in some locales)
+
+  Also answer:
+    Has unrestricted web access (mini browser)? NO
+    Has gambling? NO
+    Has contests? YES (sport tournaments — no cash prize)
+    Has simulated gambling? NO
+
+  Expected result: 4+

@@ -105,6 +105,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get homeWelcome => 'Hello';
 
   @override
+  String get eventsEmpty => 'New meetups and events coming soon.';
+
+  @override
   String get homeSubtitle => 'Find your court and book in seconds';
 
   @override
@@ -118,6 +121,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get bookings => 'My bookings';
+
+  @override
+  String get navBookings => 'Bookings';
+
+  @override
+  String get navEvents => 'Events';
+
+  @override
+  String get navNotifications => 'Alerts';
 
   @override
   String get noBookings => 'You have no bookings yet';
@@ -201,6 +213,15 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get markRead => 'Mark as read';
+
+  @override
+  String get markAllRead => 'Mark all as read';
+
+  @override
+  String get unread => 'Unread';
+
+  @override
+  String get newBadge => 'New';
 
   @override
   String get profile => 'Profile';
@@ -462,7 +483,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get payWithTransfer => 'Bank transfer';
 
   @override
-  String get payWithCash => 'Cash at venue';
+  String get payWithCash => 'Pay at the venue';
 
   @override
   String get cardDescription => 'Debit or credit via Stripe';
@@ -471,7 +492,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get transferDescription => 'Make a transfer and upload your receipt';
 
   @override
-  String get cashDescription => 'Pay when you arrive at the venue';
+  String get cashDescription => 'Pay at the venue when you arrive';
 
   @override
   String get transferInstructions => 'Transfer details';
@@ -570,4 +591,61 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get paymentProcessing => 'Processing payment...';
+
+  @override
+  String get tabQuedadas => 'Meetups';
+
+  @override
+  String get tabTorneos => 'Tournaments';
+
+  @override
+  String get tabLigas => 'Leagues';
+
+  @override
+  String get tabAcademia => 'Academy';
+
+  @override
+  String get noQuedadas => 'No meetups scheduled';
+
+  @override
+  String get noLigas => 'No active leagues';
+
+  @override
+  String get noAcademia => 'No classes available';
+
+  @override
+  String get reserveYourCourt => 'Book your court';
+
+  @override
+  String get reserveNow => 'Book now';
+
+  @override
+  String get clubContact => 'Club contact';
+
+  @override
+  String get clubInfo => 'Club information';
+
+  @override
+  String get openMaps => 'Open map';
+
+  @override
+  String get call => 'Call';
+
+  @override
+  String get write => 'Write';
+
+  @override
+  String get whatsapp => 'WhatsApp';
+
+  @override
+  String get instagram => 'Instagram';
+
+  @override
+  String get showPassword => 'Show password';
+
+  @override
+  String get hidePassword => 'Hide password';
+
+  @override
+  String get extraInfo => 'Additional information';
 }

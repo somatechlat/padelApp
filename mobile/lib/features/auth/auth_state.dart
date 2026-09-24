@@ -3,6 +3,15 @@ import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
 import '../../core/storage.dart';
 
+/// Thrown when the API rejects a request with a message the UI may show.
+/// Anything else is mapped through [friendlyErrorMessage] before display.
+class AppAuthException implements Exception {
+  AppAuthException(this.message);
+  final String message;
+  @override
+  String toString() => message;
+}
+
 class AuthState extends ChangeNotifier {
   AuthState({required ApiClient api, required TokenStorage storage})
       : _api = api,
@@ -14,14 +23,26 @@ class AuthState extends ChangeNotifier {
   bool _initialized = false;
   bool _authenticated = false;
   bool _loading = false;
-  String? _error;
+  Object? _lastError;
   Map<String, dynamic>? _user;
 
   bool get initialized => _initialized;
   bool get authenticated => _authenticated;
   bool get loading => _loading;
-  String? get error => _error;
   Map<String, dynamic>? get user => _user;
+
+  /// Raw error from the last failed auth call. Render with
+  /// `friendlyErrorMessage(auth.lastError!, l10n)` — never print it directly.
+  Object? get lastError => _lastError;
+  bool get hasError => _lastError != null;
+
+  /// Safe fallback when no `AppLocalizations` is in scope. Never a
+  /// DioException/stack-trace dump.
+  String? get error {
+    final e = _lastError;
+    if (e is AppAuthException) return e.message;
+    return null;
+  }
 
   Future<void> restoreSession() async {
     try {
@@ -38,12 +59,13 @@ class AuthState extends ChangeNotifier {
 
   Future<void> _run(Future<void> Function() action) async {
     _loading = true;
-    _error = null;
+    _lastError = null;
     notifyListeners();
     try {
       await action();
     } catch (e) {
-      _error = e.toString();
+      // Store the raw exception; the UI maps it via friendlyErrorMessage.
+      _lastError = e;
     } finally {
       _loading = false;
       notifyListeners();
@@ -63,15 +85,19 @@ class AuthState extends ChangeNotifier {
   Future<void> register({
     required String email,
     required String password,
-    required String fullName,
-    String? phone,
+    required String firstName,
+    required String lastName,
+    required String birthDate,
+    required int? skillLevelId,
   }) {
     return _run(() async {
       await _api.post('/auth/register/', data: {
         'email': email.trim().toLowerCase(),
         'password': password,
-        'full_name': fullName,
-        'phone': phone ?? '',
+        'first_name': firstName.trim(),
+        'last_name': lastName.trim(),
+        'birth_date': birthDate,
+        if (skillLevelId != null) 'skill_level': skillLevelId,
         'consent_version': '1.0',
       });
     });
@@ -97,6 +123,14 @@ class AuthState extends ChangeNotifier {
     });
   }
 
+  Future<void> resendVerification(String email) {
+    return _run(() async {
+      await _api.post('/auth/register/', data: {
+        'email': email.trim().toLowerCase(),
+      });
+    });
+  }
+
   Future<void> resetConfirm(String email, String code, String password) {
     return _run(() async {
       await _api.post('/auth/password-reset/confirm/', data: {
@@ -108,16 +142,26 @@ class AuthState extends ChangeNotifier {
   }
 
   Future<void> _saveSession(Map<String, dynamic> data) async {
-    final access = data['access'] as String;
-    final refresh = data['refresh'] as String;
+    final access = data['access'] as String?;
+    final refresh = data['refresh'] as String?;
+    if (access == null || access.isEmpty) {
+      throw Exception('Invalid login response: missing access token');
+    }
     if (_storage is SecureTokenStorage) {
-      await _storage.saveTokens(access: access, refresh: refresh);
+      await _storage.saveTokens(access: access, refresh: refresh ?? '');
     } else {
       await _storage.write(SecureTokenStorage.accessKey, access);
-      await _storage.write(SecureTokenStorage.refreshKey, refresh);
+      await _storage.write(SecureTokenStorage.refreshKey, refresh ?? '');
     }
     _user = data['user'] as Map<String, dynamic>?;
     _authenticated = true;
+  }
+
+  /// Marks session restore finished. Safe to call from `catchError` outside
+  /// this class (unlike `notifyListeners`).
+  void markInitialized() {
+    _initialized = true;
+    notifyListeners();
   }
 
   Future<void> loadMe() async {

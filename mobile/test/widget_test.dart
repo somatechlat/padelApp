@@ -2,9 +2,20 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:padel_app/app.dart';
 import 'package:padel_app/core/locale_controller.dart';
+import 'package:padel_app/core/push_notification_service.dart';
 import 'package:padel_app/core/storage.dart';
 
 import 'helpers/fake_api.dart';
+
+class FakePushService extends PushNotificationService {
+  FakePushService({required super.api});
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> registerToken() async {}
+}
 
 Widget buildApp(FakeApi api) {
   final storage = InMemoryTokenStorage();
@@ -12,6 +23,7 @@ Widget buildApp(FakeApi api) {
     api: api,
     storage: storage,
     localeController: LocaleController(storage: storage),
+    pushService: FakePushService(api: api),
   );
 }
 
@@ -20,8 +32,9 @@ void main() {
     await tester.pumpWidget(buildApp(FakeApi()));
     await tester.pumpAndSettle();
 
-    expect(find.text('Andes Pádel'), findsOneWidget);
+    expect(find.byType(Image), findsOneWidget);
     expect(find.text('Iniciar sesión'), findsWidgets);
+    expect(find.text('Accede para reservar tu cancha'), findsOneWidget);
     expect(find.byType(TextButton), findsWidgets);
   });
 
@@ -45,6 +58,11 @@ void main() {
   });
 
   testWidgets('register navigates to verify screen', (tester) async {
+    // Tall surface so register form controls are hittable without overflow.
+    tester.view.physicalSize = const Size(400, 1200);
+    tester.view.devicePixelRatio = 1.0;
+    addTearDown(tester.view.reset);
+
     await tester.pumpWidget(buildApp(FakeApi()));
     await tester.pumpAndSettle();
 
@@ -64,11 +82,22 @@ void main() {
       find.widgetWithText(TextField, 'Contraseña'),
       'pass12345',
     );
-    await tester.tap(find.text('Acepto los términos y condiciones'));
-    await tester.tap(find.widgetWithText(FilledButton, 'Crear cuenta'));
+    await tester.ensureVisible(find.text('Acepto los términos y condiciones'));
+    await tester.tap(
+      find.text('Acepto los términos y condiciones'),
+      warnIfMissed: false,
+    );
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(
+      find.widgetWithText(FilledButton, 'Crear cuenta'),
+    );
+    await tester.tap(
+      find.widgetWithText(FilledButton, 'Crear cuenta'),
+      warnIfMissed: false,
+    );
     await tester.pumpAndSettle();
 
-    expect(find.text('Verificar email'), findsOneWidget);
+    expect(find.text('Verificar email'), findsWidgets);
     expect(find.text('ana@test.com'), findsOneWidget);
   });
 
@@ -76,10 +105,12 @@ void main() {
     final storage = InMemoryTokenStorage();
     await storage.write(SecureTokenStorage.accessKey, 'fake-access');
     await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
+    final api = FakeApi();
     await tester.pumpWidget(AndesPadelApp(
-      api: FakeApi(),
+      api: api,
       storage: storage,
       localeController: LocaleController(storage: storage),
+      pushService: FakePushService(api: api),
     ));
     await tester.pumpAndSettle();
 
@@ -91,10 +122,12 @@ void main() {
     final storage = InMemoryTokenStorage();
     await storage.write(SecureTokenStorage.accessKey, 'fake-access');
     await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
+    final api = FakeApi();
     await tester.pumpWidget(AndesPadelApp(
-      api: FakeApi(),
+      api: api,
       storage: storage,
       localeController: LocaleController(storage: storage),
+      pushService: FakePushService(api: api),
     ));
     await tester.pumpAndSettle();
 

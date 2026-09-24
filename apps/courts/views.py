@@ -1,13 +1,90 @@
+from django.db.models import Q
 from django.shortcuts import get_object_or_404
-from rest_framework import viewsets
+from django.utils import timezone
+from rest_framework import generics, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
-from apps.courts.models import Court
-from apps.courts.serializers import CourtSerializer, TimeSlotSerializer
+from apps.courts.lang import resolve_request_lang
+from apps.courts.models import Court, PromoBanner, Venue
+from apps.courts.serializers import (
+    ClubInfoSerializer,
+    CourtSerializer,
+    PromoBannerSerializer,
+    TimeSlotSerializer,
+)
 from apps.scheduling.services import SlotService
 from apps.users.permissions import IsStaffRole
+
+
+class ClubInfoView(generics.RetrieveAPIView):
+    """Public club profile: contact, maps, bank transfer data and home titles."""
+
+    permission_classes = [AllowAny]
+    serializer_class = ClubInfoSerializer
+
+    def get_object(self):
+        return Venue.objects.first()
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        if instance is None:
+            return Response(
+                {
+                    "id": None,
+                    "name": "",
+                    "address": "",
+                    "maps_query": "",
+                    "maps_url": "",
+                    "phone": "",
+                    "email": "",
+                    "whatsapp_number": "",
+                    "whatsapp_message": "",
+                    "instagram_url": "",
+                    "logo_url": "",
+                    "home_section_title": "",
+                    "home_greeting_tagline": "",
+                    "home_section_title_i18n": {},
+                    "home_greeting_tagline_i18n": {},
+                    "bank_name": "",
+                    "bank_account_number": "",
+                    "bank_account_holder": "",
+                    "bank_account_code": "",
+                    "bank_extra": "",
+                    "timezone": "",
+                    "currency": "USD",
+                }
+            )
+        serializer = self.get_serializer(instance)
+        return Response(serializer.data)
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["lang"] = resolve_request_lang(self.request)
+        return ctx
+
+
+class PromoBannerListView(generics.ListAPIView):
+    """Public active promo banners currently inside their display window."""
+
+    permission_classes = [AllowAny]
+    serializer_class = PromoBannerSerializer
+    pagination_class = None
+
+    def get_queryset(self):
+        now = timezone.now()
+        return (
+            PromoBanner.objects.filter(active=True)
+            .filter(Q(starts_at__isnull=True) | Q(starts_at__lte=now))
+            .filter(Q(ends_at__isnull=True) | Q(ends_at__gte=now))
+            .order_by("sort_order", "-created_at")
+        )
+
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["lang"] = resolve_request_lang(self.request)
+        return ctx
 
 
 class CourtViewSet(viewsets.ModelViewSet):

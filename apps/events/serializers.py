@@ -1,6 +1,13 @@
 from rest_framework import serializers
 
-from apps.events.models import Event, NewsPost, Tournament, TournamentRegistration
+from apps.events.models import (
+    Event,
+    NewsPost,
+    OpenMatch,
+    OpenMatchPlayer,
+    Tournament,
+    TournamentRegistration,
+)
 
 
 class EventSerializer(serializers.ModelSerializer):
@@ -49,3 +56,25 @@ class TournamentRegistrationSerializer(serializers.ModelSerializer):
         model = TournamentRegistration
         fields = ("id", "tournament", "partner_name", "status", "created_at")
         read_only_fields = ("status", "created_at")
+
+
+class OpenMatchSerializer(serializers.ModelSerializer):
+    players_count = serializers.IntegerField(read_only=True)
+    created_by_name = serializers.CharField(source="created_by.full_name", read_only=True)
+    skill_level_name = serializers.CharField(source="skill_level.name", read_only=True, default=None)
+    joined = serializers.SerializerMethodField()
+
+    class Meta:
+        model = OpenMatch
+        fields = (
+            "id", "created_by", "created_by_name", "skill_level", "skill_level_name",
+            "date", "start_time", "duration_minutes", "max_players", "notes",
+            "status", "players_count", "joined", "created_at",
+        )
+        read_only_fields = ("created_by", "status", "created_at")
+
+    def get_joined(self, obj):
+        request = self.context.get("request")
+        if not request or not request.user.is_authenticated:
+            return False
+        return obj.players.filter(user=request.user).exists()

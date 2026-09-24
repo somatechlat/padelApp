@@ -21,6 +21,7 @@ class _EventsScreenState extends State<EventsScreen> {
   List<dynamic>? _torneos;
   List<dynamic>? _ligas;
   List<dynamic>? _academia;
+  List<dynamic>? _news;
   String? _error;
 
   @override
@@ -37,6 +38,7 @@ class _EventsScreenState extends State<EventsScreen> {
         api.get('/tournaments/'),
         api.get('/events/', query: {'category': 'liga'}),
         api.get('/events/', query: {'category': 'academia'}),
+        api.get('/news/'),
       ]);
       List<dynamic> list(dynamic data) {
         final l = data is Map ? data['results'] : data;
@@ -49,6 +51,7 @@ class _EventsScreenState extends State<EventsScreen> {
         _torneos = list(results[1]);
         _ligas = list(results[2]);
         _academia = list(results[3]);
+        _news = list(results[4]);
         _error = null;
       });
     } catch (_) {
@@ -119,7 +122,7 @@ class _EventsScreenState extends State<EventsScreen> {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     return DefaultTabController(
-      length: 4,
+      length: 5,
       child: Scaffold(
         appBar: AppBar(
           title: Text(l10n.events),
@@ -130,6 +133,7 @@ class _EventsScreenState extends State<EventsScreen> {
               Tab(text: l10n.tabTorneos),
               Tab(text: l10n.tabLigas),
               Tab(text: l10n.tabAcademia),
+              Tab(text: l10n.news),
             ],
           ),
         ),
@@ -142,7 +146,11 @@ class _EventsScreenState extends State<EventsScreen> {
     if (_error != null) {
       return ErrorState(onRetry: _load);
     }
-    if (_quedadas == null || _torneos == null || _ligas == null || _academia == null) {
+    if (_quedadas == null ||
+        _torneos == null ||
+        _ligas == null ||
+        _academia == null ||
+        _news == null) {
       return const Center(child: CircularProgressIndicator());
     }
     return RefreshIndicator(
@@ -153,8 +161,55 @@ class _EventsScreenState extends State<EventsScreen> {
           _buildTournaments(l10n),
           _buildEventList(l10n, _ligas!, Icons.leaderboard_outlined, l10n.noLigas),
           _buildEventList(l10n, _academia!, Icons.school_outlined, l10n.noAcademia),
+          _buildNews(l10n),
         ],
       ),
+    );
+  }
+
+  /// Club updates / news from `GET /api/news/`.
+  Widget _buildNews(AppLocalizations l10n) {
+    final items = _news ?? [];
+    if (items.isEmpty) {
+      return SingleChildScrollView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        child: EmptyState(icon: Icons.campaign_outlined, title: l10n.news),
+      );
+    }
+    return ListView.builder(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      itemCount: items.length,
+      itemBuilder: (context, i) {
+        final n = items[i] as Map<String, dynamic>;
+        final title = (n['title_localized'] as String?) ?? '';
+        final body = (n['body_localized'] as String?) ?? '';
+        final published = dateShort(l10n, n['published_at'] as String?);
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+          child: Card(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                  if (published.isNotEmpty) ...[
+                    const SizedBox(height: 4),
+                    Text(published, style: Theme.of(context).textTheme.bodySmall),
+                  ],
+                  if (body.isNotEmpty) ...[
+                    const SizedBox(height: 8),
+                    Text(body, style: Theme.of(context).textTheme.bodyMedium),
+                  ],
+                ],
+              ),
+            ),
+          ),
+        );
+      },
     );
   }
 

@@ -3,6 +3,135 @@
 {% block page_title %}POLITICAS DE CANCELACION & REGLAS DE TARIFA{% endblock %}
 
 {% block content %}
+<!-- INFORMACION DEL CLUB -->
+<div class="section-header">
+  <div class="section-title">Informacion del Club</div>
+</div>
+
+<div class="table-container" style="margin-bottom: 40px; padding: 28px;">
+  <form method="post" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 18px;">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="update_club">
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NOMBRE DEL CLUB</label>
+        <input type="text" name="name" value="{{ club.name }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DIRECCION</label>
+        <input type="text" name="address" value="{{ club.address }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CONSULTA MAPS</label>
+        <input type="text" name="maps_query" value="{{ club.maps_query }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">URL MAPS</label>
+        <input type="url" name="maps_url" value="{{ club.maps_url }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TELEFONO</label>
+        <input type="text" name="phone" value="{{ club.phone }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">EMAIL</label>
+        <input type="email" name="email" value="{{ club.email }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">WHATSAPP (numero internacional)</label>
+        <input type="text" name="whatsapp_number" value="{{ club.whatsapp_number }}" placeholder="593992676842">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MENSAJE WHATSAPP POR DEFECTO</label>
+        <input type="text" name="whatsapp_message" value="{{ club.whatsapp_message }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INSTAGRAM URL</label>
+        <input type="url" name="instagram_url" value="{{ club.instagram_url }}">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">EMAIL AVISO DE RESERVAS</label>
+        <input type="email" name="booking_alert_email" value="{{ club.booking_alert_email }}" placeholder="reservas@tuclub.com">
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">PUSH A ADMINS EN CADA RESERVA</label>
+        <label style="display: flex; align-items: center; gap: 8px; font-size: 13px;">
+          <input type="checkbox" name="booking_alert_push" value="1" {% if club.booking_alert_push %}checked{% endif %} style="width: auto;">
+          Enviar push a administradores
+        </label>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 8px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">LOGO DEL CLUB</label>
+        {% if club.logo %}
+        <div id="club-logo-preview" style="margin-bottom: 6px;">
+          <img src="{{ club.logo.url }}" alt="Logo" style="height: 48px; border-radius: 6px;">
+          <button type="button" class="btn btn-sm" style="background: #dc3545; color: #fff;" onclick="document.getElementById('remove_logo').value='1'; document.getElementById('club-logo-preview').innerHTML='<span style=\'color: var(--accent-red);\'>El logo se eliminara al guardar</span>';">Quitar Logo</button>
+        </div>
+        {% endif %}
+        <input type="file" name="logo" accept="image/*">
+        <input type="hidden" name="remove_logo" id="remove_logo" value="0">
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 18px;">
+      <div style="font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">Titulos de portada (i18n)</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO SECCION — ES</label>
+          <input type="text" name="home_section_title_es" value="{{ club.home_section_title_i18n.es }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO SECCION — EN</label>
+          <input type="text" name="home_section_title_en" value="{{ club.home_section_title_i18n.en }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO SECCION — PT</label>
+          <input type="text" name="home_section_title_pt" value="{{ club.home_section_title_i18n.pt }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO SECCION — CA</label>
+          <input type="text" name="home_section_title_ca" value="{{ club.home_section_title_i18n.ca }}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TAGLINE SALUDO — ES</label>
+          <input type="text" name="home_greeting_tagline_es" value="{{ club.home_greeting_tagline_i18n.es }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TAGLINE SALUDO — EN</label>
+          <input type="text" name="home_greeting_tagline_en" value="{{ club.home_greeting_tagline_i18n.en }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TAGLINE SALUDO — PT</label>
+          <input type="text" name="home_greeting_tagline_pt" value="{{ club.home_greeting_tagline_i18n.pt }}">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TAGLINE SALUDO — CA</label>
+          <input type="text" name="home_greeting_tagline_ca" value="{{ club.home_greeting_tagline_i18n.ca }}">
+        </div>
+      </div>
+    </div>
+
+    <div style="border-top: 1px solid var(--border-color); padding-top: 18px;">
+      <div style="font-size: 14px; font-weight: 800; text-transform: uppercase; margin-bottom: 12px;">Datos bancarios (transferencias)</div>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px;">
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">BANCO</label>
+          <input type="text" name="bank_name" value="{{ club.bank_name }}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">NUMERO DE CUENTA</label>
+          <input type="text" name="bank_account_number" value="{{ club.bank_account_number }}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULAR</label>
+          <input type="text" name="bank_account_holder" value="{{ club.bank_account_holder }}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CODIGO / CEDULA</label>
+          <input type="text" name="bank_account_code" value="{{ club.bank_account_code }}">
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DATOS EXTRA</label>
+          <input type="text" name="bank_extra" value="{{ club.bank_extra }}">
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; justify-content: flex-end;">
+      <button type="submit" class="btn">Guardar Informacion del Club</button>
+    </div>
+  </form>
+</div>
+
 <!-- POLITICAS DE CANCELACION -->
 <div class="section-header">
   <div class="section-title">Politica de Cancelacion Vigente</div>
@@ -24,6 +153,8 @@
         <input type="number" step="0.01" name="no_show_ratio" value="1.00" min="0" max="1" required>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MINUTOS DE HOLD (CHECKOUT)</label>
         <input type="number" name="hold_minutes" value="10" min="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAX RESERVAS TEMPORALES POR USUARIO</label>
+        <input type="number" name="max_holds_per_user" value="5" min="1" required>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-policy').style.display='none'" class="btn btn-outline">Cancelar</button>
@@ -49,6 +180,8 @@
         <input type="number" step="0.01" name="no_show_ratio" id="edit-policy-noshow" min="0" max="1" required>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MINUTOS DE HOLD</label>
         <input type="number" name="hold_minutes" id="edit-policy-hold" min="1" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">MAX RESERVAS TEMPORALES POR USUARIO</label>
+        <input type="number" name="max_holds_per_user" id="edit-policy-maxholds" min="1" required>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-edit-policy').style.display='none'" class="btn btn-outline">Cancelar</button>
@@ -79,7 +212,7 @@
         <td style="font-weight: 700;">{{ p.hold_minutes }} Minutos</td>
         <td><span class="badge badge-{% if p.active %}active{% else %}archived{% endif %}">{% if p.active %}ACTIVA{% else %}INACTIVA{% endif %}</span></td>
         <td style="white-space: nowrap;">
-          <button type="button" class="btn btn-sm btn-outline" onclick="openEditPolicy({{ p.id }}, '{{ p.free_window_hours }}', '{{ p.penalty_ratio }}', '{{ p.no_show_ratio }}', '{{ p.hold_minutes }}')">Editar</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditPolicy({{ p.id }}, '{{ p.free_window_hours }}', '{{ p.penalty_ratio }}', '{{ p.no_show_ratio }}', '{{ p.hold_minutes }}', '{{ p.max_holds_per_user }}')">Editar</button>
           <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar esta politica?');">
             {% csrf_token %}
             <input type="hidden" name="action" value="delete_policy">
@@ -215,12 +348,13 @@
 </div>
 
 <script>
-function openEditPolicy(id, hours, penalty, noshow, hold) {
+function openEditPolicy(id, hours, penalty, noshow, hold, maxHolds) {
   document.getElementById('edit-policy-id').value = id;
   document.getElementById('edit-policy-hours').value = hours;
   document.getElementById('edit-policy-penalty').value = penalty;
   document.getElementById('edit-policy-noshow').value = noshow;
   document.getElementById('edit-policy-hold').value = hold;
+  document.getElementById('edit-policy-maxholds').value = maxHolds;
   document.getElementById('modal-edit-policy').style.display = 'flex';
 }
 function openEditPriceRule(id, name, zone, courtType, multiplier, priority) {

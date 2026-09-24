@@ -20,6 +20,16 @@ def notify_task(self, user_id, event_type, title="", body="", data=None):
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=5)
+def notify_admins_task(self, event_type, data=None, title="", body=""):
+    """Push + email the club admins (settings > aviso de reservas)."""
+    try:
+        NotificationService.notify_admins(event_type, data or {}, title, body)
+    except Exception as exc:
+        raise self.retry(exc=exc) from exc
+    return event_type
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=5)
 def send_booking_reminders(self):
     """Notify confirmed players the day before their booking (24h reminder)."""
     from apps.bookings.models import Booking
@@ -54,6 +64,7 @@ def send_booking_reminders_2h(self):
     from datetime import timedelta
 
     from apps.bookings.models import Booking
+    from apps.notifications.models import Notification
 
     now = timezone.localtime()
     in_2h = now + timedelta(hours=2)
@@ -70,6 +81,13 @@ def send_booking_reminders_2h(self):
     )
     sent = 0
     for booking in bookings:
+        already_sent = Notification.objects.filter(
+            user=booking.user,
+            event_type="booking_reminder_2h",
+            data__booking_id=booking.id,
+        ).exists()
+        if already_sent:
+            continue
         try:
             NotificationService.notify(
                 booking.user,

@@ -34,9 +34,12 @@ class BookingPaymentView(APIView):
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if method == "cash":
+            # "Pago en el establecimiento" is for everyone. Staff recording
+            # cash already collected use the same method with CAPTURED status.
             if request.user.role == "cliente":
-                return Response(status=status.HTTP_403_FORBIDDEN)
-            payment = PaymentService.record_cash(booking, booking.price)
+                payment = PaymentService.record_cash_on_arrival(booking, booking.price)
+            else:
+                payment = PaymentService.record_cash(booking, booking.price)
         elif method == "transfer":
             payment = PaymentService.record_transfer(
                 booking, request.data.get("reference", "")
@@ -156,5 +159,12 @@ def stripe_webhook(request):
             if "last_payment_error" in intent:
                 reason = intent["last_payment_error"].get("message", "")
             PaymentService.fail(payment, reason)
+    elif event["type"] == "payment_intent.succeeded":
+        intent = event["data"]["object"]
+        payment = Payment.objects.filter(
+            stripe_payment_intent_id=intent["id"]
+        ).first()
+        if payment and payment.status not in (Payment.Status.CAPTURED, Payment.Status.CONFIRMED):
+            PaymentService.confirm(payment)
 
     return HttpResponse(status=200)

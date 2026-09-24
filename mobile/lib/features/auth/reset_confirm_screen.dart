@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
+import 'package:padel_app/core/widgets/password_field.dart';
 import 'auth_state.dart';
+import 'widgets/auth_scaffold.dart';
 
 class ResetConfirmScreen extends StatefulWidget {
   const ResetConfirmScreen({super.key, required this.email});
@@ -36,7 +38,7 @@ class _ResetConfirmScreenState extends State<ResetConfirmScreen> {
     final auth = context.read<AuthState>();
     await auth.resetConfirm(widget.email, _code.text, _password.text);
     if (!mounted) return;
-    if (auth.error == null) {
+    if (!auth.hasError) {
       Navigator.of(context).popUntil((route) => route.isFirst);
     }
   }
@@ -44,77 +46,55 @@ class _ResetConfirmScreenState extends State<ResetConfirmScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.resetConfirm)),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 24),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: 420),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Text(
-                    l10n.resetConfirmSubtitle,
-                    textAlign: TextAlign.center,
-                    style: Theme.of(context).textTheme.bodyMedium,
-                  ),
-                  const SizedBox(height: 24),
-                  TextField(
-                    controller: _code,
-                    keyboardType: TextInputType.number,
-                    maxLength: 6,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: l10n.code,
-                      prefixIcon: const Icon(Icons.pin_outlined),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _password,
-                    obscureText: true,
-                    textInputAction: TextInputAction.next,
-                    decoration: InputDecoration(
-                      labelText: l10n.password,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: _confirm,
-                    obscureText: true,
-                    onSubmitted: (_) => _submit(),
-                    decoration: InputDecoration(
-                      labelText: l10n.confirmPassword,
-                      prefixIcon: const Icon(Icons.lock_outline),
-                      border: const OutlineInputBorder(),
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  Consumer<AuthState>(
-                    builder: (context, auth, _) => FilledButton(
-                      onPressed: auth.loading ? null : _submit,
-                      style: FilledButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                      ),
-                      child: auth.loading
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2),
-                            )
-                          : Text(l10n.saveButton),
-                    ),
-                  ),
-                ],
-              ),
+    return AuthScaffold(
+      title: l10n.resetConfirm,
+      subtitle: l10n.resetConfirmSubtitle,
+      appBarTitle: l10n.resetConfirm,
+      showBackButton: true,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          TextField(
+            controller: _code,
+            keyboardType: TextInputType.number,
+            maxLength: 6,
+            textInputAction: TextInputAction.next,
+            decoration: InputDecoration(
+              labelText: l10n.code,
+              prefixIcon: const Icon(Icons.pin_outlined),
+              border: const OutlineInputBorder(),
             ),
           ),
-        ),
+          const SizedBox(height: 16),
+          PasswordField(
+            controller: _password,
+            label: l10n.password,
+            textInputAction: TextInputAction.next,
+          ),
+          const SizedBox(height: 16),
+          PasswordField(
+            controller: _confirm,
+            label: l10n.confirmPassword,
+            textInputAction: TextInputAction.done,
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 24),
+          Consumer<AuthState>(
+            builder: (context, auth, _) => FilledButton(
+              onPressed: auth.loading ? null : _submit,
+              style: FilledButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 16),
+              ),
+              child: auth.loading
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : Text(l10n.saveButton),
+            ),
+          ),
+        ],
       ),
     );
   }

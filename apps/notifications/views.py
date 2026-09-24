@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.shortcuts import get_object_or_404
+from django.utils import timezone
 from rest_framework.generics import ListAPIView
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -27,6 +28,28 @@ class NotificationReadView(APIView):
         notification = get_object_or_404(Notification, pk=pk, user=request.user)
         notification.mark_read()
         return Response(NotificationSerializer(notification).data)
+
+
+class NotificationReadAllView(APIView):
+    """Mark every unread notification as read (the app's 'mark all' action)."""
+
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        updated = Notification.objects.filter(
+            user=request.user, read_at__isnull=True
+        ).update(read_at=timezone.now())
+        return Response({"updated": updated})
+
+
+class NotificationUnreadCountView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        count = Notification.objects.filter(
+            user=request.user, read_at__isnull=True
+        ).count()
+        return Response({"count": count})
 
 
 class PreferenceListView(APIView):

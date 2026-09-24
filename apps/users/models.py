@@ -20,10 +20,38 @@ class Status(models.TextChoices):
     DELETED = "deleted", "Eliminado"
 
 
+class SkillLevel(models.Model):
+    """Nivel / categoría de juego. Combo box options — editable in admin."""
+
+    name = models.CharField(max_length=60, unique=True)
+    order = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+
+    class Meta:
+        verbose_name = "nivel de juego"
+        verbose_name_plural = "niveles de juego"
+        ordering = ("order", "name")
+
+    def __str__(self):
+        return self.name
+
+
 class User(AbstractUser):
     username = None
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=120)
+    # Registration form: Nombre / Apellido / Correo / Clave /
+    # Fecha de nacimiento / Nivel de juego (combo from SkillLevel)
+    first_name = models.CharField(max_length=60, blank=True)
+    last_name = models.CharField(max_length=60, blank=True)
+    birth_date = models.DateField(null=True, blank=True)
+    skill_level = models.ForeignKey(
+        SkillLevel,
+        null=True,
+        blank=True,
+        on_delete=models.SET_NULL,
+        related_name="users",
+    )
     phone = models.CharField(max_length=20, blank=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
     language_code = models.CharField(
@@ -51,13 +79,17 @@ class User(AbstractUser):
     def __str__(self):
         return self.email
 
-    @property
-    def is_active_account(self):
-        return self.status == Status.ACTIVE
-
     def save(self, *args, **kwargs):
+        # Keep full_name in sync with Nombre + Apellido for search/admin lists.
+        joined = f"{self.first_name} {self.last_name}".strip()
+        if joined:
+            self.full_name = joined
         if self.role not in Role.values:
             raise ValueError(f"Rol invalido: {self.role}")
         if self.status not in Status.values:
             raise ValueError(f"Estado invalido: {self.status}")
         super().save(*args, **kwargs)
+
+    @property
+    def is_active_account(self):
+        return self.status == Status.ACTIVE

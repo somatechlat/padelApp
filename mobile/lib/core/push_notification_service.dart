@@ -3,10 +3,11 @@ import 'dart:io';
 
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/api_client.dart';
+import '../firebase_options.dart';
 
 /// Handles Firebase Cloud Messaging (FCM) push notifications.
 ///
@@ -16,11 +17,17 @@ import '../core/api_client.dart';
 /// - Display incoming push notifications when the app is in foreground
 /// - Handle notification tap navigation
 class PushNotificationService {
-  PushNotificationService({required ApiClient api}) : _api = api;
+  PushNotificationService({required ApiClient api, GlobalKey<NavigatorState>? navigatorKey})
+      : _api = api,
+        _navigatorKey = navigatorKey;
 
   final ApiClient _api;
+  final GlobalKey<NavigatorState>? _navigatorKey;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+
+  /// Fired when a push arrives (foreground) so the UI can mark it as new.
+  void Function()? onNotificationReceived;
 
   static const AndroidNotificationChannel _channel = AndroidNotificationChannel(
     'andes_padel_channel',
@@ -32,7 +39,12 @@ class PushNotificationService {
   /// Initialize Firebase, request permissions, and set up message handlers.
   /// Call this once at app startup (before runApp or in main).
   Future<void> initialize() async {
-    await Firebase.initializeApp();
+    // Options are required: GoogleService-Info.plist is not guaranteed to be
+    // copied into the bundle (and is absent on some CI/simulator builds), and
+    // without them Firebase.initializeApp throws core/not-initialized.
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
 
     // Request permission (iOS required, Android auto-grants)
     final settings = await FirebaseMessaging.instance.requestPermission(
@@ -61,7 +73,7 @@ class PushNotificationService {
       requestSoundPermission: false,
     );
     await _localNotifications.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: androidSettings,
         iOS: iosSettings,
       ),
@@ -112,14 +124,16 @@ class PushNotificationService {
 
   /// Handle a message received while the app is in the foreground.
   void _handleForegroundMessage(RemoteMessage message) {
+    onNotificationReceived?.call();
+
     final notification = message.notification;
     if (notification == null) return;
 
     _localNotifications.show(
-      notification.hashCode,
-      notification.title,
-      notification.body,
-      NotificationDetails(
+      id: notification.hashCode,
+      title: notification.title,
+      body: notification.body,
+      notificationDetails: NotificationDetails(
         android: AndroidNotificationDetails(
           _channel.id,
           _channel.name,
@@ -142,6 +156,9 @@ class PushNotificationService {
   void _handleNotificationTap(RemoteMessage message) {
     final data = message.data;
     debugPrint('Notification tapped: $data');
-    // Navigation can be added here based on data['type'] or data['booking_id']
+    final nav = _navigatorKey?.currentState;
+    if (nav == null) return;
+    // Navigate to the shell (notifications tab will be visible)
+    nav.pushNamedAndRemoveUntil('/shell', (route) => false);
   }
 }

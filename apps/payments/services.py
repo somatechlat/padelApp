@@ -110,6 +110,7 @@ class PaymentService:
 
     @staticmethod
     def record_cash(booking, amount):
+        """Staff recording cash already collected at the venue."""
         payment = Payment.objects.create(
             booking=booking,
             user=booking.user,
@@ -123,6 +124,47 @@ class PaymentService:
             booking.user,
             "payment_success",
             data={"amount": f"${amount}", "payment_id": payment.id},
+        )
+        return payment
+
+    @staticmethod
+    def record_cash_on_arrival(booking, amount):
+        """Client chose "Pago en el establecimiento".
+
+        The booking is confirmed and the cash payment stays open until staff
+        collects it at the venue. Admins get push + email immediately.
+        """
+        from apps.notifications.tasks import notify_admins_task
+
+        payment = Payment.objects.create(
+            booking=booking,
+            user=booking.user,
+            method=Payment.Method.CASH,
+            amount=amount,
+            currency="USD",
+            status=Payment.Status.PENDING,
+        )
+        log_event(booking.user, "payment.cash_on_arrival", "Payment", payment.id)
+        if booking.status == "pending_payment":
+            try:
+                booking.transition_to("confirmed")
+            except ValueError:
+                pass
+        NotificationService.notify(
+            booking.user,
+            "payment_success",
+            data={"amount": f"${amount}", "payment_id": payment.id},
+        )
+        notify_admins_task.delay(
+            "admin_cash_booking",
+            {
+                "user": booking.user.email,
+                "court": booking.court.name,
+                "date": str(booking.date),
+                "time": str(booking.start_time),
+                "amount": f"${amount}",
+                "booking_id": booking.id,
+            },
         )
         return payment
 

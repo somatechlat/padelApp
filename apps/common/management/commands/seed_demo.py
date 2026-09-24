@@ -6,6 +6,7 @@ from django.utils import timezone
 
 from apps.bookings.models import Booking
 from apps.bookings.services import BookingService
+from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
 from apps.courts.models import Court, CourtSchedule, Venue
 from apps.events.models import Event, NewsPost, Tournament
 from apps.notifications.models import Notification
@@ -46,10 +47,9 @@ class Command(BaseCommand):
         cliente = get_or_create_user("cliente@andespadel.com", "cliente", "Cliente Demo")
         get_or_create_user("jugador@andespadel.com", "cliente", "Jugadora Demo")
 
-        venue, _ = Venue.objects.get_or_create(
-            name="Andes Padel",
-            defaults={"address": "Av. Principal, Quito", "timezone": "America/Guayaquil"},
-        )
+        venue = seed_club_profile()
+        banners_created = seed_promo_banners()
+        created["banners"] = banners_created
         for name, court_type, price in (
             ("Cancha Ambacar", Court.CourtType.TECHADA, "12.00"),
             ("Cancha 2", Court.CourtType.ABIERTA, "10.00"),
@@ -179,7 +179,8 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(
                 "Seed demo: "
-                f"users={created['users']} courts={created['courts']} bookings={created['bookings']}. "
+                f"users={created['users']} courts={created['courts']} "
+                f"bookings={created['bookings']} banners={created.get('banners', 0)}. "
                 "Password for all demo users: Andes12345!"
             )
         )

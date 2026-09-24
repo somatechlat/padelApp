@@ -1,5 +1,6 @@
 from django.core.management.base import BaseCommand
 
+from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
 from apps.courts.models import Court, CourtSchedule, Venue
 
 
@@ -7,10 +8,8 @@ class Command(BaseCommand):
     help = "Seed venues, courts and their schedules idempotently."
 
     def handle(self, *args, **options):
-        venue, _ = Venue.objects.get_or_create(
-            name="Andes Padel",
-            defaults={"address": "Av. Principal, Quito", "timezone": "America/Guayaquil"},
-        )
+        venue = seed_club_profile()
+        seed_promo_banners()
         created_courts = 0
         for name, court_type, price in (
             ("Cancha Ambacar", Court.CourtType.TECHADA, "12.00"),
@@ -32,5 +31,7 @@ class Command(BaseCommand):
                         defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
                     )
         self.stdout.write(
-            self.style.SUCCESS(f"Seeded venue, {created_courts} courts, schedules for all courts.")
+            self.style.SUCCESS(
+                f"Seeded venue (club profile + banners), {created_courts} courts, schedules for all courts."
+            )
         )

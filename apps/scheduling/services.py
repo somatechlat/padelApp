@@ -13,8 +13,9 @@ class SlotService:
     def generate_day(court, day):
         if day < timezone.localdate():
             return []
-        if TimeSlot.objects.filter(court=court, date=day).exists():
-            return list(TimeSlot.objects.filter(court=court, date=day).order_by("start"))
+        existing = list(TimeSlot.objects.filter(court=court, date=day).order_by("start"))
+        if existing:
+            return existing
         schedules = court.schedules.filter(is_active=True, weekday=day.weekday())
         if not schedules.exists():
             return []
@@ -31,10 +32,10 @@ class SlotService:
         with transaction.atomic():
             created = TimeSlot.objects.bulk_create(slots, ignore_conflicts=True)
         created_ids = [s.id for s in created]
-        existing = TimeSlot.objects.filter(court=court, date=day).order_by("start")
+        result = TimeSlot.objects.filter(court=court, date=day).order_by("start")
         if created_ids:
-            existing = existing.exclude(id__in=created_ids)
-        return list(existing.order_by("start"))
+            result = result.exclude(id__in=created_ids)
+        return list(result.order_by("start"))
 
     @staticmethod
     def _is_in_maintenance(slot, windows):

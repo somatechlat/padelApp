@@ -7,6 +7,7 @@ import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
 import '../../core/api_client.dart';
+import '../../core/models/club_info.dart';
 import '../../core/theme/app_theme.dart';
 
 class TransferProofScreen extends StatefulWidget {
@@ -28,11 +29,38 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
   bool _uploading = false;
   bool _uploaded = false;
   String? _error;
+  ClubInfo? _club;
+  bool _clubLoaded = false;
 
-  static const _bankName = 'Banco Pichincha';
-  static const _accountNumber = '21001234567890';
-  static const _accountHolder = 'Andes Pádel S.A.';
-  static const _beneficiaryCode = 'ANDESPADEL';
+  @override
+  void initState() {
+    super.initState();
+    _loadClub();
+  }
+
+  Future<void> _loadClub() async {
+    try {
+      final data = await context.read<ApiClient>().get('/club/');
+      if (!mounted) return;
+      if (data is Map) {
+        setState(() {
+          _club = ClubInfo.fromJson(Map<String, dynamic>.from(data));
+          _clubLoaded = true;
+        });
+      } else {
+        setState(() {
+          _club = null;
+          _clubLoaded = true;
+        });
+      }
+    } catch (_) {
+      if (!mounted) return;
+      setState(() {
+        _club = null;
+        _clubLoaded = true;
+      });
+    }
+  }
 
   Future<void> _pickImage(ImageSource source) async {
     final l10n = AppLocalizations.of(context);
@@ -126,6 +154,7 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
   }
 
   Widget _buildForm(AppLocalizations l10n, ColorScheme scheme) {
+    final club = _club;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -138,10 +167,34 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
                 Text(l10n.transferInstructions,
                     style: Theme.of(context).textTheme.titleMedium),
                 const Divider(height: AppSpacing.lg),
-                _bankRow(l10n.bankName, _bankName),
-                _bankRow(l10n.accountNumber, _accountNumber),
-                _bankRow(l10n.accountHolder, _accountHolder),
-                _bankRow(l10n.beneficiaryCode, _beneficiaryCode),
+                if (!_clubLoaded)
+                  const Center(
+                    child: Padding(
+                      padding: EdgeInsets.all(AppSpacing.md),
+                      child: CircularProgressIndicator(),
+                    ),
+                  )
+                else if (club == null || !club.hasBank)
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: AppSpacing.sm),
+                    child: Text(
+                      l10n.error,
+                      style: TextStyle(color: scheme.onSurface),
+                    ),
+                  )
+                else ...[
+                  if (club.bankName.isNotEmpty)
+                    _bankRow(l10n.bankName, club.bankName),
+                  if (club.bankAccountNumber.isNotEmpty)
+                    _bankRow(l10n.accountNumber, club.bankAccountNumber),
+                  if (club.bankAccountHolder.isNotEmpty)
+                    _bankRow(l10n.accountHolder, club.bankAccountHolder),
+                  if (club.bankAccountCode.isNotEmpty)
+                    _bankRow(l10n.beneficiaryCode, club.bankAccountCode),
+                  if (club.bankExtra.isNotEmpty)
+                    _bankRow(l10n.extraInfo, club.bankExtra),
+                ],
                 const Divider(height: AppSpacing.lg),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -241,8 +294,7 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
             ),
             const SizedBox(height: AppSpacing.lg),
             FilledButton(
-              onPressed: () =>
-                  Navigator.of(context).popUntil((route) => route.isFirst),
+              onPressed: () => Navigator.of(context).pop(true),
               child: Text(l10n.home),
             ),
           ],
@@ -258,11 +310,16 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
           Text(label, style: Theme.of(context).textTheme.bodyMedium),
-          Text(value,
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
               style: Theme.of(context)
                   .textTheme
                   .bodyMedium
-                  ?.copyWith(fontWeight: FontWeight.w600)),
+                  ?.copyWith(fontWeight: FontWeight.w600),
+            ),
+          ),
         ],
       ),
     );

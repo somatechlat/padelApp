@@ -14,11 +14,12 @@ from django.views.generic import ListView, TemplateView
 
 from apps.adminpanel.admin_base import STAFF_ROLES
 from apps.bookings.models import Booking, BookingSlot
-from apps.courts.models import Court, Venue
+from apps.courts.models import Court, PromoBanner, Venue
 from apps.events.models import Event, Tournament, NewsPost
 from apps.payments.models import Payment
 from apps.policies.models import CancellationPolicy
 from apps.pricing.models import PriceRule
+from apps.pricing.services import TariffService
 from apps.scheduling.models import MaintenanceWindow, TimeSlot
 from apps.security.models import AuditLog
 from apps.payments.services import PaymentService
@@ -234,7 +235,7 @@ class CalendarView(StaffRequiredMixin, TemplateView):
                 start_time=start_time_val,
                 end_time=end_time_val,
                 duration_minutes=duration,
-                price=Decimal("30.00"),
+                price=TariffService.compute(court, date_val, duration),
                 status="confirmed",
             )
             messages.success(request, f"Reserva manual creada #{booking.id} para {user.email}.")
@@ -643,6 +644,9 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
         ctx["price_rules"] = PriceRule.objects.select_related("venue").all()
         from apps.pricing.models import Holiday
         ctx["holidays"] = Holiday.objects.all().order_by("date")
+        ctx["club"] = Venue.objects.first() or Venue.objects.create(
+            name="Andes Padel Club", address=""
+        )
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -651,13 +655,65 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
         if not venue:
             venue = Venue.objects.create(name="Andes Padel Club", address="Quito")
 
-        if action == "create_policy":
+        if action == "update_club":
+            venue.name = request.POST.get("name", venue.name)
+            venue.address = request.POST.get("address", venue.address)
+            venue.maps_query = request.POST.get("maps_query", venue.maps_query)
+            venue.maps_url = request.POST.get("maps_url", venue.maps_url)
+            venue.phone = request.POST.get("phone", venue.phone)
+            venue.email = request.POST.get("email", venue.email)
+            venue.whatsapp_number = request.POST.get("whatsapp_number", venue.whatsapp_number)
+            venue.whatsapp_message = request.POST.get("whatsapp_message", venue.whatsapp_message)
+            venue.instagram_url = request.POST.get("instagram_url", venue.instagram_url)
+            venue.booking_alert_email = request.POST.get(
+                "booking_alert_email", venue.booking_alert_email
+            ).strip()
+            venue.booking_alert_push = request.POST.get("booking_alert_push") == "1"
+            venue.bank_name = request.POST.get("bank_name", venue.bank_name)
+            venue.bank_account_number = request.POST.get(
+                "bank_account_number", venue.bank_account_number
+            )
+            venue.bank_account_holder = request.POST.get(
+                "bank_account_holder", venue.bank_account_holder
+            )
+            venue.bank_account_code = request.POST.get(
+                "bank_account_code", venue.bank_account_code
+            )
+            venue.bank_extra = request.POST.get("bank_extra", venue.bank_extra)
+
+            section = dict(venue.home_section_title_i18n or {})
+            greeting = dict(venue.home_greeting_tagline_i18n or {})
+            for lang in ("es", "en", "pt", "ca"):
+                if f"home_section_title_{lang}" in request.POST:
+                    section[lang] = request.POST.get(f"home_section_title_{lang}", "").strip()
+                if f"home_greeting_tagline_{lang}" in request.POST:
+                    greeting[lang] = request.POST.get(
+                        f"home_greeting_tagline_{lang}", ""
+                    ).strip()
+            venue.home_section_title_i18n = {k: v for k, v in section.items() if v}
+            venue.home_greeting_tagline_i18n = {k: v for k, v in greeting.items() if v}
+
+            if request.FILES.get("logo"):
+                logo_error = _validate_image_upload(request.FILES["logo"], field_label="logo")
+                if logo_error:
+                    messages.error(request, logo_error)
+                    return redirect("adminpanel:settings")
+                venue.logo = request.FILES["logo"]
+            if request.POST.get("remove_logo") == "1":
+                if venue.logo:
+                    venue.logo.delete(save=False)
+                venue.logo = None
+            venue.save()
+            messages.success(request, "Informacion del club actualizada.")
+            log_event(request.user, "admin.club_update", "Venue", venue.id)
+        elif action == "create_policy":
             CancellationPolicy.objects.create(
                 venue=venue,
                 free_window_hours=int(request.POST.get("free_window_hours", 24)),
                 penalty_ratio=Decimal(request.POST.get("penalty_ratio", "0.50")),
                 no_show_ratio=Decimal(request.POST.get("no_show_ratio", "1.00")),
                 hold_minutes=int(request.POST.get("hold_minutes", 10)),
+                max_holds_per_user=int(request.POST.get("max_holds_per_user", 5)),
             )
             messages.success(request, "Politica de cancelacion creada.")
             log_event(request.user, "admin.policy_create", "CancellationPolicy", 0)
@@ -667,6 +723,9 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
             p.penalty_ratio = Decimal(request.POST.get("penalty_ratio", str(p.penalty_ratio)))
             p.no_show_ratio = Decimal(request.POST.get("no_show_ratio", str(p.no_show_ratio)))
             p.hold_minutes = int(request.POST.get("hold_minutes", p.hold_minutes))
+            p.max_holds_per_user = int(
+                request.POST.get("max_holds_per_user", p.max_holds_per_user)
+            )
             p.save()
             messages.success(request, "Politica actualizada.")
             log_event(request.user, "admin.policy_edit", "CancellationPolicy", p.id)
@@ -721,6 +780,154 @@ class SettingsAdminView(StaffRequiredMixin, TemplateView):
             log_event(request.user, "admin.holiday_delete", "Holiday", int(request.POST.get("holiday_id")))
 
         return redirect("adminpanel:settings")
+
+
+def _i18n_from_post(request, prefix):
+    data = {}
+    for lang in ("es", "en", "pt", "ca"):
+        value = (request.POST.get(f"{prefix}_{lang}") or "").strip()
+        if value:
+            data[lang] = value
+    return data
+
+
+def _parse_dt(value):
+    if not value:
+        return None
+    return timezone.datetime.fromisoformat(value)
+
+
+ALLOWED_IMAGE_TYPES = {"image/jpeg", "image/png", "image/webp", "image/gif"}
+ALLOWED_IMAGE_EXTS = (".jpg", ".jpeg", ".png", ".webp", ".gif")
+
+
+def _validate_image_upload(uploaded, field_label="imagen"):
+    """Return an error string or None when the upload looks like a valid image."""
+    if not uploaded:
+        return f"La {field_label} es obligatoria."
+    content_type = getattr(uploaded, "content_type", "") or ""
+    name = getattr(uploaded, "name", "") or ""
+    if content_type and content_type not in ALLOWED_IMAGE_TYPES:
+        return f"Tipo de archivo no permitido ({content_type}). Use JPEG, PNG, WebP o GIF."
+    if name and not name.lower().endswith(ALLOWED_IMAGE_EXTS):
+        return "Extension de archivo no permitida. Use .jpg, .jpeg, .png, .webp o .gif."
+    return None
+
+
+class BannersAdminView(StaffRequiredMixin, TemplateView):
+    template_name = "adminpanel/banners.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx["banners"] = PromoBanner.objects.all().order_by("sort_order", "-created_at")
+        return ctx
+
+    def post(self, request, *args, **kwargs):
+        action = request.POST.get("action")
+        if action == "create_banner":
+            image = request.FILES.get("image")
+            image_error = _validate_image_upload(image)
+            if image_error:
+                messages.error(request, image_error)
+                return redirect("adminpanel:banners")
+            try:
+                starts_at = _parse_dt(request.POST.get("starts_at", ""))
+                ends_at = _parse_dt(request.POST.get("ends_at", ""))
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha de vigencia invalida. Use formato ISO.")
+                return redirect("adminpanel:banners")
+            if starts_at and ends_at and ends_at < starts_at:
+                messages.error(request, "La fecha de fin debe ser posterior a la de inicio.")
+                return redirect("adminpanel:banners")
+            title_i18n = _i18n_from_post(request, "title")
+            if not title_i18n.get("es"):
+                messages.error(request, "El titulo en espanol es obligatorio.")
+                return redirect("adminpanel:banners")
+            banner = PromoBanner(
+                title_i18n=title_i18n,
+                subtitle_i18n=_i18n_from_post(request, "subtitle"),
+                link_url=request.POST.get("link_url", ""),
+                link_type=request.POST.get("link_type", PromoBanner.LinkType.NONE),
+                active=request.POST.get("active") == "on",
+                sort_order=int(request.POST.get("sort_order", 0) or 0),
+                starts_at=starts_at,
+                ends_at=ends_at,
+            )
+            banner.image = image
+            banner.save()
+            messages.success(request, f"Banner '{banner.title_for()}' creado.")
+            log_event(request.user, "admin.banner_create", "PromoBanner", banner.id)
+        elif action == "edit_banner":
+            banner = get_object_or_404(PromoBanner, id=request.POST.get("banner_id"))
+            image = request.FILES.get("image")
+            if image:
+                image_error = _validate_image_upload(image)
+                if image_error:
+                    messages.error(request, image_error)
+                    return redirect("adminpanel:banners")
+            title = _i18n_from_post(request, "title")
+            subtitle = _i18n_from_post(request, "subtitle")
+            if title:
+                banner.title_i18n = title
+            if subtitle:
+                banner.subtitle_i18n = subtitle
+            banner.link_url = request.POST.get("link_url", banner.link_url)
+            banner.link_type = request.POST.get("link_type", banner.link_type)
+            banner.active = request.POST.get("active") == "on"
+            try:
+                banner.sort_order = int(request.POST.get("sort_order", banner.sort_order) or 0)
+            except (ValueError, TypeError):
+                pass
+            try:
+                if request.POST.get("starts_at", ""):
+                    banner.starts_at = _parse_dt(request.POST.get("starts_at"))
+                if request.POST.get("ends_at", ""):
+                    banner.ends_at = _parse_dt(request.POST.get("ends_at"))
+            except (ValueError, TypeError):
+                messages.error(request, "Fecha de vigencia invalida. Use formato ISO.")
+                return redirect("adminpanel:banners")
+            if image:
+                banner.image = image
+            if request.POST.get("remove_image") == "1" and not image:
+                banner.clear_image()
+                messages.success(request, f"Banner '{banner.title_for()}' actualizado.")
+                log_event(request.user, "admin.banner_edit", "PromoBanner", banner.id)
+                return redirect("adminpanel:banners")
+            if request.POST.get("remove_image") == "1" and image:
+                banner.image.delete(save=False)
+            if not banner.image:
+                messages.error(request, "La imagen del banner es obligatoria.")
+                return redirect("adminpanel:banners")
+            banner.save()
+            messages.success(request, f"Banner '{banner.title_for()}' actualizado.")
+            log_event(request.user, "admin.banner_edit", "PromoBanner", banner.id)
+        elif action == "toggle_banner":
+            banner = get_object_or_404(PromoBanner, id=request.POST.get("banner_id"))
+            banner.active = not banner.active
+            banner.save(update_fields=["active"])
+            estado = "activo" if banner.active else "inactivo"
+            messages.success(request, f"Banner '{banner.title_for()}' ahora esta {estado}.")
+            log_event(request.user, "admin.banner_toggle", "PromoBanner", banner.id)
+        elif action == "move_banner":
+            banner = get_object_or_404(PromoBanner, id=request.POST.get("banner_id"))
+            direction = request.POST.get("direction")
+            if direction == "up":
+                banner.sort_order -= 1
+            elif direction == "down":
+                banner.sort_order += 1
+            banner.save(update_fields=["sort_order"])
+            messages.success(request, f"Orden de '{banner.title_for()}' actualizado.")
+            log_event(request.user, "admin.banner_reorder", "PromoBanner", banner.id)
+        elif action == "delete_banner":
+            banner = get_object_or_404(PromoBanner, id=request.POST.get("banner_id"))
+            title = banner.title_for()
+            if banner.image:
+                banner.image.delete(save=False)
+            banner.delete()
+            messages.success(request, f"Banner '{title}' eliminado.")
+            log_event(request.user, "admin.banner_delete", "PromoBanner", int(request.POST.get("banner_id")))
+
+        return redirect("adminpanel:banners")
 
 
 class AuditListView(StaffRequiredMixin, ListView):

@@ -1,0 +1,35 @@
+APP REVIEW — Notes for the reviewer
+
+App name: Andes Padel
+Bundle ID: com.andes.padel.padelApp
+Demo account (create one yourself OR use below):
+
+  Email:    (create a free account in-app — takes 20 seconds)
+  Password: (any password you choose)
+
+What the app does:
+  Lets padel players see live court availability at Andes Padel Club,
+  book a court, pay by card (Stripe) or bank transfer, and sign up for
+  matches, tournaments, leagues and academy classes.
+
+Why it might look empty on first launch:
+  - Courts and time slots come from the live backend at
+    https://andespadel.yachaq.io/api/
+  - Bookable slots are published by club staff for upcoming days. If
+    you review outside opening hours, the court list is still visible
+    under "Inicio", but slot times may appear on the next screen.
+
+Payments:
+  Card payments are processed by Stripe in test-or-live mode. A bank
+  transfer option exists where the user uploads a transfer receipt
+  (photo) for club staff to confirm.
+
+Push notifications:
+  Used only for booking confirmations and match reminders. Requires
+  no special entitlement beyond aps-environment (already in the
+  provisioning profile).
+
+Privacy:
+  Privacy policy: https://andespadel.yachaq.io/privacy
+  In-app account deletion: Perfil → Borrar cuenta
+  Support: info@loyallia.com

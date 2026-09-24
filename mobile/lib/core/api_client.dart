@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
+import 'package:dio/io.dart';
 
 import 'storage.dart';
 
@@ -9,19 +12,48 @@ import 'storage.dart';
 /// The [baseUrl] can be overridden at build time with
 /// `--dart-define=API_BASE_URL=...` (defaults to the Android emulator host).
 class ApiClient {
-  ApiClient({required TokenStorage storage, Dio? dio, String? baseUrl})
+  ApiClient(
+      {required TokenStorage storage,
+      Dio? dio,
+      String? baseUrl,
+      String Function()? languageCode})
       : _storage = storage,
+        _languageCode = languageCode,
         _dio = dio ?? Dio() {
     _dio.options.baseUrl = baseUrl ??
         const String.fromEnvironment('API_BASE_URL',
             defaultValue: 'https://andespadel.yachaq.io/api');
     _dio.options.headers['Accept'] = 'application/json';
-    _dio.options.connectTimeout = const Duration(seconds: 10);
-    _dio.options.receiveTimeout = const Duration(seconds: 15);
+    // 10s was too tight: iOS stalls on this host's happy-eyeballs/IPv6 path
+    // and mobile networks routinely need longer for the TLS handshake.
+    _dio.options.connectTimeout = const Duration(seconds: 30);
+    _dio.options.receiveTimeout = const Duration(seconds: 30);
+    // iOS/simulator happy-eyeballs can stall on this host's broken IPv6 path
+    // and then surface as "no connection" even though IPv4 works fine.
+    // Force every dial to prefer IPv4 A records.
+    (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
+      final client = HttpClient();
+      client.connectionTimeout = const Duration(seconds: 30);
+      return client;
+    };
     _dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await _storage.read(SecureTokenStorage.accessKey);
+          // Pin Accept-Language to the in-app choice. Without this the device
+          // locale leaks through and login silently rewrites the account's
+          // language_code (that is how the UI jumped to Portuguese).
+          final lang = _languageCode?.call();
+          options.headers['Accept-Language'] =
+              (lang == null || lang.isEmpty) ? 'es' : lang;
+          // Storage failures must never block the request itself (e.g.
+          // flutter_secure_storage throwing on an iOS simulator would
+          // otherwise kill every call, including public ones).
+          String? token;
+          try {
+            token = await _storage.read(SecureTokenStorage.accessKey);
+          } catch (_) {
+            token = null;
+          }
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -32,7 +64,12 @@ class ApiClient {
           if (response != null && response.statusCode == 401) {
             final refreshed = await _tryRefresh();
             if (refreshed) {
-              final token = await _storage.read(SecureTokenStorage.accessKey);
+              String? token;
+              try {
+                token = await _storage.read(SecureTokenStorage.accessKey);
+              } catch (_) {
+                token = null;
+              }
               error.requestOptions.headers['Authorization'] = 'Bearer $token';
               try {
                 final retry = await _dio.fetch(error.requestOptions);
@@ -55,6 +92,7 @@ class ApiClient {
 
   final Dio _dio;
   final TokenStorage _storage;
+  final String Function()? _languageCode;
 
   Future<bool> _tryRefresh() async {
     final refresh = await _storage.read(SecureTokenStorage.refreshKey);
@@ -71,8 +109,16 @@ class ApiClient {
         await _storage.write(SecureTokenStorage.refreshKey, newRefresh);
       }
       return true;
+    } on DioException catch (e) {
+      // Only clear tokens on auth failures (401/403), not on network errors.
+      final code = e.response?.statusCode;
+      if (code == 401 || code == 400 || code == 403) {
+        await _storage.clearTokens();
+        return false;
+      }
+      // Network error — keep tokens so retry on next request works.
+      return false;
     } catch (_) {
-      await _storage.clearTokens();
       return false;
     }
   }

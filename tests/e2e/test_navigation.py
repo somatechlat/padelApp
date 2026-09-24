@@ -25,6 +25,7 @@ class TestNavigation:
         assert any("Reportes" in t for t in link_texts)
         assert any("Ajustes" in t for t in link_texts)
         assert any("Auditor" in t for t in link_texts)
+        assert any("Banner" in t for t in link_texts)
 
     def test_navigate_to_calendar(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")

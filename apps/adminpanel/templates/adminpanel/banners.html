@@ -1,0 +1,253 @@
+{% extends "base_admin.html" %}
+{% block title %}Banners - Andes Padel PRO{% endblock %}
+{% block page_title %}BANNERS PROMOCIONALES{% endblock %}
+
+{% block content %}
+<div class="section-header">
+  <div class="section-title">Banners de la App</div>
+  <button onclick="document.getElementById('modal-banner').style.display='flex'" class="btn">+ Nuevo Banner</button>
+</div>
+
+<!-- Modal Nuevo Banner -->
+<div id="modal-banner" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 560px; padding: 32px; gap: 20px; max-height: 90vh; overflow-y: auto;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Crear Banner</div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="create_banner">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">IMAGEN (obligatoria)</label>
+        <input type="file" name="image" accept="image/*" required style="font-size: 14px;">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO ES</label>
+        <input type="text" name="title_es" placeholder="Ej. Torneo de Verano">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO EN</label>
+        <input type="text" name="title_en">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO PT</label>
+        <input type="text" name="title_pt">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO CA</label>
+        <input type="text" name="title_ca">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO ES</label>
+        <input type="text" name="subtitle_es">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO EN</label>
+        <input type="text" name="subtitle_en">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO PT</label>
+        <input type="text" name="subtitle_pt">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO CA</label>
+        <input type="text" name="subtitle_ca">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE ENLACE</label>
+        <select name="link_type">
+          <option value="none">Sin enlace</option>
+          <option value="url">URL</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="event">Evento</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">URL / ENLACE</label>
+        <input type="text" name="link_url" placeholder="https://... o wa.me/...">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">ORDEN</label>
+        <input type="number" name="sort_order" value="0">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INICIO (opcional, ISO)</label>
+        <input type="datetime-local" name="starts_at">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN (opcional, ISO)</label>
+        <input type="datetime-local" name="ends_at">
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="active" id="banner-active" checked style="width: 18px; height: 18px;">
+          <label for="banner-active" style="font-size: 14px; font-weight: 600;">Activo</label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-banner').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Banner</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Modal Editar Banner -->
+<div id="modal-edit-banner" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; align-items: center; justify-content: center;">
+  <div class="card" style="width: 560px; padding: 32px; gap: 20px; max-height: 90vh; overflow-y: auto;">
+    <div style="font-size: 20px; font-weight: 800; text-transform: uppercase;">Editar Banner</div>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="edit_banner">
+      <input type="hidden" name="banner_id" id="edit-banner-id">
+      <div style="display: flex; flex-direction: column; gap: 12px; margin-bottom: 20px;">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">IMAGEN</label>
+        <div id="edit-banner-image-preview" style="margin-bottom: 6px;"></div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <input type="file" name="image" accept="image/*" style="font-size: 14px; flex: 1;">
+          <button type="button" id="btn-remove-banner-image" class="btn btn-sm" style="background: #dc3545; color: #fff; display: none;" onclick="document.getElementById('edit-remove-banner-image').value='1'; document.getElementById('edit-banner-image-preview').innerHTML='<span style=\'color: var(--accent-red);\'>Imagen se eliminara al guardar</span>'; this.style.display='none';">Quitar Imagen</button>
+        </div>
+        <input type="hidden" name="remove_image" id="edit-remove-banner-image" value="0">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO ES</label>
+        <input type="text" name="title_es" id="edit-title-es">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO EN</label>
+        <input type="text" name="title_en" id="edit-title-en">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO PT</label>
+        <input type="text" name="title_pt" id="edit-title-pt">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TITULO CA</label>
+        <input type="text" name="title_ca" id="edit-title-ca">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO ES</label>
+        <input type="text" name="subtitle_es" id="edit-subtitle-es">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO EN</label>
+        <input type="text" name="subtitle_en" id="edit-subtitle-en">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO PT</label>
+        <input type="text" name="subtitle_pt" id="edit-subtitle-pt">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">SUBTITULO CA</label>
+        <input type="text" name="subtitle_ca" id="edit-subtitle-ca">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">TIPO DE ENLACE</label>
+        <select name="link_type" id="edit-link-type">
+          <option value="none">Sin enlace</option>
+          <option value="url">URL</option>
+          <option value="whatsapp">WhatsApp</option>
+          <option value="event">Evento</option>
+        </select>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">URL / ENLACE</label>
+        <input type="text" name="link_url" id="edit-link-url">
+
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">ORDEN</label>
+        <input type="number" name="sort_order" id="edit-sort-order">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">INICIO (opcional)</label>
+        <input type="datetime-local" name="starts_at" id="edit-starts-at">
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN (opcional)</label>
+        <input type="datetime-local" name="ends_at" id="edit-ends-at">
+
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="active" id="edit-banner-active" style="width: 18px; height: 18px;">
+          <label for="edit-banner-active" style="font-size: 14px; font-weight: 600;">Activo</label>
+        </div>
+      </div>
+      <div style="display: flex; justify-content: flex-end; gap: 12px;">
+        <button type="button" onclick="document.getElementById('modal-edit-banner').style.display='none'" class="btn btn-outline">Cancelar</button>
+        <button type="submit" class="btn">Guardar Cambios</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<div class="table-container">
+  <table>
+    <thead>
+      <tr>
+        <th>Imagen</th>
+        <th>Titulo</th>
+        <th>Subtitulo</th>
+        <th>Enlace</th>
+        <th>Orden</th>
+        <th>Vigencia</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for b in banners %}
+      <tr>
+        <td>
+          {% if b.image %}
+            <img src="{{ b.image.url }}" alt="{{ b.title_for }}" style="width: 80px; height: 45px; object-fit: cover; border-radius: 6px;">
+          {% else %}
+            <div style="width: 80px; height: 45px; background: var(--input-bg); border-radius: 6px;"></div>
+          {% endif %}
+        </td>
+        <td style="font-weight: 800;">{{ b.title_for }}</td>
+        <td style="color: var(--text-muted);">{{ b.subtitle_for|default:"--" }}</td>
+        <td>
+          <span class="badge badge-active">{{ b.get_link_type_display }}</span>
+          {% if b.link_url %}<div style="font-size: 11px; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">{{ b.link_url }}</div>{% endif %}
+        </td>
+        <td>{{ b.sort_order }}</td>
+        <td style="font-size: 11px; color: var(--text-muted);">
+          {% if b.starts_at %}{{ b.starts_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+          →
+          {% if b.ends_at %}{{ b.ends_at|date:"Y-m-d H:i" }}{% else %}—{% endif %}
+        </td>
+        <td><span class="badge badge-{% if b.active %}active{% else %}archived{% endif %}">{% if b.active %}ACTIVO{% else %}INACTIVO{% endif %}</span></td>
+        <td style="white-space: nowrap;">
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="move_banner">
+            <input type="hidden" name="banner_id" value="{{ b.id }}">
+            <input type="hidden" name="direction" value="up">
+            <button type="submit" class="btn btn-sm btn-outline" title="Subir">↑</button>
+          </form>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="move_banner">
+            <input type="hidden" name="banner_id" value="{{ b.id }}">
+            <input type="hidden" name="direction" value="down">
+            <button type="submit" class="btn btn-sm btn-outline" title="Bajar">↓</button>
+          </form>
+          <button type="button" class="btn btn-sm btn-outline"
+            data-banner-id="{{ b.id }}"
+            data-image-url="{% if b.image %}{{ b.image.url }}{% endif %}"
+            data-title-es="{{ b.title_i18n.es|default:'' }}"
+            data-title-en="{{ b.title_i18n.en|default:'' }}"
+            data-title-pt="{{ b.title_i18n.pt|default:'' }}"
+            data-title-ca="{{ b.title_i18n.ca|default:'' }}"
+            data-subtitle-es="{{ b.subtitle_i18n.es|default:'' }}"
+            data-subtitle-en="{{ b.subtitle_i18n.en|default:'' }}"
+            data-subtitle-pt="{{ b.subtitle_i18n.pt|default:'' }}"
+            data-subtitle-ca="{{ b.subtitle_i18n.ca|default:'' }}"
+            data-link-type="{{ b.link_type }}"
+            data-link-url="{{ b.link_url }}"
+            data-sort-order="{{ b.sort_order }}"
+            data-starts-at="{% if b.starts_at %}{{ b.starts_at|date:'c' }}{% endif %}"
+            data-ends-at="{% if b.ends_at %}{{ b.ends_at|date:'c' }}{% endif %}"
+            data-active="{% if b.active %}true{% else %}false{% endif %}"
+            onclick="openEditBanner(this)">Editar</button>
+          <form method="post" style="display: inline;">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="toggle_banner">
+            <input type="hidden" name="banner_id" value="{{ b.id }}">
+            <button type="submit" class="btn btn-sm btn-outline">{% if b.active %}Desactivar{% else %}Activar{% endif %}</button>
+          </form>
+          <form method="post" style="display: inline;" onsubmit="return confirm('Eliminar este banner?');">
+            {% csrf_token %}
+            <input type="hidden" name="action" value="delete_banner">
+            <input type="hidden" name="banner_id" value="{{ b.id }}">
+            <button type="submit" class="btn btn-sm" style="background: #dc3545; color: #fff;">Eliminar</button>
+          </form>
+        </td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="8" style="text-align: center; color: var(--text-muted);">Sin banners creados.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function openEditBanner(btn) {
+  const d = btn.dataset;
+  document.getElementById('edit-banner-id').value = d.bannerId;
+  const preview = document.getElementById('edit-banner-image-preview');
+  preview.innerHTML = d.imageUrl
+    ? '<img src="' + d.imageUrl + '" style="height: 48px; border-radius: 6px;">'
+    : '';
+  document.getElementById('btn-remove-banner-image').style.display = d.imageUrl ? 'inline-flex' : 'none';
+  document.getElementById('edit-remove-banner-image').value = '0';
+  document.getElementById('edit-title-es').value = d.titleEs || '';
+  document.getElementById('edit-title-en').value = d.titleEn || '';
+  document.getElementById('edit-title-pt').value = d.titlePt || '';
+  document.getElementById('edit-title-ca').value = d.titleCa || '';
+  document.getElementById('edit-subtitle-es').value = d.subtitleEs || '';
+  document.getElementById('edit-subtitle-en').value = d.subtitleEn || '';
+  document.getElementById('edit-subtitle-pt').value = d.subtitlePt || '';
+  document.getElementById('edit-subtitle-ca').value = d.subtitleCa || '';
+  document.getElementById('edit-link-type').value = d.linkType || 'none';
+  document.getElementById('edit-link-url').value = d.linkUrl || '';
+  document.getElementById('edit-sort-order').value = d.sortOrder || 0;
+  document.getElementById('edit-starts-at').value = d.startsAt ? d.startsAt.slice(0, 16) : '';
+  document.getElementById('edit-ends-at').value = d.endsAt ? d.endsAt.slice(0, 16) : '';
+  document.getElementById('edit-banner-active').checked = d.active === 'true';
+  document.getElementById('modal-edit-banner').style.display = 'flex';
+}
+</script>
+{% endblock %}

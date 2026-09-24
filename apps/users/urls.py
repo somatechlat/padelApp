@@ -10,12 +10,14 @@ from apps.users.views import (
     PasswordResetConfirmView,
     PasswordResetView,
     RegisterView,
+    SkillLevelListView,
     VerifyEmailView,
 )
 
 app_name = "users"
 
 urlpatterns = [
+    path("skill-levels/", SkillLevelListView.as_view(), name="skill-levels"),
     path("register/", RegisterView.as_view(), name="register"),
     path("verify/", VerifyEmailView.as_view(), name="verify"),
     path("login/", LoginView.as_view(), name="login"),

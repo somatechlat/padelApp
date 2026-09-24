@@ -17,6 +17,31 @@ class FakeApi extends ApiClient {
     },
   };
 
+  /// Empty by default so home renders without banners/club content.
+  Map<String, dynamic> clubResponse = {
+    'name': 'Andes Padel',
+    'address': '',
+    'maps_url': '',
+    'maps_query': '',
+    'phone': '',
+    'email': '',
+    'whatsapp_number': '',
+    'whatsapp_message': '',
+    'instagram_url': '',
+    'home_section_title': '',
+    'home_greeting_tagline': '',
+    'logo_url': '',
+    'bank_name': '',
+    'bank_account_number': '',
+    'bank_account_holder': '',
+    'bank_account_code': '',
+    'bank_extra': '',
+  };
+
+  List<dynamic> bannersResponse = [];
+
+  List<dynamic> courtsResponse = [];
+
   @override
   Future<dynamic> post(String path, {Object? data}) async {
     switch (path) {
@@ -46,6 +71,12 @@ class FakeApi extends ApiClient {
           'status': 'active',
           'email_verified': true,
         };
+      case '/club/':
+        return clubResponse;
+      case '/banners/':
+        return {'results': bannersResponse};
+      case '/courts/':
+        return {'results': courtsResponse};
       case '/bookings/':
         return {'results': []};
       case '/tournaments/':
