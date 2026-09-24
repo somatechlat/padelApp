@@ -92,6 +92,77 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(TournamentRegistrationSerializer(reg).data)
 
 
+class OpenMatchViewSet(viewsets.ModelViewSet):
+    """Armar partidos: clients create open matches and join them."""
+
+    serializer_class = OpenMatchSerializer
+    http_method_names = ["get", "post", "delete"]
+
+    def get_queryset(self):
+        qs = OpenMatch.objects.select_related(
+            "created_by", "skill_level"
+        ).prefetch_related("players")
+        if not self.request.user or not self.request.user.is_authenticated:
+            return qs.none()
+        category = self.request.query_params.get("skill_level")
+        if category:
+            qs = qs.filter(skill_level_id=category)
+        mine = self.request.query_params.get("mine")
+        if mine in ("1", "true"):
+            qs = qs.filter(players__user=self.request.user)
+        return qs
+
+    def get_permissions(self):
+        return (IsAuthenticated(),)
+
+    def perform_create(self, serializer):
+        match = serializer.save(created_by=self.request.user)
+        OpenMatchPlayer.objects.get_or_create(match=match, user=self.request.user)
+        match.notify_category()
+
+    def perform_destroy(self, instance):
+        instance.status = instance.Status.CANCELLED
+        instance.save(update_fields=["status"])
+
+    @action(detail=True, methods=["post"])
+    def join(self, request, pk=None):
+        match = self.get_object()
+        if match.status != OpenMatch.Status.OPEN:
+            return Response(
+                {"detail": _("El partido ya no esta abierto")},
+                status=status.HTTP_409_CONFLICT,
+            )
+        if match.players.count() >= match.max_players:
+            match.status = OpenMatch.Status.FULL
+            match.save(update_fields=["status"])
+            return Response(
+                {"detail": _("El partido ya esta completo")},
+                status=status.HTTP_409_CONFLICT,
+            )
+        _, created = OpenMatchPlayer.objects.get_or_create(
+            match=match, user=request.user
+        )
+        if not created:
+            return Response(
+                {"detail": _("Ya estas en este partido")},
+                status=status.HTTP_409_CONFLICT,
+            )
+        if match.players.count() >= match.max_players:
+            match.status = OpenMatch.Status.FULL
+            match.save(update_fields=["status"])
+        serializer = self.get_serializer(match)
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    @action(detail=True, methods=["post"])
+    def leave(self, request, pk=None):
+        match = self.get_object()
+        OpenMatchPlayer.objects.filter(match=match, user=request.user).delete()
+        if match.status == OpenMatch.Status.FULL and match.players.count() < match.max_players:
+            match.status = OpenMatch.Status.OPEN
+            match.save(update_fields=["status"])
+        return Response(self.get_serializer(match).data)
+
+
 class NewsPostViewSet(viewsets.ModelViewSet):
     serializer_class = NewsPostSerializer
     http_method_names = ["get", "post", "put", "patch", "delete"]
