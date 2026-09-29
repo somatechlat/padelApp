@@ -7,7 +7,7 @@ import 'test_storage.dart';
 /// Typed fake profile for `POST /auth/login/` and `GET /auth/me/`.
 class FakeUser {
   const FakeUser({
-    this.email = 'cliente@andespadel.com',
+    this.email = 'cliente@andespadelclub.com',
     this.fullName = 'Cliente Test',
     this.role = 'cliente',
     this.status = 'active',
@@ -181,7 +181,7 @@ class FakeApi extends ApiClient {
 
   // ── Fixtures ────────────────────────────────────────────────────────────
   /// Credentials accepted by `POST /auth/login/`. Anything else is a 401.
-  String email = 'cliente@andespadel.com';
+  String email = 'cliente@andespadelclub.com';
   String password = 'Andes12345!';
 
   /// Tokens returned by a successful login.

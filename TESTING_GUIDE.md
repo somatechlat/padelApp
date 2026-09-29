@@ -30,7 +30,7 @@ API base URLs used by the Makefile and the mobile client:
 |---|---|
 | dev | `http://127.0.0.1:28002/api` |
 | test | `http://127.0.0.1:29002/api` |
-| prod | `https://<new-domain>/api` (operator-supplied; old host retired) |
+| prod | `https://www.andespadelclub.com/api` (andespadelclub.com; no server provisioned yet) |
 
 Compose is always base + overlay + project name:
 
@@ -260,7 +260,7 @@ make psql
 API URL for any release build must be set explicitly:
 
 ```bash
---dart-define=API_BASE_URL=https://<new-domain>/api
+--dart-define=API_BASE_URL=https://www.andespadelclub.com/api
 ```
 
 Bundle ids differ on purpose: Android `com.andes.padel.padel_app`, iOS `com.andes.padel.padelApp`.

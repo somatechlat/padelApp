@@ -28,12 +28,12 @@ http://127.0.0.1:28002/api
 |---|---|
 | Dev / simulator | `http://127.0.0.1:28002/api` (default; or omit) |
 | Test | `http://127.0.0.1:29002/api` |
-| Release / TestFlight / Play | `https://<new-domain>/api` (operator-supplied; old host retired) |
+| Release / TestFlight / Play | `https://www.andespadelclub.com/api` (andespadelclub.com; no server provisioned yet) |
 
 Release builds must pass:
 
 ```bash
---dart-define=API_BASE_URL=https://<new-domain>/api
+--dart-define=API_BASE_URL=https://www.andespadelclub.com/api
 ```
 
 `make flrun`, `make fltest-dev`, and `make flbuild` already inject the dev URL.

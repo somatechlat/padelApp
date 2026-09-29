@@ -196,8 +196,7 @@ Port map within each env: `N000` db, `N001` redis, `N002` backend/API,
 
 - **API_DEV is `http://127.0.0.1:28002/api`** — this is also the default in
   `mobile/lib/core/api_client.dart`. Release builds must override with
-  `--dart-define=API_BASE_URL=https://<new-domain>/api` (value supplied by
-  the operator; the previous host is retired and is not hard-coded here).
+  `--dart-define=API_BASE_URL=https://www.andespadelclub.com/api`.
 - `docker-compose.yml` must never be run alone; always pair with an env overlay
   and a `-p` project name.
 - `compose.prod.yml` / `compose.server.yml` (legacy, unused) were **deleted**
@@ -339,14 +338,15 @@ Trust levels as of 2026-09-29:
 
 **Production domain: `andespadelclub.com`** (operator-supplied 2026-09-29).
 Public site `https://www.andespadelclub.com`, API `/api/`, admin
-`/adminpanel/`, privacy `/privacy`. Store it as the **bare apex** —
-`validate_production_host()` normalizes a pasted
-`https://www.andespadelclub.com` and `prod.py` derives `www.` from there, so
-`www.www.` cannot happen.
+`/adminpanel/`, privacy `/privacy`, from-address `no-reply@andespadelclub.com`.
+Store it as the **bare apex** — `validate_production_host()` normalizes a
+pasted `https://www.andespadelclub.com` and `prod.py` derives `www.` from
+there, so `www.www.` cannot happen.
 
-The previous host and the `andespadel.yachaq.io` / `andespadel.com` names are
-**retired** — do not deploy to them. **The server IP is still unknown** and
-must be filled in from the operator before any SSH or DNS work.
+**There is no production server yet.** Nothing is provisioned. Do **not** run
+`make up-prod` against anything, do not SSH anywhere, and do not create DNS
+records. Every previous host is retired and must never come back as a deploy
+target, a default, or a guess — if you need an address, ask the operator.
 
 One further fact needs operator confirmation: whether a `resend` route should
 exist (there is currently none).
@@ -354,10 +354,11 @@ exist (there is currently none).
 When you change a port, a make target, a URL, or add an API route, update
 `docs/DEPLOYMENTS.md` and this file in the same commit.
 
-Production needs `PROD_DOMAIN`, `PROD_API_BASE_URL`, `E2E_BASE_URL` and
-`PROD_BASE_URL` supplied out-of-band — see `docs/DEPLOYMENTS.md`. Do not
-hard-code a production hostname anywhere; `padel.settings.prod` refuses to
-import without `PROD_DOMAIN`.
+`andespadelclub.com` is the real domain and belongs in docs, store metadata
+and the landing page. It must **not** become a hard-coded fallback in
+`padel.settings.prod`: that module still reads `PROD_DOMAIN` from
+`runsecrets` and refuses to import without it, so a box with no secrets
+fails closed instead of binding to a name someone else controls.
 
 ---
 
@@ -386,9 +387,10 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    acceptance, not an expiry: Google API keys do not self-expire the way a
    time-boxed GitHub PAT does, so the exposure is open-ended until revoked.
    Do not re-raise as a new finding; it is a known, owned risk.
-6. **Production server address is unset.** The domain (`andespadelclub.com`)
-   is known; the **server IP / SSH host is not**. Do not guess one and do not
-   re-add the retired addresses.
+6. **There is no production server.** The domain (`andespadelclub.com`) is
+   known and wired through docs and config templates. No host is
+   provisioned and no address is supplied. Do not attempt SSH, `make
+   up-prod`, DNS, or cert work until the operator provides one.
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.
 8. **`timezone.datetime` / `timezone.timedelta`** are gone from `apps/`, but

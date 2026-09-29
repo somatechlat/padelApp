@@ -31,7 +31,7 @@ Apple and Google legally require the account holder — no tool can do these:
 1. **Paid agreements** — Apple Developer Program ($99/yr) and Google Play Console ($25 once) must be **paid and active**.
 2. **Banking / tax info** — App Store Connect → Business and Paying; Play Console → Payments.
 3. **Content rating questionnaire** — legal answers; I drafted the privacy/data ones above.
-4. **Privacy policy URL must be live.** Draft lives at `landing/privacy.html` — publish it to `https://<new-domain>/privacy`.
+4. **Privacy policy URL must be live.** Draft lives at `landing/privacy.html` — publish it to `https://www.andespadelclub.com/privacy`.
 5. **App Privacy / Data safety** — paste the answers above into the web forms (one-time click-through).
 6. **Age rating** — pick "4+" / "Everyone" (sports, no gambling/UGC risk).
 7. **First release** — Google requires a **closed test** with ~12 testers for 14 days before full production (new personal dev accounts). If the account is an **organization** account, you can go straight to production.

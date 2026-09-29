@@ -18,7 +18,7 @@ class TestLogin:
 
     def test_login_success_admin(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "admin@andespadel.com")
+        page.fill('input[name="email"]', "admin@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")
@@ -27,7 +27,7 @@ class TestLogin:
 
     def test_login_success_gerente(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "gerente@andespadel.com")
+        page.fill('input[name="email"]', "gerente@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")
@@ -35,7 +35,7 @@ class TestLogin:
 
     def test_login_success_recepcionista(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "recepcion@andespadel.com")
+        page.fill('input[name="email"]', "recepcion@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")
@@ -43,7 +43,7 @@ class TestLogin:
 
     def test_login_invalid_password(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "admin@andespadel.com")
+        page.fill('input[name="email"]', "admin@andespadelclub.com")
         page.fill('input[name="password"]', "wrongpassword")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")
@@ -52,7 +52,7 @@ class TestLogin:
 
     def test_login_cliente_denied(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "cliente@andespadel.com")
+        page.fill('input[name="email"]', "cliente@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")

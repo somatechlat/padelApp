@@ -81,14 +81,14 @@ http://127.0.0.1:28002/api
 That is the dev API. Every release build must override it:
 
 ```bash
---dart-define=API_BASE_URL=https://<new-domain>/api
+--dart-define=API_BASE_URL=https://www.andespadelclub.com/api
 ```
 
 | Env | API base |
 |---|---|
 | dev | `http://127.0.0.1:28002/api` |
 | test | `http://127.0.0.1:29002/api` |
-| prod | `https://<new-domain>/api` |
+| prod | `https://www.andespadelclub.com/api` |
 
 Makefile `API_DEV` / `API_TEST` / `API_PROD` match these values.
 
@@ -204,7 +204,7 @@ flutter build apk --debug \
 | Debug | `mobile/build/app/outputs/flutter-apk/app-debug.apk` |
 | Release | `mobile/build/app/outputs/flutter-apk/app-release.apk` |
 
-Release APK/AAB must pass `--dart-define=API_BASE_URL=https://<new-domain>/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
+Release APK/AAB must pass `--dart-define=API_BASE_URL=https://www.andespadelclub.com/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
 
 `applicationId`: `com.andes.padel.padel_app`.
 

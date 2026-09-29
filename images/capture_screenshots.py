@@ -13,7 +13,7 @@ BASE = os.environ.get("PROD_BASE_URL", "")
 if not BASE:
     raise RuntimeError("PROD_BASE_URL is required — no default production host is baked in")
 OUT = Path(__file__).parent
-ADMIN_USER = "admin@andespadel.com"
+ADMIN_USER = "admin@andespadelclub.com"
 ADMIN_PASS = "Andes12345!"
 
 

@@ -17,10 +17,10 @@ class TestUsers:
     def test_users_list_shows_all_demo_users(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
         content = admin_page.content()
-        assert "admin@andespadel.com" in content
-        assert "gerente@andespadel.com" in content
-        assert "recepcion@andespadel.com" in content
-        assert "cliente@andespadel.com" in content
+        assert "admin@andespadelclub.com" in content
+        assert "gerente@andespadelclub.com" in content
+        assert "recepcion@andespadelclub.com" in content
+        assert "cliente@andespadelclub.com" in content
 
     def test_users_shows_roles(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
@@ -39,7 +39,7 @@ class TestUsers:
             search_input.fill("gerente")
             search_input.press("Enter")
             admin_page.wait_for_load_state("networkidle")
-            assert "gerente@andespadel.com" in admin_page.content()
+            assert "gerente@andespadelclub.com" in admin_page.content()
 
     def test_users_filter_by_role(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
@@ -50,7 +50,7 @@ class TestUsers:
             role_select.select_option("cliente")
             filter_form.first.locator('button[type="submit"], input[type="submit"]').first.click()
             admin_page.wait_for_load_state("networkidle")
-            assert "cliente@andespadel.com" in admin_page.content()
+            assert "cliente@andespadelclub.com" in admin_page.content()
 
     def test_users_change_role_form_exists(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")

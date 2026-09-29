@@ -536,7 +536,7 @@ git add -A && git commit -m "feat: flutter events, tournaments, notifications"
 
 ## Phase 14 — Release Readiness (all in Docker)
 
-> **IN PROGRESS (2026-08-13).** Demo data command done: `apps/common/management/commands/seed_demo.py` (idempotent — users admin/gerente/recepcion/cliente/jugador, all `Andes12345!`; venue + 2 courts; 2 events; 3 tournaments; 2 news; 3 sample bookings; `admin@andespadel.com` is superuser). Live-verified against running stack. Steps 2–8 (prod build, backups, load test, security, UAT, store prep, handoff) pending.
+> **IN PROGRESS (2026-08-13).** Demo data command done: `apps/common/management/commands/seed_demo.py` (idempotent — users admin/gerente/recepcion/cliente/jugador, all `Andes12345!`; venue + 2 courts; 2 events; 3 tournaments; 2 news; 3 sample bookings; `admin@andespadelclub.com` is superuser). Live-verified against running stack. Steps 2–8 (prod build, backups, load test, security, UAT, store prep, handoff) pending.
 
 **Files:**
 - Create: `Dockerfile.prod`, `compose.prod.yml`, `gunicorn.conf.py`, `nginx/` config, `docs/release/playstore-check.md`, `docs/release/appstore-check.md`, `docs/release/uat-checklist.md`, `docs/plans/deployment-plan.md`

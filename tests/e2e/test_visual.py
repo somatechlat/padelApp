@@ -87,7 +87,7 @@ class TestVisual:
 
     def test_success_message_green(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "admin@andespadel.com")
+        page.fill('input[name="email"]', "admin@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")

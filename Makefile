@@ -15,9 +15,9 @@ COMPOSE_PROD := docker compose -p andespadel-prod -f docker-compose.yml -f docke
 
 API_DEV  := http://127.0.0.1:28002/api
 API_TEST := http://127.0.0.1:29002/api
-# Production target moves to a new server + domain. Supply it explicitly:
-#   make <target> API_PROD=https://<new-domain>/api
-# The retired host must never be the default.
+# Production domain is andespadelclub.com. No server is provisioned yet —
+# do not run up-prod anywhere until the operator supplies one.
+#   make <target> API_PROD=https://www.andespadelclub.com/api
 API_PROD ?=
 
 up-dev:

@@ -12,16 +12,16 @@ if not BASE_URL:
         "pass the live admin URL explicitly. No default is baked in."
     )
 
-ADMIN_EMAIL = "admin@andespadel.com"
+ADMIN_EMAIL = "admin@andespadelclub.com"
 ADMIN_PASSWORD = "Andes12345!"
 
-GERENTE_EMAIL = "gerente@andespadel.com"
+GERENTE_EMAIL = "gerente@andespadelclub.com"
 GERENTE_PASSWORD = "Andes12345!"
 
-RECEPCION_EMAIL = "recepcion@andespadel.com"
+RECEPCION_EMAIL = "recepcion@andespadelclub.com"
 RECEPCION_PASSWORD = "Andes12345!"
 
-CLIENTE_EMAIL = "cliente@andespadel.com"
+CLIENTE_EMAIL = "cliente@andespadelclub.com"
 CLIENTE_PASSWORD = "Andes12345!"
 
 

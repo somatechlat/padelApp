@@ -9,8 +9,8 @@ import 'package:dio/dio.dart';
 ///
 /// Usage: docker compose run --rm flutter dart run /mobile/tool/smoke_test.dart
 const _base = 'http://backend:8000/api';
-const _adminEmail = 'admin@andespadel.com';
-const _clientEmail = 'cliente@andespadel.com';
+const _adminEmail = 'admin@andespadelclub.com';
+const _clientEmail = 'cliente@andespadelclub.com';
 const _password = 'Andes12345!';
 int _passed = 0;
 int _failed = 0;

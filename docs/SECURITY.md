@@ -184,9 +184,10 @@ Ordered by cost of ignoring them. Not a checklist — a map.
    will keep doing so indefinitely. This entry is a known, owned risk. Do not
    re-raise it as a new finding; revisit only if the decision changes.
 2. **Django admin RBAC is coarser than the panel** (see §2.2).
-3. **Production target is unset.** A new server and domain replace the
-   retired ones; the replacements are not yet supplied. Do not deploy to or
-   document the old addresses as live.
+3. **There is no production server.** The domain is `andespadelclub.com` and
+   is wired through docs and config templates. No host is provisioned and no
+   address is supplied. Do not deploy, SSH, or treat any address as live
+   until the operator provides one.
 4. **No rate limiting on the admin panel `post()` endpoints** beyond Django's
    defaults. They are session-authenticated and staff-only, which bounds the
    risk, but a compromised staff session can still act fast.

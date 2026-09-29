@@ -13,13 +13,13 @@ void main() {
     final api = FakeApi(storage: storage);
     final auth = AuthState(api: api, storage: storage);
 
-    await auth.login('CLIENTE@andespadel.com', 'Andes12345!');
+    await auth.login('CLIENTE@andespadelclub.com', 'Andes12345!');
 
     // Real success signals — never just `auth.error, isNull`.
     expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
     expect(auth.authenticated, isTrue);
     expect(auth.user, isNotNull);
-    expect(auth.user?['email'], 'cliente@andespadel.com');
+    expect(auth.user?['email'], 'cliente@andespadelclub.com');
     expect(await storage.read(SecureTokenStorage.accessKey), 'fake-access');
     expect(await storage.read(SecureTokenStorage.refreshKey), 'fake-refresh');
   });
@@ -62,9 +62,9 @@ void main() {
     final api = FakeApi(storage: storage);
     final auth = AuthState(api: api, storage: storage);
 
-    await auth.requestReset('Cliente@Andespadel.com');
+    await auth.requestReset('Cliente@Andespadelclub.com');
 
-    expect(api.passwordResetEmails, <String>['cliente@andespadel.com']);
+    expect(api.passwordResetEmails, <String>['cliente@andespadelclub.com']);
     expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
   });
 
@@ -112,7 +112,7 @@ void main() {
     final api = FakeApi(storage: storage);
     final auth = AuthState(api: api, storage: storage);
 
-    await auth.login('cliente@andespadel.com', 'wrong-password');
+    await auth.login('cliente@andespadelclub.com', 'wrong-password');
 
     expect(auth.authenticated, isFalse);
     // Real failure signal: a 401 DioException, not merely "some error".
@@ -138,7 +138,7 @@ void main() {
     final auth = AuthState(api: api, storage: storage);
     final l10n = AppLocalizationsEs();
 
-    await auth.login('cliente@andespadel.com', 'Andes12345!');
+    await auth.login('cliente@andespadelclub.com', 'Andes12345!');
 
     expect(auth.hasError, isTrue);
     expect(auth.lastError, isA<DioException>());
@@ -158,7 +158,7 @@ void main() {
     final auth = AuthState(api: api, storage: storage);
     final l10n = AppLocalizationsEs();
 
-    await auth.login('cliente@andespadel.com', 'Andes12345!');
+    await auth.login('cliente@andespadelclub.com', 'Andes12345!');
 
     expect(auth.authenticated, isTrue);
     expect(auth.hasError, isFalse);

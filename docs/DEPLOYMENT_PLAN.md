@@ -6,11 +6,11 @@
 **Two environments:** Local (dev) + Testing Server (LOYALLIA)
 
 **Server addresses — RETIRED.** Every host this document names is out of
-service. Production is moving to a new server and a new domain; the operator
-has not yet supplied either value. **Do not deploy to, SSH into, or point DNS
-at anything written below** — it is kept only as a record of how the previous
-environment was laid out. Obtain the new address and hostname from the
-operator before any infrastructure work.
+service. The live production domain is `https://www.andespadelclub.com`, and
+**no production server is provisioned yet**. **Do not deploy to, SSH into, or
+point DNS at anything written below** — it is kept only as a record of how the
+previous environment was laid out. Obtain a server address from the operator
+before any infrastructure work.
 
 ---
 
@@ -62,7 +62,7 @@ docker compose exec backend python manage.py seed_demo  # optional
 ┌──────────────── Host (RETIRED) ─────────────────────┐
 │                                                       │
 │  Host nginx (ports 80/443)                            │
-│    └─ <NEW_DOMAIN>:443 → 127.0.0.1:34003   │
+│    └─ www.andespadelclub.com:443 → 127.0.0.1:34003   │
 │                                                       │
 │  Docker: padelapp-net (isolated bridge)               │
 │  ┌──────────────────────────────────────────────┐     │
@@ -95,8 +95,8 @@ docker compose exec backend python manage.py seed_demo  # optional
 ### PHASE 1: Code Changes (Local → Push to GitHub)
 
 - [ ] **1.1** Modify `padel/settings/prod.py`
-  - Add `<NEW_DOMAIN>` to ALLOWED_HOSTS
-  - Add `<NEW_DOMAIN>` to CORS_ALLOWED_ORIGINS
+  - Add `www.andespadelclub.com` to ALLOWED_HOSTS
+  - Add `www.andespadelclub.com` to CORS_ALLOWED_ORIGINS
   - Fix SSL redirect: trust `X-Forwarded-Proto` header (host nginx handles SSL)
 
 - [ ] **1.2** Create `docker/nginx/nginx.conf`
@@ -134,8 +134,8 @@ docker compose exec backend python manage.py seed_demo  # optional
 
 - [ ] **3.1** Create placeholder nginx config for certbot webroot
 - [ ] **3.2** Reload host nginx: `nginx -s reload`
-- [ ] **3.3** Run certbot: `certbot certonly --webroot -w /var/www/certbot -d <NEW_DOMAIN>`
-- [ ] **3.4** Verify cert obtained in `/etc/letsencrypt/live/<NEW_DOMAIN>/`
+- [ ] **3.3** Run certbot: `certbot certonly --webroot -w /var/www/certbot -d www.andespadelclub.com`
+- [ ] **3.4** Verify cert obtained in `/etc/letsencrypt/live/www.andespadelclub.com/`
 
 ### PHASE 4: Build & Launch
 
@@ -148,15 +148,15 @@ docker compose exec backend python manage.py seed_demo  # optional
 ### PHASE 5: Host Nginx
 
 - [ ] **5.1** Create `/etc/nginx/sites-enabled/padelapp`
-  - SSL server block for `<NEW_DOMAIN>`
+  - SSL server block for `www.andespadelclub.com`
   - Proxy to `127.0.0.1:34003`
   - SSL cert from Let's Encrypt
 - [ ] **5.2** Reload host nginx: `nginx -s reload`
 
 ### PHASE 6: Verify
 
-- [ ] **6.1** `curl -k https://<NEW_DOMAIN>/api/docs/` → Swagger UI
-- [ ] **6.2** `https://<NEW_DOMAIN>/adminpanel/` → Admin login
+- [ ] **6.1** `curl -k https://www.andespadelclub.com/api/docs/` → Swagger UI
+- [ ] **6.2** `https://www.andespadelclub.com/adminpanel/` → Admin login
 - [ ] **6.3** `docker compose -f compose.server.yml ps` → all healthy
 - [ ] **6.4** `docker ps | grep loyallia` → all still running
 - [ ] **6.5** Test login endpoint

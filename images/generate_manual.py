@@ -185,10 +185,10 @@ doc.add_heading("Arquitectura del Sistema", level=2)
 add_table(
     ["Componente", "Tecnología", "URL / Acceso"],
     [
-        ["API REST", "Django 5.2 + DRF", "https://<NEW_DOMAIN>/api/"],
-        ["Documentación API", "drf-spectacular", "https://<NEW_DOMAIN>/api/docs/"],
-        ["Admin Django", "Django Admin + RBAC", "https://<NEW_DOMAIN>/admin/"],
-        ["Admin Personalizado", "Django Templates", "https://<NEW_DOMAIN>/adminpanel/"],
+        ["API REST", "Django 5.2 + DRF", "https://www.andespadelclub.com/api/"],
+        ["Documentación API", "drf-spectacular", "https://www.andespadelclub.com/api/docs/"],
+        ["Admin Django", "Django Admin + RBAC", "https://www.andespadelclub.com/admin/"],
+        ["Admin Personalizado", "Django Templates", "https://www.andespadelclub.com/adminpanel/"],
         ["App Móvil", "Flutter 3.27", "APK Android / iOS"],
         ["Tareas Asíncronas", "Celery + Redis", "Worker en background"],
     ],
@@ -225,7 +225,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Personalizado (Recomendado para operación diaria)", level=2)
 doc.add_paragraph(
-    "1. Navegue a https://<NEW_DOMAIN>/adminpanel/\n"
+    "1. Navegue a https://www.andespadelclub.com/adminpanel/\n"
     "2. Será redirigido a la pantalla de inicio de sesión\n"
     "3. Ingrese su correo electrónico y contraseña\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -237,7 +237,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Django Admin (Gestión técnica avanzada)", level=2)
 doc.add_paragraph(
-    "1. Navegue a https://<NEW_DOMAIN>/admin/\n"
+    "1. Navegue a https://www.andespadelclub.com/admin/\n"
     "2. Ingrese su correo electrónico en el campo \"Email\"\n"
     "3. Ingrese su contraseña en el campo \"Contraseña\"\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -903,9 +903,9 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Acceso a la documentación:", level=2)
-add_bullet("Swagger UI — https://<NEW_DOMAIN>/api/docs/")
-add_bullet("ReDoc — https://<NEW_DOMAIN>/api/redoc/")
-add_bullet("Schema (JSON/YAML) — https://<NEW_DOMAIN>/api/schema/")
+add_bullet("Swagger UI — https://www.andespadelclub.com/api/docs/")
+add_bullet("ReDoc — https://www.andespadelclub.com/api/redoc/")
+add_bullet("Schema (JSON/YAML) — https://www.andespadelclub.com/api/schema/")
 
 doc.add_heading("6.1. Endpoints Disponibles", level=2)
 
@@ -966,11 +966,11 @@ doc.add_paragraph(
 add_table(
     ["Cuenta", "Correo Electrónico", "Contraseña", "Rol", "Panel"],
     [
-        ["Super Administrador", "admin@andespadel.com", "Andes12345!", "superadmin", "Django + Personalizado"],
-        ["Gerente", "gerente@andespadel.com", "Andes12345!", "gerente", "Personalizado"],
-        ["Recepcionista", "recepcion@andespadel.com", "Andes12345!", "recepcionista", "Personalizado"],
-        ["Cliente", "cliente@andespadel.com", "Andes12345!", "cliente", "Solo App Móvil"],
-        ["Jugadora", "jugador@andespadel.com", "Andes12345!", "cliente", "Solo App Móvil"],
+        ["Super Administrador", "admin@andespadelclub.com", "Andes12345!", "superadmin", "Django + Personalizado"],
+        ["Gerente", "gerente@andespadelclub.com", "Andes12345!", "gerente", "Personalizado"],
+        ["Recepcionista", "recepcion@andespadelclub.com", "Andes12345!", "recepcionista", "Personalizado"],
+        ["Cliente", "cliente@andespadelclub.com", "Andes12345!", "cliente", "Solo App Móvil"],
+        ["Jugadora", "jugador@andespadelclub.com", "Andes12345!", "cliente", "Solo App Móvil"],
     ],
 )
 

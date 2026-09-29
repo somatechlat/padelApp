@@ -121,19 +121,19 @@ class TestLoginFlow:
 
     def test_login_admin_returns_tokens(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert resp.status_code == 200
         data = resp.json()
         assert "access" in data
         assert "refresh" in data
-        assert data["user"]["email"] == "admin@andespadel.com"
+        assert data["user"]["email"] == "admin@andespadelclub.com"
         assert data["user"]["role"] == "superadmin"
 
     def test_login_cliente_returns_tokens(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "cliente@andespadel.com",
+            "email": "cliente@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert resp.status_code == 200
@@ -142,7 +142,7 @@ class TestLoginFlow:
 
     def test_login_gerente_returns_tokens(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "gerente@andespadel.com",
+            "email": "gerente@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert resp.status_code == 200
@@ -150,7 +150,7 @@ class TestLoginFlow:
 
     def test_login_recepcion_returns_tokens(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "recepcion@andespadel.com",
+            "email": "recepcion@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert resp.status_code == 200
@@ -158,14 +158,14 @@ class TestLoginFlow:
 
     def test_login_wrong_password_returns_401(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "wrongpassword",
         })
         assert resp.status_code == 401
 
     def test_login_nonexistent_user_returns_401(self):
         resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "nobody@andespadel.com",
+            "email": "nobody@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert resp.status_code == 401
@@ -173,7 +173,7 @@ class TestLoginFlow:
     def test_login_locked_after_5_failures(self):
         # This test makes 6 rapid requests -- may get throttled
         # If throttled (429), that's also a form of rate protection working
-        email = "locktest@andespadel.com"
+        email = "locktest@andespadelclub.com"
         got_lockout = False
         for _ in range(6):
             resp = requests.post(f"{BASE}/auth/login/", json={
@@ -196,7 +196,7 @@ class TestTokenRefreshFlow:
     def test_refresh_returns_new_tokens(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"
@@ -213,7 +213,7 @@ class TestTokenRefreshFlow:
     def test_reused_refresh_is_revoked(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"
@@ -233,7 +233,7 @@ class TestLogoutFlow:
     def test_logout_blacklists_token(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"
@@ -256,19 +256,19 @@ class TestPasswordResetFlow:
 
     def test_password_reset_sends_code(self):
         resp = requests.post(f"{BASE}/auth/password-reset/", json={
-            "email": "cliente@andespadel.com",
+            "email": "cliente@andespadelclub.com",
         })
         assert resp.status_code == 200
 
     def test_password_reset_no_enumeration(self):
         resp = requests.post(f"{BASE}/auth/password-reset/", json={
-            "email": "nonexistent@andespadel.com",
+            "email": "nonexistent@andespadelclub.com",
         })
         assert resp.status_code == 200  # Same response for existing/non-existing
 
     def test_password_reset_confirm_wrong_code_returns_400(self):
         resp = requests.post(f"{BASE}/auth/password-reset/confirm/", json={
-            "email": "cliente@andespadel.com",
+            "email": "cliente@andespadelclub.com",
             "code": "000000",
             "password": "NewPass123!",
         })
@@ -281,7 +281,7 @@ class TestMeEndpoint:
     def test_me_returns_profile(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"
@@ -291,12 +291,12 @@ class TestMeEndpoint:
             "Authorization": f"Bearer {token}",
         })
         assert resp.status_code == 200
-        assert resp.json()["email"] == "admin@andespadel.com"
+        assert resp.json()["email"] == "admin@andespadelclub.com"
 
     def test_me_update_language(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"
@@ -324,7 +324,7 @@ class TestPasswordChangeFlow:
     def test_change_password_wrong_old_returns_400(self):
         s = requests.Session()
         login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadel.com",
+            "email": "admin@andespadelclub.com",
             "password": "Andes12345!",
         })
         assert login.status_code == 200, f"Login failed: {login.text}"

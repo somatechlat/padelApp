@@ -10,7 +10,7 @@ Three isolated deployments. Never mix ports, secrets, or data between them.
 
 Port map (same offsets in every env):
 
-| Offset | Service | dev | test | prod (new server — address not yet supplied) |
+| Offset | Service | dev | test | prod (no server provisioned yet) |
 |--------|---------|-----|------|------------------------------|
 | +0 | PostgreSQL | 28000 | 29000 | 34000 |
 | +1 | Redis | 28001 | 29001 | 34001 |
@@ -54,8 +54,8 @@ make test-test
 
 # PROD (server ports 34000+, or local dry-run)
 make up-prod
-# real prod: NEW SERVER — address not yet supplied. The old host is retired.
-# Do not deploy there. Under /opt/padelapp only (R18)
+# real prod: NO SERVER IS PROVISIONED YET. Do not run up-prod anywhere.
+# When one exists it lives under /opt/padelapp only (R18).
 ```
 
 Equivalent raw compose (always pass `-f` base + overlay):
@@ -79,16 +79,19 @@ docker compose -p andespadel-prod \
 
 ---
 
-## Production target — required before deploy
+## Production target
 
-Production is moving to a **new server and a new domain**. The previous host and
-the `yachaq` / `andespadel.com` names are **retired**. The live production
-domain is **`andespadelclub.com`** (`https://www.andespadelclub.com`). The
-server IP is still operator-supplied and out-of-band. Retired names appear nowhere in this
-tree as a deploy target.
+The production domain is **`andespadelclub.com`**
+(`https://www.andespadelclub.com`). It is the live name and it is safe to
+write into docs, store metadata and the landing page.
 
-Nothing is hard-coded on purpose, so a deploy cannot silently bind to a name
-someone else now controls. Supply these before touching prod:
+**There is no production server.** No host has been provisioned and no address
+has been supplied. Do not SSH, do not run `make up-prod` against anything, and
+do not create DNS records. Ask the operator first.
+
+The domain is deliberately **not** a hard-coded fallback in settings, so a
+deploy cannot silently bind to a name someone else now controls. Supply these
+before touching prod:
 
 | Setting | Where | Used by |
 |---|---|---|
@@ -117,14 +120,14 @@ than serving on a retired name.
 | Stripe | test keys | test keys | live or test keys |
 | Allowed hosts | `*` / localhost | test host | `PROD_DOMAIN` from `settings/secrets.py` (required) |
 | SSL | off | off | terminated by host nginx |
-| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://<new-domain>/api` |
+| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://www.andespadelclub.com/api` |
 
 Mobile builds select the API with:
 
 ```bash
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:28002/api   # dev
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:29002/api   # test
-flutter build apk --release --dart-define=API_BASE_URL=https://<new-domain>/api  # prod
+flutter build apk --release --dart-define=API_BASE_URL=https://www.andespadelclub.com/api  # prod
 ```
 
 ---

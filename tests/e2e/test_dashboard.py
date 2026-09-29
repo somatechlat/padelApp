@@ -54,4 +54,4 @@ class TestDashboard:
     def test_dashboard_header_shows_email(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")
         header = admin_page.locator("header")
-        assert "admin@andespadel.com" in header.inner_text()
+        assert "admin@andespadelclub.com" in header.inner_text()

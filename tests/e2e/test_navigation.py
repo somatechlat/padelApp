@@ -87,7 +87,7 @@ class TestNavigation:
 
     def test_cliente_redirected_from_dashboard(self, page: Page):
         page.goto("/adminpanel/login/")
-        page.fill('input[name="email"]', "cliente@andespadel.com")
+        page.fill('input[name="email"]', "cliente@andespadelclub.com")
         page.fill('input[name="password"]', "Andes12345!")
         page.click('button[type="submit"]')
         page.wait_for_load_state("networkidle")

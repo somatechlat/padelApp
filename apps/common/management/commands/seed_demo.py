@@ -62,12 +62,12 @@ class Command(BaseCommand):
             return user
 
         admin = get_or_create_user(
-            "admin@andespadel.com", "superadmin", "Administrador Andes Padel", is_staff=True, is_superuser=True
+            "admin@andespadelclub.com", "superadmin", "Administrador Andes Padel", is_staff=True, is_superuser=True
         )
-        get_or_create_user("gerente@andespadel.com", "gerente", "Gerente Demo")
-        get_or_create_user("recepcion@andespadel.com", "recepcionista", "Recepcion Demo")
-        cliente = get_or_create_user("cliente@andespadel.com", "cliente", "Cliente Demo")
-        get_or_create_user("jugador@andespadel.com", "cliente", "Jugadora Demo")
+        get_or_create_user("gerente@andespadelclub.com", "gerente", "Gerente Demo")
+        get_or_create_user("recepcion@andespadelclub.com", "recepcionista", "Recepcion Demo")
+        cliente = get_or_create_user("cliente@andespadelclub.com", "cliente", "Cliente Demo")
+        get_or_create_user("jugador@andespadelclub.com", "cliente", "Jugadora Demo")
 
         venue = seed_club_profile()
         banners_created = seed_promo_banners()

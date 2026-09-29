@@ -58,7 +58,7 @@ void main() {
 
     await tester.enterText(
       find.widgetWithText(TextField, 'Email'),
-      'cliente@andespadel.com',
+      'cliente@andespadelclub.com',
     );
     await tester.enterText(
       find.widgetWithText(TextField, 'Contraseña'),
@@ -88,7 +88,7 @@ void main() {
 
     await tester.enterText(
       find.widgetWithText(TextField, 'Email'),
-      'cliente@andespadel.com',
+      'cliente@andespadelclub.com',
     );
     await tester.enterText(
       find.widgetWithText(TextField, 'Contraseña'),
