@@ -65,3 +65,8 @@ service-account*.json
 google-services.json
 GoogleService-Info.plist
 firebase_options.dart
+
+# Generated evidence (screenshots, manual, AAB, manifests) — never commit
+artifacts/
+# Local-only self-signed TLS for the localprod mode
+docker/nginx/tls/

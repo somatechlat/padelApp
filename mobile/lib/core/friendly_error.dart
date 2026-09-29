@@ -27,9 +27,6 @@ String friendlyErrorMessage(Object error, AppLocalizations l10n) {
     return l10n.error;
   }
 
-  if (error is AppAuthException) {
-    return error.message;
-  }
 
   if (error is SocketException || error is HttpException) {
     return l10n.networkError;
@@ -38,12 +35,6 @@ String friendlyErrorMessage(Object error, AppLocalizations l10n) {
   return l10n.error;
 }
 
-class AppAuthException implements Exception {
-  AppAuthException(this.message);
-  final String message;
-  @override
-  String toString() => message;
-}
 
 bool _isNetworkError(DioException e) {
   switch (e.type) {

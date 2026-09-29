@@ -75,6 +75,74 @@ class TestSecretBootCheck:
         validate_production_secrets(values)
 
 
+class TestProductionHostNormalization:
+    """Operators paste a browser URL. Store the apex, never the paste."""
+
+    @pytest.mark.parametrize(
+        ("raw", "expected"),
+        [
+            ("andespadelclub.com", "andespadelclub.com"),
+            ("www.andespadelclub.com", "andespadelclub.com"),
+            ("https://www.andespadelclub.com", "andespadelclub.com"),
+            ("https://andespadelclub.com/", "andespadelclub.com"),
+            ("  https://www.AndesPadelClub.com/api  ", "andespadelclub.com"),
+            ("https://andespadelclub.com:8443/path", "andespadelclub.com"),
+        ],
+    )
+    def test_normalizes_to_apex(self, raw, expected):
+        from padel.settings._checks import validate_production_host
+
+        assert validate_production_host(raw) == expected
+
+    def test_derived_www_host_cannot_double_prefix(self):
+        # The whole point of storing the apex: f"www.{PROD_DOMAIN}" is safe.
+        from padel.settings._checks import validate_production_host
+
+        apex = validate_production_host("https://www.andespadelclub.com")
+        assert f"www.{apex}" == "www.andespadelclub.com"
+
+    @pytest.mark.parametrize("raw", ["", "   ", None, "localhost", "nota host", "https://", ".com"])
+    def test_rejects_junk(self, raw):
+        from padel.settings._checks import validate_production_host
+
+        with pytest.raises(RuntimeError):
+            validate_production_host(raw)
+
+
+class TestLocalprodSecretCheck:
+    """localprod is production-shaped but must never touch real money."""
+
+    def _ok(self, **over):
+        values = {
+            "SECRET_KEY": "a" * 40,
+            "STRIPE_SECRET_KEY": "sk_test_abc",
+            "STRIPE_PUBLISHABLE_KEY": "pk_test_abc",
+        }
+        values.update(over)
+        return values
+
+    def test_test_keys_pass(self):
+        from padel.settings._checks import validate_localprod_secrets
+
+        validate_localprod_secrets(self._ok())
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("STRIPE_SECRET_KEY", "sk_live_abc"),
+            ("STRIPE_PUBLISHABLE_KEY", "pk_live_abc"),
+            ("STRIPE_SECRET_KEY", "not-a-stripe-key"),
+            ("SECRET_KEY", "dev-only-abc"),
+            ("SECRET_KEY", ""),
+        ],
+    )
+    def test_rejects_live_or_invalid(self, field, value):
+        from padel.settings._checks import validate_localprod_secrets
+
+        with pytest.raises(RuntimeError):
+            validate_localprod_secrets(self._ok(**{field: value}))
+
+
 class TestAuditTrail:
     def test_login_and_failure_logged(self, api_client, user):
         from apps.security.models import AuditLog

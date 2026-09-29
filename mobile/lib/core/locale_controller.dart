@@ -24,14 +24,10 @@ class LocaleController extends ChangeNotifier {
   /// Starts as Spanish. Never null — a null locale lets Flutter fall back to
   /// the device language (that is how the UI showed Portuguese).
   Locale _locale = const Locale(fallbackCode);
-  bool _loaded = false;
-  bool _hasUserChoice = false;
 
   Locale get locale => _locale;
-  bool get loaded => _loaded;
 
   /// True once the user picked a language explicitly in Profile.
-  bool get hasUserChoice => _hasUserChoice;
 
   String get code => _locale.languageCode;
 
@@ -45,11 +41,8 @@ class LocaleController extends ChangeNotifier {
     // Only a Profile pick may change the language. Anything else stays Spanish.
     if (stored != null && stored.isNotEmpty && stored != fallbackCode) {
       _locale = Locale(stored);
-      _hasUserChoice = true;
     } else if (stored == fallbackCode) {
-      _hasUserChoice = true;
     }
-    _loaded = true;
     notifyListeners();
   }
 
@@ -61,7 +54,6 @@ class LocaleController extends ChangeNotifier {
       // Keep the in-memory choice even if secure storage is unavailable.
     }
     _locale = Locale(code);
-    _hasUserChoice = true;
     notifyListeners();
   }
 }

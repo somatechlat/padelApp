@@ -3,8 +3,6 @@ from __future__ import annotations
 
 from datetime import date, datetime, time
 
-from django.utils import timezone
-
 
 def fmt_time(value: time | datetime | str | None) -> str:
     """`20:00` (never `20:00:00`)."""
@@ -30,22 +28,3 @@ def fmt_date(value: date | datetime | str | None) -> str:
     if isinstance(value, datetime):
         value = value.date()
     return value.strftime("%d/%m/%Y")
-
-
-def fmt_date_time(d: date, t: time) -> str:
-    return f"{fmt_date(d)} {fmt_time(t)}"
-
-
-def venue_today() -> date:
-    return timezone.localdate()
-
-
-def venue_now() -> datetime:
-    return timezone.localtime()
-
-
-def is_past(day: date, start: time) -> bool:
-    """True when `day` `start` is already in the past (venue local)."""
-    now = timezone.localtime()
-    start_dt = datetime.combine(day, start, tzinfo=timezone.get_current_timezone())
-    return start_dt <= now

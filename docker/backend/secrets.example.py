@@ -17,6 +17,13 @@ DB_PORT = 5432
 
 REDIS_URL = "redis://redis:6379/0"
 
+# Production hostname — bare apex, no scheme. padel.settings.prod refuses
+# to import without it. The value is normalized (a pasted
+# "https://www.example.com" is accepted and reduced to "example.com"),
+# and ALLOWED_HOSTS / CORS / CSRF origins are derived as apex + www.
+# Leave this OUT of localprod — that mode uses LOCALPROD_DOMAIN instead.
+PROD_DOMAIN = "andespadelclub.com"
+
 EMAIL_HOST = ""
 EMAIL_PORT = 587
 EMAIL_HOST_USER = ""

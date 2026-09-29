@@ -173,10 +173,6 @@ class BookingService:
         return booking
 
     @staticmethod
-    def complete(booking):
-        return booking.transition_to(Booking.Status.COMPLETED)
-
-    @staticmethod
     def mark_no_show(booking):
         booking.transition_to(Booking.Status.NO_SHOW)
         from apps.security.services import log_event
@@ -193,77 +189,6 @@ class BookingService:
                 "date": fmt_date(booking.date),
                 "time": fmt_time(booking.start_time),
                 "amount": f"${booking.price}",
-                "booking_id": booking.id,
-            },
-        )
-        return booking
-
-    @staticmethod
-    def reschedule(booking, new_date, new_start_time):
-        from datetime import timedelta as td
-
-        with transaction.atomic():
-            old_date = str(booking.date)
-            old_time = str(booking.start_time)
-            slot_ids = list(booking.slots.values_list("slot_id", flat=True))
-            booking.slots.all().delete()
-            TimeSlot.objects.filter(id__in=slot_ids).update(status=TimeSlot.Status.AVAILABLE)
-            BookingHold.objects.filter(slot_id__in=slot_ids).delete()
-
-            SlotService.generate_day(booking.court, new_date)
-            new_slots = list(
-                SlotService.slots_in_range(
-                    booking.court, new_date, new_start_time, booking.duration_minutes
-                )
-            )
-            expected = booking.duration_minutes // SLOT_MINUTES
-            if len(new_slots) < expected:
-                raise ValueError(_("Horario no disponible para reprogramar"))
-
-            locked = list(
-                TimeSlot.objects.select_for_update()
-                .filter(id__in=[s.id for s in new_slots])
-                .order_by("start")
-            )
-            if any(s.status != TimeSlot.Status.AVAILABLE for s in locked):
-                raise ValueError(_("La cancha no esta disponible en ese horario"))
-
-            booking.date = new_date
-            booking.start_time = new_start_time
-            booking.end_time = (
-                datetime.combine(new_date, new_start_time) + td(minutes=booking.duration_minutes)
-            ).time()
-            booking.save(update_fields=["date", "start_time", "end_time", "updated_at"])
-
-            BookingSlot.objects.bulk_create(
-                [BookingSlot(booking=booking, slot=s) for s in locked]
-            )
-            TimeSlot.objects.filter(id__in=[s.id for s in locked]).update(
-                status=TimeSlot.Status.HELD
-            )
-            for slot in locked:
-                BookingHold.objects.create(
-                    court=booking.court,
-                    slot=slot,
-                    user=booking.user,
-                    expires_at=timezone.now() + td(minutes=HOLD_MINUTES),
-                )
-
-        from apps.security.services import log_event
-        log_event(booking.user, "booking.reschedule", "Booking", booking.id,
-                  before={"date": old_date, "time": old_time},
-                  after={"date": str(new_date), "time": str(new_start_time)})
-        from apps.common.timefmt import fmt_date, fmt_time
-        from apps.notifications.tasks import notify_task
-        notify_task.delay(
-            booking.user_id,
-            "booking_modified",
-            "",
-            "",
-            {
-                "court": booking.court.name,
-                "date": fmt_date(new_date),
-                "time": fmt_time(new_start_time),
                 "booking_id": booking.id,
             },
         )

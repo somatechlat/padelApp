@@ -20,7 +20,4 @@ class UnreadStore extends ChangeNotifier {
 
   void increment() => setCount(_count + 1);
 
-  void decrement() => setCount(_count - 1);
-
-  void clear() => setCount(0);
 }

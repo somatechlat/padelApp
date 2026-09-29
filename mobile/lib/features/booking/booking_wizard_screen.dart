@@ -39,6 +39,10 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   String? _price;
   String? _error;
   bool _submitting = false;
+  // The booking is committed before payment UI, so a user who backs out of
+  // PaymentMethodScreen and taps Confirm again must resume THIS booking —
+  // not POST /bookings/ a second time and double-book the slot.
+  int? _bookingId;
   bool _loadingCourts = false;
   bool _loadingStarts = false;
   List<Map<String, dynamic>> _starts = [];
@@ -201,21 +205,44 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     });
     final api = context.read<ApiClient>();
     try {
-      final booking = await api.post('/bookings/', data: {
-        'court': court['id'],
-        'date': _fmtDate(_date),
-        'start_time': fmtBookTime(start),
-        'duration_minutes': _duration,
-      });
-      final bookingId = booking['id'];
-      await api.post('/bookings/$bookingId/confirm/');
+      // Resume a booking the user already created and confirmed, if any.
+      int bookingId = _bookingId ?? 0;
+      dynamic priceRaw;
+      if (bookingId == 0) {
+        final booking = await api.post('/bookings/', data: {
+          'court': court['id'],
+          'date': _fmtDate(_date),
+          'start_time': fmtBookTime(start),
+          'duration_minutes': _duration,
+        });
+        bookingId = booking['id'] as int;
+        priceRaw = booking['price'];
+        await api.post('/bookings/$bookingId/confirm/');
+      } else {
+        priceRaw = _price;
+      }
+      // Never fall back to 0: a zero-amount payment is a free booking. The
+      // server price is authoritative; `_price` is only a display string.
+      final amount = double.tryParse('${priceRaw ?? ''}');
+      if (amount == null || amount <= 0) {
+        if (mounted) {
+          setState(() {
+            _submitting = false;
+            _error = l10n.slotTaken;
+          });
+        }
+        return;
+      }
       if (mounted) {
-        setState(() => _submitting = false);
+        setState(() {
+          _submitting = false;
+          _bookingId = bookingId;
+        });
         final paymentResult = await Navigator.of(context).push(
           MaterialPageRoute(
             builder: (_) => PaymentMethodScreen(
               bookingId: bookingId,
-              amount: double.tryParse(_price ?? '0') ?? 0,
+              amount: amount,
             ),
           ),
         );
@@ -430,7 +457,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             ),
             const Spacer(),
             FilledButton(
-              onPressed: _submitting ? null : _submitBooking,
+              onPressed: (_submitting || _price == null) ? null : _submitBooking,
               child: _submitting
                   ? const SizedBox(
                       height: BookDim.progressSize,
@@ -439,7 +466,9 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                           strokeWidth: BookDim.progressStroke),
                     )
                   : Text(
-                      '${l10n.confirm} · \$$_price',
+                      _price == null
+                          ? l10n.loading
+                          : '${l10n.confirm} · \$$_price',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(fontSize: BookDim.buttonLabelSize),

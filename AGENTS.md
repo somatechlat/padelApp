@@ -200,8 +200,16 @@ Port map within each env: `N000` db, `N001` redis, `N002` backend/API,
   the operator; the previous host is retired and is not hard-coded here).
 - `docker-compose.yml` must never be run alone; always pair with an env overlay
   and a `-p` project name.
-- `compose.prod.yml` / `compose.server.yml` at the repo root are **legacy and
-  unused** by the Makefile. Do not extend them.
+- `compose.prod.yml` / `compose.server.yml` (legacy, unused) were **deleted**
+  2026-09-29. The live prod overlay is `docker-compose.prod.yml`.
+- **`localprod`** is the production-shaped stack for a laptop:
+  `padel.settings.prod_local` + `docker-compose.localprod.yml`. Same security
+  posture as prod (`DEBUG=False`, gunicorn, secure cookies, TLS), only the
+  destinations differ (test Stripe keys enforced, file-based email, push off,
+  demo data). It refuses `sk_live_`/`pk_live_` at import. HSTS is deliberately
+  **off** there — a one-year HSTS header on a laptop hostname is a footgun and
+  preload is effectively irreversible. That is the single intentional
+  divergence from prod; do not "fix" it by turning preload on locally.
 
 ---
 
@@ -329,12 +337,16 @@ Trust levels as of 2026-09-29:
   this file.
 - **Historical:** `docs/DEPLOYMENT_PLAN.md`, `docs/plans/`, `docs/srs/`.
 
-**Production is moving to a new server and a new domain.** The previous host
-and the `andespadel.yachaq.io` / `andespadel.com` names are **retired** — do
-not deploy to them, and do not put their addresses back into docs or config as
-if they were live. The replacement IP and hostname are **not yet supplied**;
-fill them in from the operator before any SSH, DNS or cert work. Until then
-every prod address in the tree is a placeholder, not a target.
+**Production domain: `andespadelclub.com`** (operator-supplied 2026-09-29).
+Public site `https://www.andespadelclub.com`, API `/api/`, admin
+`/adminpanel/`, privacy `/privacy`. Store it as the **bare apex** —
+`validate_production_host()` normalizes a pasted
+`https://www.andespadelclub.com` and `prod.py` derives `www.` from there, so
+`www.www.` cannot happen.
+
+The previous host and the `andespadel.yachaq.io` / `andespadel.com` names are
+**retired** — do not deploy to them. **The server IP is still unknown** and
+must be filled in from the operator before any SSH or DNS work.
 
 One further fact needs operator confirmation: whether a `resend` route should
 exist (there is currently none).
@@ -374,9 +386,9 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    acceptance, not an expiry: Google API keys do not self-expire the way a
    time-boxed GitHub PAT does, so the exposure is open-ended until revoked.
    Do not re-raise as a new finding; it is a known, owned risk.
-6. **Production target is unset.** New server + new domain are required; the
-   old addresses are retired and must not be re-added. Operator has not
-   supplied replacements.
+6. **Production server address is unset.** The domain (`andespadelclub.com`)
+   is known; the **server IP / SSH host is not**. Do not guess one and do not
+   re-add the retired addresses.
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.
 8. **`timezone.datetime` / `timezone.timedelta`** are gone from `apps/`, but

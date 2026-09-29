@@ -11,8 +11,10 @@ DEBUG = False
 # see validate_production_host() for why this is not hard-coded.
 from padel.settings._checks import validate_production_host  # noqa: E402
 
+# Stored as the bare apex so the www form can be derived once, here.
 PROD_DOMAIN = validate_production_host(getattr(secrets, "PROD_DOMAIN", ""))
 ALLOWED_HOSTS = [PROD_DOMAIN, f"www.{PROD_DOMAIN}"]
+PROD_ORIGINS = [f"https://{PROD_DOMAIN}", f"https://www.{PROD_DOMAIN}"]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
@@ -25,10 +27,10 @@ X_FRAME_OPTIONS = "DENY"
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
-CORS_ALLOWED_ORIGINS = [
-    f"https://{PROD_DOMAIN}",
-    f"https://www.{PROD_DOMAIN}",
-]
+CORS_ALLOWED_ORIGINS = PROD_ORIGINS
+# Django 4+ rejects POST without this, so the staff panel 403s on every
+# form submit if it is missing while CORS_ALLOWED_ORIGINS is set.
+CSRF_TRUSTED_ORIGINS = PROD_ORIGINS
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = secrets.EMAIL_HOST

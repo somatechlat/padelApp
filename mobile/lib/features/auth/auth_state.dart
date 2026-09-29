@@ -7,7 +7,6 @@ import '../../core/l10n/app_localizations.dart';
 
 /// Thrown when the API rejects a request with a message the UI may show.
 /// Anything else is mapped through [friendlyErrorMessage] before display.
-export '../../core/friendly_error.dart' show AppAuthException;
 
 class AuthState extends ChangeNotifier {
   AuthState({required ApiClient api, required TokenStorage storage})

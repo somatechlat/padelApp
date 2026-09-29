@@ -5,16 +5,6 @@ import 'package:padel_app/core/l10n/app_localizations.dart';
 class FormValidation {
   static final _emailRe = RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$');
 
-  static String? required(AppLocalizations l10n, String? value,
-      {String? label}) {
-    if (value == null || value.trim().isEmpty) {
-      return label == null
-          ? l10n.fieldRequired
-          : l10n.fieldRequiredNamed(label);
-    }
-    return null;
-  }
-
   static String? email(AppLocalizations l10n, String? value) {
     final v = (value ?? '').trim();
     if (v.isEmpty) return l10n.emailRequired;

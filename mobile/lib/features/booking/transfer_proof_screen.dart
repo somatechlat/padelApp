@@ -125,8 +125,14 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
       }
     } on DioException catch (e) {
       if (mounted) {
-        final msg = e.response?.data is Map
-            ? (e.response?.data['detail'] ?? l10n.proofUploadError)
+        // `data['detail']` is dynamic. A DRF error can carry a list or a map
+        // there, and assigning that to `String? _error` throws — the catch
+        // that exists to handle the failure is what crashed. Guard the type,
+        // the same way events_screen and the booking wizard already do.
+        final data = e.response?.data;
+        final detail = data is Map ? data['detail'] : null;
+        final msg = (detail is String && detail.isNotEmpty)
+            ? detail
             : l10n.proofUploadError;
         setState(() {
           _error = msg;

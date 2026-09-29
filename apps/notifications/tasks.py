@@ -2,6 +2,7 @@ import logging
 from datetime import timedelta
 
 from celery import shared_task
+from django.db.models import Q
 from django.utils import timezone
 
 from apps.notifications.services import NotificationService
@@ -87,12 +88,21 @@ def send_booking_reminders_2h(self):
 
     now = timezone.localtime()
     in_2h = now + timedelta(hours=2)
+    today = now.date()
+    # `date` and `start_time` are separate columns, so a plain
+    # start_time__gte/<= pair silently collapses when the window crosses
+    # midnight: at 23:30 the cutoff is 01:30 and 23:30 <= t <= 01:30 is empty.
+    # Split on whether the window rolls into tomorrow instead.
+    if in_2h.date() == today:
+        window = Q(date=today, start_time__gte=now.time(), start_time__lte=in_2h.time())
+    else:
+        window = Q(date=today, start_time__gte=now.time()) | Q(
+            date=today + timedelta(days=1), start_time__lte=in_2h.time()
+        )
     bookings = (
         Booking.objects.filter(
-            date=now.date(),
+            window,
             status=Booking.Status.CONFIRMED,
-            start_time__gte=now.time(),
-            start_time__lte=in_2h.time(),
         )
         .select_related("user", "court")
         .only("id", "user_id", "court__name", "date", "start_time")

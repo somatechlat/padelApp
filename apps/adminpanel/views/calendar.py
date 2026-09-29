@@ -10,9 +10,8 @@ from django.views.generic import TemplateView
 
 from apps.adminpanel.mixins import StaffRequiredMixin
 from apps.bookings.models import Booking
+from apps.bookings.services import BookingService
 from apps.courts.models import Court
-from apps.notifications.tasks import notify_task
-from apps.pricing.services import TariffService
 from apps.scheduling.models import TimeSlot
 from apps.security.services import log_event
 
@@ -107,7 +106,11 @@ class CalendarView(StaffRequiredMixin, TemplateView):
     def _action_mark_noshow(self, request):
         booking = get_object_or_404(Booking, id=request.POST.get("booking_id"))
         try:
-            booking.transition_to("no_show")
+            # BookingService.mark_no_show, not booking.transition_to: the
+            # service is what sends the no_show_penalty notification. Calling
+            # transition_to directly flipped the status and left the customer
+            # never told they had been charged a no-show penalty.
+            BookingService.mark_no_show(booking)
             messages.success(request, f"Reserva de {booking.user.email} marcada como no-show.")
             log_event(request.user, "admin.booking_noshow", "Booking", booking.id)
         except ValueError as exc:
@@ -130,30 +133,16 @@ class CalendarView(StaffRequiredMixin, TemplateView):
             messages.error(request, "Fecha u hora invalida.")
             return
 
-        end_dt = datetime.combine(date_val, start_time_val) + timedelta(minutes=duration)
-        end_time_val = end_dt.time()
-
-        booking = Booking.objects.create(
-            user=user,
-            court=court,
-            date=date_val,
-            start_time=start_time_val,
-            end_time=end_time_val,
-            duration_minutes=duration,
-            price=TariffService.compute(court, date_val, duration),
-            status="confirmed",
-        )
+        # Go through the service, never Booking.objects.create. `hold` is the
+        # only path that locks the TimeSlot rows: a bare insert left those slots
+        # AVAILABLE, so a client could book the same court and time and both
+        # reservations would stand. `confirm` then flips them to BOOKED and
+        # sends the user + admin notifications, so there is no notify_task here.
+        try:
+            booking = BookingService.hold(user, court, date_val, start_time_val, duration)
+            BookingService.confirm(booking)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return
         messages.success(request, f"Reserva manual creada #{booking.id} para {user.email}.")
         log_event(request.user, "admin.booking_create", "Booking", booking.id)
-        notify_task.delay(
-            user.id,
-            "booking_confirmed",
-            "",
-            "",
-            {
-                "court": court.name,
-                "date": str(date_val),
-                "time": str(start_time_val),
-                "booking_id": booking.id,
-            },
-        )

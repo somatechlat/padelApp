@@ -32,9 +32,10 @@ class ApiClient {
     // and mobile networks routinely need longer for the TLS handshake.
     _dio.options.connectTimeout = const Duration(seconds: 30);
     _dio.options.receiveTimeout = const Duration(seconds: 30);
-    // iOS/simulator happy-eyeballs can stall on this host's broken IPv6 path
-    // and then surface as "no connection" even though IPv4 works fine.
-    // Force every dial to prefer IPv4 A records.
+    // Reset the adapter's client factory so each dial gets a fresh HttpClient
+    // with an explicit connection timeout. (An earlier comment here claimed
+    // this forced IPv4 A records; it never did. Dart's HttpClient does not
+    // expose an address-family preference, so there is nothing to set.)
     (_dio.httpClientAdapter as IOHttpClientAdapter).createHttpClient = () {
       final client = HttpClient();
       client.connectionTimeout = const Duration(seconds: 30);

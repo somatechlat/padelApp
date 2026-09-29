@@ -68,12 +68,6 @@ class ClubInfo {
     );
   }
 
-  bool get hasContact =>
-      address.isNotEmpty ||
-      phone.isNotEmpty ||
-      email.isNotEmpty ||
-      instagramUrl.isNotEmpty ||
-      whatsappNumber.isNotEmpty;
 
   bool get hasBank =>
       bankName.isNotEmpty ||

@@ -22,6 +22,71 @@ MINIMAL_PNG = (
 )
 
 
+class TestAdminManualBookingLocksSlots:
+    """Manual bookings must lock TimeSlot rows.
+
+    `_action_create_booking` used `Booking.objects.create(...)` directly, so
+    `SlotService.available_slots` still reported the time free and a client
+    could double-book the same court. These call the service the view now
+    uses, so the assertion is about slot state, not the HTTP layer.
+    """
+
+    def _day(self):
+        return (timezone.now() + timedelta(days=2)).date()
+
+    def _open_court(self, court, day):
+        from apps.courts.models import CourtSchedule
+
+        CourtSchedule.objects.get_or_create(
+            court=court,
+            weekday=day.weekday(),
+            defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
+        )
+
+    def test_manual_booking_marks_timeslot_booked(self, court):
+        from django.contrib.auth import get_user_model as gum
+
+        from apps.bookings.services import BookingService
+        from apps.scheduling.models import TimeSlot
+
+        User = gum()
+        customer = User.objects.create_user(
+            email="cust-lock@test.com", password="pass12345", role="cliente"
+        )
+        day = self._day()
+        self._open_court(court, day)
+
+        booking = BookingService.hold(customer, court, day, "10:00", 60)
+        BookingService.confirm(booking)
+
+        booked = TimeSlot.objects.filter(
+            court=court, date=day, status=TimeSlot.Status.BOOKED
+        )
+        assert booked.exists(), (
+            "confirm() left every TimeSlot AVAILABLE — the slot is still open "
+            "for a client to book"
+        )
+
+    def test_second_manual_booking_on_taken_slot_is_refused(self, court):
+        from django.contrib.auth import get_user_model as gum
+
+        from apps.bookings.services import BookingService
+
+        User = gum()
+        first = User.objects.create_user(
+            email="cust-first@test.com", password="pass12345", role="cliente"
+        )
+        second = User.objects.create_user(
+            email="cust-second@test.com", password="pass12345", role="cliente"
+        )
+        day = self._day()
+        self._open_court(court, day)
+        BookingService.confirm(BookingService.hold(first, court, day, "10:00", 60))
+
+        with pytest.raises(ValueError):
+            BookingService.hold(second, court, day, "10:00", 60)
+
+
 def _png(name="banner.png"):
     return SimpleUploadedFile(name, MINIMAL_PNG, content_type="image/png")
 

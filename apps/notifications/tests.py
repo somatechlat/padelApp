@@ -122,6 +122,101 @@ class TestLocalizedMessages:
         assert n.title == ""
         assert n.body == ""
 
+    def _make_booking(self, user, day, start):
+        from apps.bookings.models import Booking
+        from apps.courts.models import Court, CourtSchedule, Venue
+
+        venue = Venue.objects.get_or_create(name="V", timezone="UTC", currency="USD")[0]
+        court = Court.objects.get_or_create(venue=venue, name="C1", price_base="10.00")[0]
+        CourtSchedule.objects.get_or_create(
+            court=court, weekday=day.weekday(), open_time="00:00", close_time="23:59"
+        )
+        return Booking.objects.create(
+            user=user,
+            court=court,
+            date=day,
+            start_time=start,
+            end_time="23:59",
+            duration_minutes=60,
+            players=4,
+            price="10.00",
+            status=Booking.Status.CONFIRMED,
+        )
+
+    def test_2h_reminder_still_fires_across_midnight(self, user, mailoutbox):
+        """A booking 1h after midnight must be reminded at 23:30.
+
+        The old query filtered `date=today` with `start_time__gte=now.time()`
+        and `start_time__lte=in_2h.time()`. At 23:30 the cutoff is 01:30, so
+        23:30 <= t <= 01:30 matched nothing and the booking was never
+        mentioned — including the date rollover case.
+        """
+        from datetime import datetime as dt
+        from unittest import mock
+
+        from django.utils import timezone
+        from django.utils.timezone import make_aware
+
+        from apps.notifications.models import Notification
+        from apps.notifications.tasks import send_booking_reminders_2h
+
+        tz = timezone.get_current_timezone()
+        frozen_now = make_aware(dt(2026, 10, 28, 23, 30), tz)
+        target_day = frozen_now.date() + timedelta(days=1)  # 2026-10-29
+        self._make_booking(user, target_day, "01:00")
+
+        with mock.patch(
+            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
+        ):
+            sent = send_booking_reminders_2h()
+
+        assert sent == 1, (
+            "2h reminder missed a booking 75 minutes out across midnight"
+        )
+        assert Notification.objects.filter(
+            user=user, event_type="booking_reminder_2h"
+        ).exists()
+
+    def test_2h_reminder_same_day_window_still_matches(self, user, mailoutbox):
+        from datetime import datetime as dt
+        from unittest import mock
+
+        from django.utils import timezone
+        from django.utils.timezone import make_aware
+
+        from apps.notifications.tasks import send_booking_reminders_2h
+
+        tz = timezone.get_current_timezone()
+        frozen_now = make_aware(dt(2026, 10, 28, 10, 0), tz)
+        self._make_booking(user, frozen_now.date(), "11:00")  # 1h out
+
+        with mock.patch(
+            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
+        ):
+            sent = send_booking_reminders_2h()
+
+        assert sent == 1
+
+    def test_2h_reminder_ignores_a_booking_outside_the_window(self, user, mailoutbox):
+        from datetime import datetime as dt
+        from unittest import mock
+
+        from django.utils import timezone
+        from django.utils.timezone import make_aware
+
+        from apps.notifications.tasks import send_booking_reminders_2h
+
+        tz = timezone.get_current_timezone()
+        frozen_now = make_aware(dt(2026, 10, 28, 10, 0), tz)
+        self._make_booking(user, frozen_now.date(), "18:00")  # 8h out
+
+        with mock.patch(
+            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
+        ):
+            sent = send_booking_reminders_2h()
+
+        assert sent == 0
+
     def test_reminder_task_counts_confirmed_bookings(self, user, mailoutbox):
         from django.utils import timezone
 

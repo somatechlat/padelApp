@@ -23,11 +23,15 @@ class Command(BaseCommand):
     help = "Seed an idempotent demo dataset: users, courts, events, tournaments, news, sample bookings."
 
     def handle(self, *args, **options):
-        if not settings.DEBUG:
+        # ALLOW_DEMO_SEED is defined only in padel.settings.prod_local, so a
+        # real production settings module cannot reach this branch. DEBUG alone
+        # is not the right gate: the local-as-production mode runs DEBUG=False
+        # on purpose and still needs demo data.
+        if not settings.DEBUG and not getattr(settings, "ALLOW_DEMO_SEED", False):
             raise CommandError(
                 "seed_demo creates users with a well-known password "
                 f"({DEMO_PASSWORD}) and is disposable-env-only. "
-                "Refusing to run with DEBUG=False."
+                "Refusing to run with DEBUG=False and ALLOW_DEMO_SEED unset."
             )
         self.stdout.write(
             self.style.WARNING(

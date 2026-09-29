@@ -35,17 +35,24 @@ class _EventsScreenState extends State<EventsScreen> {
     return (l as List<dynamic>?) ?? const [];
   }
 
+  // Each endpoint loads independently — one failure must not blank the other
+  // tabs — but the failure still has to be visible. Returning [] on error made
+  // a total outage indistinguishable from "no events yet" and left ErrorState
+  // below unreachable, because _error was only ever assigned null.
+  int _failedLoads = 0;
+
   Future<List<dynamic>> _safeList(Future<dynamic> Function() load) async {
     try {
       return _asList(await load());
     } catch (_) {
+      _failedLoads += 1;
       return const [];
     }
   }
 
   Future<void> _load() async {
     final api = context.read<ApiClient>();
-    // Load independently — one failed endpoint must not blank the others.
+    _failedLoads = 0;
     final results = await Future.wait([
       _safeList(() => api.get('/events/', query: {'category': 'quedada'})),
       _safeList(() => api.get('/tournaments/')),
@@ -60,7 +67,10 @@ class _EventsScreenState extends State<EventsScreen> {
       _ligas = results[2];
       _academia = results[3];
       _news = results[4];
-      _error = null;
+      // Only a total failure is an error state. Partial failures keep the tabs
+      // that did load usable; blanking the screen for one dead endpoint would
+      // be worse than showing what we have.
+      _error = _failedLoads == results.length ? 'load_failed' : null;
     });
   }
 

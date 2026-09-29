@@ -82,7 +82,9 @@ docker compose -p andespadel-prod \
 ## Production target — required before deploy
 
 Production is moving to a **new server and a new domain**. The previous host and
-the `yachaq` / `andespadel.com` names are **retired** and appear nowhere in this
+the `yachaq` / `andespadel.com` names are **retired**. The live production
+domain is **`andespadelclub.com`** (`https://www.andespadelclub.com`). The
+server IP is still operator-supplied and out-of-band. Retired names appear nowhere in this
 tree as a deploy target.
 
 Nothing is hard-coded on purpose, so a deploy cannot silently bind to a name
@@ -90,7 +92,7 @@ someone else now controls. Supply these before touching prod:
 
 | Setting | Where | Used by |
 |---|---|---|
-| `PROD_DOMAIN` | `settings/secrets.py` (bare hostname, no scheme) | `padel.settings.prod` → `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS` |
+| `PROD_DOMAIN` | `docker/backend/secrets.py` via `runsecrets` (bare apex, e.g. `andespadelclub.com`; a pasted URL is normalized) | `padel.settings.prod` → `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS`, `CSRF_TRUSTED_ORIGINS` |
 | `PROD_API_BASE_URL` | compose / shell env | `docker-compose.prod.yml` mobile build arg |
 | `E2E_BASE_URL` | shell env | `tests/e2e/` — suite refuses to start without it |
 | `PROD_BASE_URL` | shell env | `images/capture_screenshots.py` |

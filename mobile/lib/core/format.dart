@@ -18,11 +18,6 @@ String dateShort(AppLocalizations l10n, String? iso) {
 }
 
 /// "2026-08-14 18:00" -> localized date and time
-String dateTimeShort(AppLocalizations l10n, String? iso) {
-  final parsed = DateTime.tryParse(iso ?? '');
-  if (parsed == null) return iso ?? '';
-  return DateFormat('d MMM · HH:mm', l10n.localeName).format(parsed);
-}
 
 /// Human-friendly relative time for notifications.
 String relativeTime(AppLocalizations l10n, String? iso) {

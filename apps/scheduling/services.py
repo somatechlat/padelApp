@@ -68,12 +68,6 @@ class SlotService:
         return result
 
     @staticmethod
-    def block(court, day, start_time, duration_minutes, status=TimeSlot.Status.BLOCKED):
-        slots = SlotService.slots_in_range(court, day, start_time, duration_minutes)
-        TimeSlot.objects.filter(id__in=[s.id for s in slots]).update(status=status)
-        return slots
-
-    @staticmethod
     def slots_in_range(court, day, start_time, duration_minutes):
         count = duration_minutes // SLOT_MINUTES
         start_dt = datetime.combine(day, start_time)

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
-import '../theme/app_theme.dart';
 
 /// Friendly empty state: flat icon, title, optional message and action.
 class EmptyState extends StatelessWidget {
@@ -97,16 +96,3 @@ class ErrorState extends StatelessWidget {
 }
 
 /// Shared margins helper so every screen uses the same page gutter.
-class PagePadding extends StatelessWidget {
-  const PagePadding({super.key, required this.child});
-
-  final Widget child;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: child,
-    );
-  }
-}

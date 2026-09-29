@@ -1,12 +1,6 @@
 from rest_framework import serializers
 
-from apps.courts.models import Court, CourtSchedule, PromoBanner, Venue
-
-
-class VenueSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Venue
-        fields = ["id", "name", "address", "timezone", "currency", "active"]
+from apps.courts.models import Court, PromoBanner, Venue
 
 
 class ClubInfoSerializer(serializers.ModelSerializer):
@@ -109,13 +103,6 @@ class CourtSerializer(serializers.ModelSerializer):
             "image",
             "status",
         ]
-        read_only_fields = ["id"]
-
-
-class CourtScheduleSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = CourtSchedule
-        fields = ["id", "court", "weekday", "open_time", "close_time", "is_active"]
         read_only_fields = ["id"]
 
 

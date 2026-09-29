@@ -201,7 +201,7 @@ SPECTACULAR_SETTINGS = {
 # --- Email -------------------------------------------------------------------
 # Real SMTP config belongs in dev/prod; tests use the locmem backend.
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "no-reply@andespadel.com"
+DEFAULT_FROM_EMAIL = "no-reply@andespadelclub.com"
 
 # --- Media / static ------------------------------------------------------------
 MEDIA_URL = "/media/"
