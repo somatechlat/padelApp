@@ -167,8 +167,22 @@ status write, so an over-amount refund never reaches Stripe.
 Ordered by cost of ignoring them. Not a checklist — a map.
 
 1. **Firebase API keys remain in git history** (`AIza...` for Android and iOS,
-   committed in `d26820e`). Untracking does not erase history. **Rotate them in
-   Google Cloud Console.**
+   committed in `d26820e`). Untracking does not erase history.
+
+   **Decision (2026-09-29): do not rotate** — accepted as-is by the owner.
+
+   Worth stating plainly, because the rationale for accepting was "the keys
+   will expire soon": that is true of the time-boxed GitHub PAT, which has now
+   lapsed on its own. It is **not** true of Google API keys. They do not
+   self-expire. They remain valid until revoked in Google Cloud Console or the
+   project is shut down.
+
+   The risk is therefore open-ended rather than self-limiting. In practice
+   these keys are client-side identifiers (the mobile app has to ship one),
+   so they are not a bearer secret in the way a service-account key is — but
+   they do authorize the FCM/Identity surfaces they are scoped to, and they
+   will keep doing so indefinitely. This entry is a known, owned risk. Do not
+   re-raise it as a new finding; revisit only if the decision changes.
 2. **Django admin RBAC is coarser than the panel** (see §2.2).
 3. **Server IP is unverified** in `docs/DEPLOYMENTS.md` (`140.82.15.48` vs
    `140.82.155.48`).

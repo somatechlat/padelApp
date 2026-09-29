@@ -357,8 +357,11 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    all-or-nothing per role in a way the custom panel is not. Split it the same
    way if staff are ever pointed at `/admin/`.
 5. **Firebase API keys are still in git history** (`AIza...` for Android and
-   iOS, from commit `d26820e`). Untracking did not erase them. Rotate in
-   Google Cloud Console.
+   iOS, from commit `d26820e`). Untracking did not erase them. **Decision
+   (2026-09-29): do not rotate** — accepted as-is. Note this is a deliberate
+   acceptance, not an expiry: Google API keys do not self-expire the way a
+   time-boxed GitHub PAT does, so the exposure is open-ended until revoked.
+   Do not re-raise as a new finding; it is a known, owned risk.
 6. **Server IP is unverified** (`140.82.15.48` vs `140.82.155.48`).
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.
