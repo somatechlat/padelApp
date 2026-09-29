@@ -185,10 +185,10 @@ doc.add_heading("Arquitectura del Sistema", level=2)
 add_table(
     ["Componente", "Tecnología", "URL / Acceso"],
     [
-        ["API REST", "Django 5.2 + DRF", "https://andespadel.yachaq.io/api/"],
-        ["Documentación API", "drf-spectacular", "https://andespadel.yachaq.io/api/docs/"],
-        ["Admin Django", "Django Admin + RBAC", "https://andespadel.yachaq.io/admin/"],
-        ["Admin Personalizado", "Django Templates", "https://andespadel.yachaq.io/adminpanel/"],
+        ["API REST", "Django 5.2 + DRF", "https://<NEW_DOMAIN>/api/"],
+        ["Documentación API", "drf-spectacular", "https://<NEW_DOMAIN>/api/docs/"],
+        ["Admin Django", "Django Admin + RBAC", "https://<NEW_DOMAIN>/admin/"],
+        ["Admin Personalizado", "Django Templates", "https://<NEW_DOMAIN>/adminpanel/"],
         ["App Móvil", "Flutter 3.27", "APK Android / iOS"],
         ["Tareas Asíncronas", "Celery + Redis", "Worker en background"],
     ],
@@ -225,7 +225,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Personalizado (Recomendado para operación diaria)", level=2)
 doc.add_paragraph(
-    "1. Navegue a https://andespadel.yachaq.io/adminpanel/\n"
+    "1. Navegue a https://<NEW_DOMAIN>/adminpanel/\n"
     "2. Será redirigido a la pantalla de inicio de sesión\n"
     "3. Ingrese su correo electrónico y contraseña\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -237,7 +237,7 @@ doc.add_paragraph(
 
 doc.add_heading("Panel Django Admin (Gestión técnica avanzada)", level=2)
 doc.add_paragraph(
-    "1. Navegue a https://andespadel.yachaq.io/admin/\n"
+    "1. Navegue a https://<NEW_DOMAIN>/admin/\n"
     "2. Ingrese su correo electrónico en el campo \"Email\"\n"
     "3. Ingrese su contraseña en el campo \"Contraseña\"\n"
     "4. Haga clic en \"Iniciar sesión\""
@@ -903,9 +903,9 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Acceso a la documentación:", level=2)
-add_bullet("Swagger UI — https://andespadel.yachaq.io/api/docs/")
-add_bullet("ReDoc — https://andespadel.yachaq.io/api/redoc/")
-add_bullet("Schema (JSON/YAML) — https://andespadel.yachaq.io/api/schema/")
+add_bullet("Swagger UI — https://<NEW_DOMAIN>/api/docs/")
+add_bullet("ReDoc — https://<NEW_DOMAIN>/api/redoc/")
+add_bullet("Schema (JSON/YAML) — https://<NEW_DOMAIN>/api/schema/")
 
 doc.add_heading("6.1. Endpoints Disponibles", level=2)
 

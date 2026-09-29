@@ -15,7 +15,10 @@ COMPOSE_PROD := docker compose -p andespadel-prod -f docker-compose.yml -f docke
 
 API_DEV  := http://127.0.0.1:28002/api
 API_TEST := http://127.0.0.1:29002/api
-API_PROD := https://andespadel.yachaq.io/api
+# Production target moves to a new server + domain. Supply it explicitly:
+#   make <target> API_PROD=https://<new-domain>/api
+# The retired host must never be the default.
+API_PROD ?=
 
 up-dev:
 	$(COMPOSE_DEV) up -d

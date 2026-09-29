@@ -7,6 +7,7 @@ These test the full flows that a mobile app user would experience:
   - Change password -> Old tokens revoked
 """
 
+import os
 import time
 
 import pytest
@@ -14,7 +15,11 @@ import requests
 
 pytestmark = pytest.mark.e2e
 
-BASE = "https://andespadel.yachaq.io/api"
+BASE = os.environ.get("E2E_BASE_URL", "").rstrip("/")
+if not BASE:
+    raise RuntimeError("E2E_BASE_URL is required — no default production host is baked in")
+if not BASE.endswith("/api"):
+    BASE = BASE + "/api"
 
 
 @pytest.fixture(autouse=True)
@@ -348,11 +353,11 @@ class TestAPIHealth:
         assert resp.status_code == 200
 
     def test_landing_page_accessible(self):
-        resp = requests.get("https://andespadel.yachaq.io/")
+        resp = requests.get(f"{BASE.rsplit('/api', 1)[0]}/")
         assert resp.status_code == 200
         assert "Andes" in resp.text or "padel" in resp.text.lower()
 
     def test_admin_panel_login_accessible(self):
-        resp = requests.get("https://andespadel.yachaq.io/adminpanel/login/")
+        resp = requests.get(f"{BASE.rsplit('/api', 1)[0]}/adminpanel/login/")
         assert resp.status_code == 200
         assert "Andes" in resp.text

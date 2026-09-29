@@ -196,7 +196,8 @@ Port map within each env: `N000` db, `N001` redis, `N002` backend/API,
 
 - **API_DEV is `http://127.0.0.1:28002/api`** — this is also the default in
   `mobile/lib/core/api_client.dart`. Release builds must override with
-  `--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api`.
+  `--dart-define=API_BASE_URL=https://<new-domain>/api` (value supplied by
+  the operator; the previous host is retired and is not hard-coded here).
 - `docker-compose.yml` must never be run alone; always pair with an env overlay
   and a `-p` project name.
 - `compose.prod.yml` / `compose.server.yml` at the repo root are **legacy and
@@ -328,12 +329,23 @@ Trust levels as of 2026-09-29:
   this file.
 - **Historical:** `docs/DEPLOYMENT_PLAN.md`, `docs/plans/`, `docs/srs/`.
 
-Two facts still need operator confirmation and are marked `UNVERIFIED` in the
-docs rather than guessed: the server IP (`140.82.15.48` vs `140.82.155.48`), and
-whether a `resend` route should exist (there is currently none).
+**Production is moving to a new server and a new domain.** The previous host
+and the `andespadel.yachaq.io` / `andespadel.com` names are **retired** — do
+not deploy to them, and do not put their addresses back into docs or config as
+if they were live. The replacement IP and hostname are **not yet supplied**;
+fill them in from the operator before any SSH, DNS or cert work. Until then
+every prod address in the tree is a placeholder, not a target.
+
+One further fact needs operator confirmation: whether a `resend` route should
+exist (there is currently none).
 
 When you change a port, a make target, a URL, or add an API route, update
 `docs/DEPLOYMENTS.md` and this file in the same commit.
+
+Production needs `PROD_DOMAIN`, `PROD_API_BASE_URL`, `E2E_BASE_URL` and
+`PROD_BASE_URL` supplied out-of-band — see `docs/DEPLOYMENTS.md`. Do not
+hard-code a production hostname anywhere; `padel.settings.prod` refuses to
+import without `PROD_DOMAIN`.
 
 ---
 
@@ -362,7 +374,9 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    acceptance, not an expiry: Google API keys do not self-expire the way a
    time-boxed GitHub PAT does, so the exposure is open-ended until revoked.
    Do not re-raise as a new finding; it is a known, owned risk.
-6. **Server IP is unverified** (`140.82.15.48` vs `140.82.155.48`).
+6. **Production target is unset.** New server + new domain are required; the
+   old addresses are retired and must not be re-added. Operator has not
+   supplied replacements.
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.
 8. **`timezone.datetime` / `timezone.timedelta`** are gone from `apps/`, but

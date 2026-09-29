@@ -2,13 +2,16 @@
 """Capture screenshots of PadelApp web interfaces using Playwright."""
 
 import json
+import os
 import time
 import urllib.request
 from pathlib import Path
 
 from playwright.sync_api import sync_playwright
 
-BASE = "https://andespadel.yachaq.io"
+BASE = os.environ.get("PROD_BASE_URL", "")
+if not BASE:
+    raise RuntimeError("PROD_BASE_URL is required — no default production host is baked in")
 OUT = Path(__file__).parent
 ADMIN_USER = "admin@andespadel.com"
 ADMIN_PASS = "Andes12345!"

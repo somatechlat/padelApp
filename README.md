@@ -34,7 +34,7 @@ make seeddemo-dev    # demo data; password Andes12345!
 make flrun           # Flutter against http://127.0.0.1:28002/api
 ```
 
-API base URL default in `mobile/lib/core/api_client.dart` is `http://127.0.0.1:28002/api`. Release builds must pass `--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api`.
+API base URL default in `mobile/lib/core/api_client.dart` is `http://127.0.0.1:28002/api`. Release builds must pass `--dart-define=API_BASE_URL=https://<new-domain>/api`. The old host is retired; the new domain is supplied by the operator and is **not** hard-coded anywhere.
 
 ## Tests and lint
 
@@ -42,7 +42,7 @@ API base URL default in `mobile/lib/core/api_client.dart` is `http://127.0.0.1:2
 |---|---|---|
 | Django (pytest, `apps/`) | `make test-dev` | dev stack up (Postgres) |
 | Flutter | `make fltest-dev` | dev stack up for most tests |
-| Playwright E2E | `./tests/e2e/run.sh` | a reachable admin (default `https://andespadel.yachaq.io`) |
+| Playwright E2E | `./tests/e2e/run.sh` | a reachable admin — set `E2E_BASE_URL`, no default is baked in |
 | Python lint | `make lint` (in container) or `python3 -m ruff check .` + `python3 -m flake8 apps padel` | — |
 | Flutter analyze | `make flcheck` | Flutter at `/usr/local/bin/flutter` |
 

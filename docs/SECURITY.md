@@ -184,8 +184,9 @@ Ordered by cost of ignoring them. Not a checklist — a map.
    will keep doing so indefinitely. This entry is a known, owned risk. Do not
    re-raise it as a new finding; revisit only if the decision changes.
 2. **Django admin RBAC is coarser than the panel** (see §2.2).
-3. **Server IP is unverified** in `docs/DEPLOYMENTS.md` (`140.82.15.48` vs
-   `140.82.155.48`).
+3. **Production target is unset.** A new server and domain replace the
+   retired ones; the replacements are not yet supplied. Do not deploy to or
+   document the old addresses as live.
 4. **No rate limiting on the admin panel `post()` endpoints** beyond Django's
    defaults. They are session-authenticated and staff-only, which bounds the
    risk, but a compromised staff session can still act fast.

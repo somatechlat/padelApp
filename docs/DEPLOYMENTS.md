@@ -6,11 +6,11 @@ Three isolated deployments. Never mix ports, secrets, or data between them.
 |-----|-----------------|------------|----------|------|---------|
 | **dev** | `andespadel` | **28000–28003** | `padel.settings.dev` | local Docker volume `andespadel_db_data` | Local development |
 | **test** | `andespadel-test` | **29000–29003** | `padel.settings.dev` | volume `andespadel-test_db_data` | QA / UAT / staging |
-| **prod** | `andespadel-prod` | **34000–34003** (server) | `padel.settings.prod` | volume `andespadel-prod_db_data` | Live `andespadel.yachaq.io` |
+| **prod** | `andespadel-prod` | **34000–34003** (server) | `padel.settings.prod` | volume `andespadel-prod_db_data` | New server + domain, operator-supplied |
 
 Port map (same offsets in every env):
 
-| Offset | Service | dev | test | prod (server 140.82.15.48) |
+| Offset | Service | dev | test | prod (new server — address not yet supplied) |
 |--------|---------|-----|------|------------------------------|
 | +0 | PostgreSQL | 28000 | 29000 | 34000 |
 | +1 | Redis | 28001 | 29001 | 34001 |
@@ -54,7 +54,8 @@ make test-test
 
 # PROD (server ports 34000+, or local dry-run)
 make up-prod
-# real prod: on 140.82.15.48 under /opt/padelapp only (R18)
+# real prod: NEW SERVER — address not yet supplied. The old host is retired.
+# Do not deploy there. Under /opt/padelapp only (R18)
 ```
 
 Equivalent raw compose (always pass `-f` base + overlay):
@@ -78,6 +79,28 @@ docker compose -p andespadel-prod \
 
 ---
 
+## Production target — required before deploy
+
+Production is moving to a **new server and a new domain**. The previous host and
+the `yachaq` / `andespadel.com` names are **retired** and appear nowhere in this
+tree as a deploy target.
+
+Nothing is hard-coded on purpose, so a deploy cannot silently bind to a name
+someone else now controls. Supply these before touching prod:
+
+| Setting | Where | Used by |
+|---|---|---|
+| `PROD_DOMAIN` | `settings/secrets.py` (bare hostname, no scheme) | `padel.settings.prod` → `ALLOWED_HOSTS`, `CORS_ALLOWED_ORIGINS` |
+| `PROD_API_BASE_URL` | compose / shell env | `docker-compose.prod.yml` mobile build arg |
+| `E2E_BASE_URL` | shell env | `tests/e2e/` — suite refuses to start without it |
+| `PROD_BASE_URL` | shell env | `images/capture_screenshots.py` |
+
+`padel.settings.prod` **raises on import** if `PROD_DOMAIN` is missing or is a
+URL rather than a bare hostname. That is deliberate: failing at boot is better
+than serving on a retired name.
+
+---
+
 ## Settings & parameters per environment
 
 | Parameter | dev | test | prod |
@@ -90,16 +113,16 @@ docker compose -p andespadel-prod \
 | Celery eager | True (dev) | False | False |
 | Email | console | console | real SMTP in `secrets.py` |
 | Stripe | test keys | test keys | live or test keys |
-| Allowed hosts | `*` / localhost | test host | `andespadel.yachaq.io` |
+| Allowed hosts | `*` / localhost | test host | `PROD_DOMAIN` from `settings/secrets.py` (required) |
 | SSL | off | off | terminated by host nginx |
-| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://andespadel.yachaq.io/api` |
+| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://<new-domain>/api` |
 
 Mobile builds select the API with:
 
 ```bash
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:28002/api   # dev
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:29002/api   # test
-flutter build apk --release --dart-define=API_BASE_URL=https://andespadel.yachaq.io/api  # prod
+flutter build apk --release --dart-define=API_BASE_URL=https://<new-domain>/api  # prod
 ```
 
 ---

@@ -5,7 +5,14 @@ from padel.settings.base import *  # noqa: F401, F403
 from runsecrets import secrets
 
 DEBUG = False
-ALLOWED_HOSTS = ["andespadel.yachaq.io", "andespadel.com", "www.andespadel.com"]
+
+# Production hostname comes from settings/secrets.py (PROD_DOMAIN). The old
+# host and domains are retired and deliberately not present in this tree —
+# see validate_production_host() for why this is not hard-coded.
+from padel.settings._checks import validate_production_host  # noqa: E402
+
+PROD_DOMAIN = validate_production_host(getattr(secrets, "PROD_DOMAIN", ""))
+ALLOWED_HOSTS = [PROD_DOMAIN, f"www.{PROD_DOMAIN}"]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
@@ -19,9 +26,8 @@ SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
 
 CORS_ALLOWED_ORIGINS = [
-    "https://andespadel.yachaq.io",
-    "https://andespadel.com",
-    "https://www.andespadel.com",
+    f"https://{PROD_DOMAIN}",
+    f"https://www.{PROD_DOMAIN}",
 ]
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"

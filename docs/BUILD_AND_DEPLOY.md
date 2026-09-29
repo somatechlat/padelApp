@@ -68,7 +68,7 @@ Dev/test mount `./docker/backend` as `/app/runsecrets` (read-only). Prod secrets
 | `padel/settings/local_sqlite.py` | Overlay for docker-less tests |
 | `padel/settings/_checks.py` | Fail-fast production secret validation |
 
-Prod `ALLOWED_HOSTS` includes `andespadel.yachaq.io`. Test env uses `padel.settings.dev` — there is no separate test settings module.
+Prod `ALLOWED_HOSTS` is derived from `PROD_DOMAIN` in `settings/secrets.py` and is **required** — the module refuses to import without it. Test env uses `padel.settings.dev` — there is no separate test settings module.
 
 ## API URL (mobile)
 
@@ -81,14 +81,14 @@ http://127.0.0.1:28002/api
 That is the dev API. Every release build must override it:
 
 ```bash
---dart-define=API_BASE_URL=https://andespadel.yachaq.io/api
+--dart-define=API_BASE_URL=https://<new-domain>/api
 ```
 
 | Env | API base |
 |---|---|
 | dev | `http://127.0.0.1:28002/api` |
 | test | `http://127.0.0.1:29002/api` |
-| prod | `https://andespadel.yachaq.io/api` |
+| prod | `https://<new-domain>/api` |
 
 Makefile `API_DEV` / `API_TEST` / `API_PROD` match these values.
 
@@ -164,16 +164,17 @@ docker compose -p andespadel-prod \
 
 Or simply `make up-prod` / `make down-prod` from a checkout with the Makefile.
 
-Prod backend runs gunicorn (see `docker-compose.prod.yml` command override). Public URL: `https://andespadel.yachaq.io`.
+Prod backend runs gunicorn (see `docker-compose.prod.yml` command override). Public URL: the new production domain, supplied by the operator.
 
 ### Server host IP — UNVERIFIED
 
 This repo disagrees on the production server address:
 
-- `docs/BUILD_AND_DEPLOY.md` (historical text) said `140.82.155.48`
-- `docs/DEPLOYMENTS.md` and `docs/DEPLOYMENT_PLAN.md` say `140.82.15.48`
+- Every previously documented server address is **retired**. Production is
+  moving to a new host and domain whose values the operator has not yet
+  supplied. Do not treat any address in these docs as a deploy target.
 
-**UNVERIFIED — do not treat either IP as authoritative.** Confirm with the operator before SSH or DNS work. The public hostname `andespadel.yachaq.io` is the stable reference.
+**Every previously documented address is retired.** Production is moving to a new server and domain; the operator supplies both. Nothing in this tree names a production host on purpose.
 
 ### Server constraints (from ops notes)
 
@@ -203,7 +204,7 @@ flutter build apk --debug \
 | Debug | `mobile/build/app/outputs/flutter-apk/app-debug.apk` |
 | Release | `mobile/build/app/outputs/flutter-apk/app-release.apk` |
 
-Release APK/AAB must pass `--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
+Release APK/AAB must pass `--dart-define=API_BASE_URL=https://<new-domain>/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
 
 `applicationId`: `com.andes.padel.padel_app`.
 

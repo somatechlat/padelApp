@@ -8,7 +8,7 @@ How to run the suites and how the live HTTP surface is shaped. Ports, commands a
 |---|---|
 | Django (`make test-dev`) | Dev stack up (`make up-dev`) — Postgres and Redis |
 | Flutter (`make fltest-dev`) | Dev stack up for integration-style tests. Offline-safe: `brand_logo_test.dart`, `password_field_test.dart` |
-| Playwright (`tests/e2e/`) | A reachable admin panel. Default target `https://andespadel.yachaq.io` (override with `E2E_BASE_URL`) |
+| Playwright (`tests/e2e/`) | A reachable admin panel. **`E2E_BASE_URL` is required** — no default is baked in |
 
 Host Flutter for `make fltest-dev` / `make flcheck` / `make flrun` is `/usr/local/bin/flutter` (see `AGENTS.md`). Do not use `~/development/flutter`.
 
@@ -30,7 +30,7 @@ API base URLs used by the Makefile and the mobile client:
 |---|---|
 | dev | `http://127.0.0.1:28002/api` |
 | test | `http://127.0.0.1:29002/api` |
-| prod | `https://andespadel.yachaq.io/api` |
+| prod | `https://<new-domain>/api` (operator-supplied; old host retired) |
 
 Compose is always base + overlay + project name:
 
@@ -79,7 +79,7 @@ Tests live in `mobile/test/`. Some assert on `AuthState.error`; that getter retu
 ./tests/e2e/run.sh test_login.py   # one file
 ```
 
-Uses `tests/e2e/pytest.ini` (marker `e2e`) and defaults to `https://andespadel.yachaq.io` (override with `E2E_BASE_URL`). 111 admin + 28 auth tests (count as of `AGENTS.md`). Separate from the Django suite.
+Uses `tests/e2e/pytest.ini` (marker `e2e`). **`E2E_BASE_URL` is required** — the suite refuses to start without it. 111 admin + 28 auth tests (count as of `AGENTS.md`). Separate from the Django suite.
 
 ### Lint
 
@@ -260,7 +260,7 @@ make psql
 API URL for any release build must be set explicitly:
 
 ```bash
---dart-define=API_BASE_URL=https://andespadel.yachaq.io/api
+--dart-define=API_BASE_URL=https://<new-domain>/api
 ```
 
 Bundle ids differ on purpose: Android `com.andes.padel.padel_app`, iOS `com.andes.padel.padelApp`.

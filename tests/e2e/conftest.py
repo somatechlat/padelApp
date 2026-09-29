@@ -5,7 +5,12 @@ import os
 import pytest
 from playwright.sync_api import Page, sync_playwright
 
-BASE_URL = os.environ.get("E2E_BASE_URL", "https://andespadel.yachaq.io")
+BASE_URL = os.environ.get("E2E_BASE_URL", "")
+if not BASE_URL:
+    raise RuntimeError(
+        "E2E_BASE_URL is required. Production is on a new server/domain; "
+        "pass the live admin URL explicitly. No default is baked in."
+    )
 
 ADMIN_EMAIL = "admin@andespadel.com"
 ADMIN_PASSWORD = "Andes12345!"

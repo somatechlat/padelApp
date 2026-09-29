@@ -11,7 +11,8 @@ cd "$(dirname "$0")/../.."
 FILE="${1:-tests/e2e/}"
 
 echo "=== Andes Padel — Playwright E2E Tests ==="
-echo "Target: https://andespadel.yachaq.io"
+: "${E2E_BASE_URL:?E2E_BASE_URL is required — production is on a new server/domain}"
+echo "Target: $E2E_BASE_URL"
 echo "Tests:  $FILE"
 echo ""
 
