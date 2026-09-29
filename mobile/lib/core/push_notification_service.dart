@@ -7,7 +7,12 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/api_client.dart';
-import '../firebase_options.dart';
+
+// Firebase config (google-services.json / GoogleService-Info.plist /
+// firebase_options.dart) is supplied out-of-band and is gitignored on purpose.
+// This service therefore does NOT import firebase_options.dart: when Firebase
+// is not configured, push is disabled at runtime and every method is a no-op,
+// so a fresh clone still compiles and runs.
 
 /// Handles Firebase Cloud Messaging (FCM) push notifications.
 ///
@@ -16,6 +21,9 @@ import '../firebase_options.dart';
 /// - Register the FCM device token with the backend on login
 /// - Display incoming push notifications when the app is in foreground
 /// - Handle notification tap navigation
+///
+/// When Firebase is not configured (see comment above), [initialize] logs at
+/// info that push is disabled and the registration/token calls become no-ops.
 class PushNotificationService {
   PushNotificationService(
       {required ApiClient api, GlobalKey<NavigatorState>? navigatorKey})
@@ -26,6 +34,10 @@ class PushNotificationService {
   final GlobalKey<NavigatorState>? _navigatorKey;
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
+
+  /// True only after [Firebase.initializeApp] succeeds. When false, push is
+  /// disabled and every public method is a no-op.
+  bool _firebaseReady = false;
 
   /// Fired when a push arrives (foreground) so the UI can mark it as new.
   void Function()? onNotificationReceived;
@@ -39,13 +51,24 @@ class PushNotificationService {
 
   /// Initialize Firebase, request permissions, and set up message handlers.
   /// Call this once at app startup (before runApp or in main).
+  ///
+  /// Safe to call when Firebase config is absent: logs that push is disabled
+  /// and returns without throwing.
   Future<void> initialize() async {
-    // Options are required: GoogleService-Info.plist is not guaranteed to be
-    // copied into the bundle (and is absent on some CI/simulator builds), and
-    // without them Firebase.initializeApp throws core/not-initialized.
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
+    // Native config (google-services.json via the Gradle plugin, or
+    // GoogleService-Info.plist) is enough when present. firebase_options.dart
+    // is intentionally not imported — it is gitignored and must not be
+    // required for the tree to compile. If Firebase is not configured,
+    // initializeApp throws and we leave push disabled.
+    try {
+      await Firebase.initializeApp();
+      _firebaseReady = true;
+    } catch (e) {
+      _firebaseReady = false;
+      debugPrint(
+          'Push notifications disabled (Firebase not configured, config is supplied out-of-band and gitignored): $e');
+      return;
+    }
 
     // Request permission (iOS required, Android auto-grants)
     final settings = await FirebaseMessaging.instance.requestPermission(
@@ -95,7 +118,12 @@ class PushNotificationService {
 
   /// Register the FCM device token with the backend.
   /// Call this after successful login.
+  /// No-op when Firebase is not configured.
   Future<void> registerToken() async {
+    if (!_firebaseReady) {
+      debugPrint('FCM token registration skipped (push disabled)');
+      return;
+    }
     try {
       final token = await FirebaseMessaging.instance.getToken();
       if (token != null && token.isNotEmpty) {

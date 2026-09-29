@@ -1,67 +1,36 @@
-import 'dart:io';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:padel_app/core/api_client.dart';
+import 'package:padel_app/core/l10n/app_localizations_es.dart';
 import 'package:padel_app/core/storage.dart';
 import 'package:padel_app/features/auth/auth_state.dart';
 
-/// Real local API (Docker backend on :8000). No mocks, no fakes.
-const kApiBaseUrl = String.fromEnvironment(
-  'API_BASE_URL',
-  defaultValue: 'http://127.0.0.1:8000/api',
-);
-
-FileTokenStorage newTokenStorage() {
-  final dir = Directory.systemTemp.createTempSync('andes_padel_tokens_');
-  return FileTokenStorage(File('${dir.path}/tokens.json'));
-}
-
-ApiClient realApi({String? baseUrl, TokenStorage? storage}) {
-  return ApiClient(
-    storage: storage ?? newTokenStorage(),
-    baseUrl: baseUrl ?? kApiBaseUrl,
-  );
-}
-
-String uniqueEmail() {
-  final ts = DateTime.now().microsecondsSinceEpoch;
-  return 'test.user.$ts@andespadel.test';
-}
+import 'helpers/fake_api.dart';
+import 'helpers/test_storage.dart';
 
 void main() {
-  setUpAll(() {
-    // Pure `test()` — real HTTP is allowed (no TestWidgetsFlutterBinding).
-    final client = Dio(BaseOptions(baseUrl: kApiBaseUrl));
-    addTearDown(client.close);
-    // Fail fast if Docker backend is not running.
-    expect(
-      () async => await client.get('/courts/'),
-      returnsNormally,
-      reason: 'Docker backend must be up on $kApiBaseUrl',
-    );
+  test('login stores tokens and authenticates', () async {
+    final storage = newTokenStorage();
+    final api = FakeApi(storage: storage);
+    final auth = AuthState(api: api, storage: storage);
+
+    await auth.login('CLIENTE@andespadel.com', 'Andes12345!');
+
+    // Real success signals — never just `auth.error, isNull`.
+    expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
+    expect(auth.authenticated, isTrue);
+    expect(auth.user, isNotNull);
+    expect(auth.user?['email'], 'cliente@andespadel.com');
+    expect(await storage.read(SecureTokenStorage.accessKey), 'fake-access');
+    expect(await storage.read(SecureTokenStorage.refreshKey), 'fake-refresh');
   });
 
-  test('login stores real tokens and authenticates', () async {
+  test('register records the account and opens no session', () async {
     final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
-
-    await auth.login('cliente@andespadel.com', 'Andes12345!');
-
-    expect(auth.authenticated, isTrue, reason: 'error=${auth.lastError}');
-    final access = await storage.read(SecureTokenStorage.accessKey);
-    final refresh = await storage.read(SecureTokenStorage.refreshKey);
-    expect(access, isNotEmpty);
-    expect(refresh, isNotEmpty);
-  });
-
-  test('register creates a real account without a session', () async {
-    final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
-    final email = uniqueEmail();
+    final api = FakeApi(storage: storage);
+    final auth = AuthState(api: api, storage: storage);
 
     await auth.register(
-      email: email,
+      email: 'Ana@Test.com',
       password: 'pass12345',
       firstName: 'Ana',
       lastName: 'Prueba',
@@ -69,49 +38,130 @@ void main() {
       skillLevelId: null,
     );
 
-    expect(auth.error, isNull, reason: '${auth.lastError}');
+    // The API really received the registration (lower-cased email).
+    expect(api.registeredEmails, <String>['ana@test.com']);
+    expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
     expect(auth.authenticated, isFalse);
+    expect(auth.user, isNull);
+    expect(await storage.read(SecureTokenStorage.accessKey), isNull);
   });
 
-  test('requestReset reports success for known format email', () async {
+  test('verify without tokens does not authenticate', () async {
     final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
+    final auth = AuthState(api: FakeApi(storage: storage), storage: storage);
 
-    await auth.requestReset('cliente@andespadel.com');
+    await auth.verify('ana@test.com', '123456');
 
-    expect(auth.error, isNull, reason: '${auth.lastError}');
+    expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
+    expect(auth.authenticated, isFalse);
+    expect(await storage.read(SecureTokenStorage.accessKey), isNull);
   });
 
-  test('restoreSession authenticates when real token exists', () async {
+  test('requestReset is accepted for a known-format email', () async {
     final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
-    await auth.login('cliente@andespadel.com', 'Andes12345!');
+    final api = FakeApi(storage: storage);
+    final auth = AuthState(api: api, storage: storage);
 
-    final auth2 = AuthState(api: realApi(storage: storage), storage: storage);
-    await auth2.restoreSession();
-    expect(auth2.authenticated, isTrue);
-    expect(auth2.initialized, isTrue);
+    await auth.requestReset('Cliente@Andespadel.com');
+
+    expect(api.passwordResetEmails, <String>['cliente@andespadel.com']);
+    expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
   });
 
-  test('logout clears real stored tokens', () async {
+  test('resetConfirm reports success', () async {
     final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
-    await auth.login('cliente@andespadel.com', 'Andes12345!');
+    final auth = AuthState(api: FakeApi(storage: storage), storage: storage);
+
+    await auth.resetConfirm('ana@test.com', '123456', 'nueva12345');
+
+    expect(auth.hasError, isFalse, reason: 'lastError=${auth.lastError}');
+  });
+
+  test('restoreSession authenticates when a token exists', () async {
+    final storage = newTokenStorage();
+    await storage.write(SecureTokenStorage.accessKey, 'fake-access');
+    await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
+    final auth = AuthState(api: FakeApi(storage: storage), storage: storage);
+
+    await auth.restoreSession();
+
+    expect(auth.initialized, isTrue);
+    expect(auth.authenticated, isTrue);
+  });
+
+  test('logout clears session and stored tokens', () async {
+    final storage = newTokenStorage();
+    final api = FakeApi(storage: storage);
+    await storage.write(SecureTokenStorage.accessKey, 'fake-access');
+    await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
+    final auth = AuthState(api: api, storage: storage);
+
     await auth.restoreSession();
     await auth.logout();
 
     expect(auth.authenticated, isFalse);
+    expect(auth.user, isNull);
+    expect(api.loggedOut, isTrue, reason: 'logout must reach the API');
+    expect(api.logoutRefreshes, <String>['fake-refresh']);
     expect(await storage.read(SecureTokenStorage.accessKey), isNull);
     expect(await storage.read(SecureTokenStorage.refreshKey), isNull);
   });
 
-  test('login rejects bad password against real API', () async {
+  test('login rejects a wrong password with a real 401', () async {
     final storage = newTokenStorage();
-    final auth = AuthState(api: realApi(storage: storage), storage: storage);
+    final api = FakeApi(storage: storage);
+    final auth = AuthState(api: api, storage: storage);
 
     await auth.login('cliente@andespadel.com', 'wrong-password');
 
     expect(auth.authenticated, isFalse);
-    expect(auth.lastError, isNotNull);
+    // Real failure signal: a 401 DioException, not merely "some error".
+    expect(auth.hasError, isTrue);
+    expect(auth.lastError, isA<DioException>());
+    final err = auth.lastError! as DioException;
+    expect(err.type, DioExceptionType.badResponse);
+    expect(err.response?.statusCode, 401);
+    // A rejected login must never mint a session.
+    expect(auth.user, isNull);
+    expect(await storage.read(SecureTokenStorage.accessKey), isNull);
+    expect(await storage.read(SecureTokenStorage.refreshKey), isNull);
+  });
+
+  test('network failure surfaces a friendly message, never a raw dump',
+      () async {
+    // Regression: `AuthState.error` used to drop Dio/network failures on the
+    // floor, so any caller checking it showed nothing. It now requires l10n
+    // and maps through `friendlyErrorMessage`, returning non-null whenever
+    // [hasError] is true. Never assert `error, isNull` as a success signal.
+    final storage = newTokenStorage();
+    final api = FakeApi(storage: storage)..offline = true;
+    final auth = AuthState(api: api, storage: storage);
+    final l10n = AppLocalizationsEs();
+
+    await auth.login('cliente@andespadel.com', 'Andes12345!');
+
+    expect(auth.hasError, isTrue);
+    expect(auth.lastError, isA<DioException>());
+    expect((auth.lastError! as DioException).type,
+        DioExceptionType.connectionError);
+
+    final message = auth.error(l10n);
+    expect(message, isNotNull, reason: 'error(l10n) must surface the failure');
+    expect(message, isNot(contains('DioException')));
+    expect(message, isNot(contains('Stack Trace')));
+    expect(auth.authenticated, isFalse);
+  });
+
+  test('error(l10n) is null only when the last call succeeded', () async {
+    final storage = newTokenStorage();
+    final api = FakeApi(storage: storage);
+    final auth = AuthState(api: api, storage: storage);
+    final l10n = AppLocalizationsEs();
+
+    await auth.login('cliente@andespadel.com', 'Andes12345!');
+
+    expect(auth.authenticated, isTrue);
+    expect(auth.hasError, isFalse);
+    expect(auth.error(l10n), isNull);
   });
 }

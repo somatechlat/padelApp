@@ -1,4 +1,4 @@
-from datetime import time, timedelta
+from datetime import datetime, time, timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -24,7 +24,7 @@ class BookingService:
         start_time = time.fromisoformat(str(start_time)) if isinstance(start_time, str) else start_time
         now = timezone.localtime()
         start_dt = timezone.make_aware(
-            timezone.datetime.combine(day, start_time), timezone.get_current_timezone()
+            datetime.combine(day, start_time), timezone.get_current_timezone()
         )
         if day < now.date() or (day == now.date() and start_dt <= now):
             raise ValueError(_("La hora ya paso"))
@@ -63,7 +63,7 @@ class BookingService:
                 court=court,
                 date=day,
                 start_time=start_time,
-                end_time=(timezone.datetime.combine(day, start_time) + timedelta(minutes=duration_minutes)).time(),
+                end_time=(datetime.combine(day, start_time) + timedelta(minutes=duration_minutes)).time(),
                 duration_minutes=duration_minutes,
                 players=players,
                 price=price,
@@ -231,7 +231,7 @@ class BookingService:
             booking.date = new_date
             booking.start_time = new_start_time
             booking.end_time = (
-                timezone.datetime.combine(new_date, new_start_time) + td(minutes=booking.duration_minutes)
+                datetime.combine(new_date, new_start_time) + td(minutes=booking.duration_minutes)
             ).time()
             booking.save(update_fields=["date", "start_time", "end_time", "updated_at"])
 

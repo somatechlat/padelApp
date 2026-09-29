@@ -1,5 +1,9 @@
+import logging
+
 from celery import shared_task
 from django.utils import timezone
+
+logger = logging.getLogger(__name__)
 
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=5)
@@ -30,5 +34,7 @@ def release_expired_holds(self):
             BookingService.cancel(booking)
             released += 1
         except Exception:
-            continue
+            logger.exception(
+                "Failed to release expired hold for booking %s", booking.id
+            )
     return released

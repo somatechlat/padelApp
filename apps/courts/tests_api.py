@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.utils import timezone
 from rest_framework import status
@@ -37,49 +39,6 @@ def venue():
         timezone="America/Guayaquil",
         currency="USD",
     )
-
-
-@pytest.fixture
-def court(venue):
-    from apps.courts.models import Court
-
-    return Court.objects.create(
-        venue=venue, name="Cancha 1", court_type="techada", price_base="12.00"
-    )
-
-
-@pytest.fixture
-def staff_user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(
-        email="staff@test.com", password="pass12345", role="recepcionista"
-    )
-
-
-@pytest.fixture
-def staff_client(api_client, staff_user):
-    from rest_framework_simplejwt.tokens import RefreshToken
-
-    token = RefreshToken.for_user(staff_user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
-    return api_client
-
-
-@pytest.fixture
-def client_user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(email="c@test.com", password="pass12345")
-
-
-@pytest.fixture
-def client(api_client, client_user):
-    from rest_framework_simplejwt.tokens import RefreshToken
-
-    token = RefreshToken.for_user(client_user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
-    return api_client
 
 
 def make_banner_image():
@@ -190,14 +149,14 @@ class TestBannerAPI:
         expired = PromoBanner(
             title_i18n={"es": "Vencido"},
             active=True,
-            ends_at=now - timezone.timedelta(days=1),
+            ends_at=now - timedelta(days=1),
         )
         expired.image = make_banner_image()
         expired.save()
         future = PromoBanner(
             title_i18n={"es": "Futuro"},
             active=True,
-            starts_at=now + timezone.timedelta(days=3),
+            starts_at=now + timedelta(days=3),
         )
         future.image = make_banner_image()
         future.save()
@@ -254,7 +213,7 @@ class TestAvailabilityAPI:
 
         for wd in range(7):
             CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
-        day = timezone.localdate() + timezone.timedelta(days=2)
+        day = timezone.localdate() + timedelta(days=2)
         resp = api_client.get(f"/api/courts/{court.id}/availability/", {"date": day.isoformat()})
         assert resp.status_code == status.HTTP_200_OK
         assert len(resp.data) == 28
@@ -265,7 +224,7 @@ class TestAvailabilityAPI:
 
         for wd in range(7):
             CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
-        day = timezone.localdate() + timezone.timedelta(days=2)
+        day = timezone.localdate() + timedelta(days=2)
         BookingService.hold(client_user, court, day, "10:00", 60)
         resp = api_client.get(f"/api/courts/{court.id}/availability/", {"date": day.isoformat()})
         assert resp.status_code == status.HTTP_200_OK

@@ -1,8 +1,11 @@
+import logging
 
 from apps.notifications.services import NotificationService
 from apps.payments.models import Payment
 from apps.security.services import log_event
 from runsecrets import secrets
+
+logger = logging.getLogger(__name__)
 
 # No card data is ever stored (PCI SAQ-A, NFR-0028): only Stripe PaymentIntent
 # identifiers are persisted.
@@ -109,64 +112,67 @@ class PaymentService:
         return payment
 
     @staticmethod
-    def record_cash(booking, amount):
-        """Staff recording cash already collected at the venue."""
-        payment = Payment.objects.create(
-            booking=booking,
-            user=booking.user,
-            method=Payment.Method.CASH,
-            amount=amount,
-            currency="USD",
-            status=Payment.Status.CAPTURED,
-        )
-        log_event(booking.user, "payment.cash_recorded", "Payment", payment.id)
-        NotificationService.notify(
-            booking.user,
-            "payment_success",
-            data={"amount": f"${amount}", "payment_id": payment.id},
-        )
-        return payment
+    def _record_cash_payment(booking, amount, on_arrival=False):
+        """Create a cash Payment and notify the player.
 
-    @staticmethod
-    def record_cash_on_arrival(booking, amount):
-        """Client chose "Pago en el establecimiento".
-
-        The booking is confirmed and the cash payment stays open until staff
-        collects it at the venue. Admins get push + email immediately.
+        ``on_arrival`` is the client "Pago en el establecimiento" path: the
+        payment stays open until staff collects it, the booking is confirmed up
+        front and admins get an immediate alert.
         """
-        from apps.notifications.tasks import notify_admins_task
-
         payment = Payment.objects.create(
             booking=booking,
             user=booking.user,
             method=Payment.Method.CASH,
             amount=amount,
             currency="USD",
-            status=Payment.Status.PENDING,
+            status=Payment.Status.PENDING if on_arrival else Payment.Status.CAPTURED,
         )
-        log_event(booking.user, "payment.cash_on_arrival", "Payment", payment.id)
-        if booking.status == "pending_payment":
+        log_event(
+            booking.user,
+            "payment.cash_on_arrival" if on_arrival else "payment.cash_recorded",
+            "Payment",
+            payment.id,
+        )
+        if on_arrival and booking.status == "pending_payment":
             try:
                 booking.transition_to("confirmed")
             except ValueError:
-                pass
+                logger.exception(
+                    "Failed to confirm booking %s after cash-on-arrival payment %s",
+                    booking.id,
+                    payment.id,
+                )
+                raise
         NotificationService.notify(
             booking.user,
             "payment_success",
             data={"amount": f"${amount}", "payment_id": payment.id},
         )
-        notify_admins_task.delay(
-            "admin_cash_booking",
-            {
-                "user": booking.user.email,
-                "court": booking.court.name,
-                "date": str(booking.date),
-                "time": str(booking.start_time),
-                "amount": f"${amount}",
-                "booking_id": booking.id,
-            },
-        )
+        if on_arrival:
+            from apps.notifications.tasks import notify_admins_task
+
+            notify_admins_task.delay(
+                "admin_cash_booking",
+                {
+                    "user": booking.user.email,
+                    "court": booking.court.name,
+                    "date": str(booking.date),
+                    "time": str(booking.start_time),
+                    "amount": f"${amount}",
+                    "booking_id": booking.id,
+                },
+            )
         return payment
+
+    @staticmethod
+    def record_cash(booking, amount):
+        """Staff recording cash already collected at the venue."""
+        return PaymentService._record_cash_payment(booking, amount, on_arrival=False)
+
+    @staticmethod
+    def record_cash_on_arrival(booking, amount):
+        """Client chose "Pago en el establecimiento"."""
+        return PaymentService._record_cash_payment(booking, amount, on_arrival=True)
 
     @staticmethod
     def refund(payment, amount):

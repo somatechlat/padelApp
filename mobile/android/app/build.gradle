@@ -3,7 +3,16 @@ plugins {
     id "kotlin-android"
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id "dev.flutter.flutter-gradle-plugin"
-    id "com.google.gms.google-services"
+    // Firebase config (google-services.json) is supplied out-of-band and is
+    // gitignored on purpose. Declared apply false so a fresh clone can resolve
+    // the plugin without requiring the config file.
+    id "com.google.gms.google-services" apply false
+}
+
+// Apply Google Services only when google-services.json is present, so a fresh
+// clone still builds without Firebase. With the file, FCM works as before.
+if (file("google-services.json").exists()) {
+    apply plugin: "com.google.gms.google-services"
 }
 
 // Release signing config. Credentials live in android/key.properties (gitignored).

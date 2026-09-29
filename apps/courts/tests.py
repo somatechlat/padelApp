@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 
 from apps.courts.models import PromoBanner, Venue, resolve_i18n
@@ -94,17 +96,17 @@ class TestPromoBanner:
         banner = PromoBanner(
             title_i18n={"es": "x"},
             active=True,
-            starts_at=now - timezone.timedelta(days=1),
-            ends_at=now + timezone.timedelta(days=1),
+            starts_at=now - timedelta(days=1),
+            ends_at=now + timedelta(days=1),
         )
         assert banner.is_visible_now() is True
         banner.active = False
         assert banner.is_visible_now() is False
         banner.active = True
-        banner.starts_at = now + timezone.timedelta(days=2)
+        banner.starts_at = now + timedelta(days=2)
         assert banner.is_visible_now() is False
         banner.starts_at = None
-        banner.ends_at = now - timezone.timedelta(hours=1)
+        banner.ends_at = now - timedelta(hours=1)
         assert banner.is_visible_now() is False
 
     def test_banner_str_uses_title(self):

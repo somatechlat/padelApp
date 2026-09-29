@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 from django.utils import timezone
 
@@ -45,8 +47,8 @@ def paid_booking(api_client, client_user, court):
         user=client_user,
         court=court,
         date=today,
-        start_time=timezone.datetime.strptime("10:00", "%H:%M").time(),
-        end_time=timezone.datetime.strptime("11:00", "%H:%M").time(),
+        start_time=datetime.strptime("10:00", "%H:%M").time(),
+        end_time=datetime.strptime("11:00", "%H:%M").time(),
         duration_minutes=60,
         players=4,
         price="20.00",
@@ -130,11 +132,11 @@ class TestTournamentsAPI:
 
         tournament = Tournament.objects.create(
             name="Torneo",
-            start_date=timezone.localdate() + timezone.timedelta(days=7),
-            end_date=timezone.localdate() + timezone.timedelta(days=14),
+            start_date=timezone.localdate() + timedelta(days=7),
+            end_date=timezone.localdate() + timedelta(days=14),
             capacity=2,
             price="25.00",
-            registration_deadline=timezone.now() + timezone.timedelta(days=3),
+            registration_deadline=timezone.now() + timedelta(days=3),
             status=Tournament.Status.OPEN,
         )
         api_client.force_authenticate(client_user)
@@ -149,11 +151,11 @@ class TestTournamentsAPI:
 
         tournament = Tournament.objects.create(
             name="Torneo",
-            start_date=timezone.localdate() + timezone.timedelta(days=7),
-            end_date=timezone.localdate() + timezone.timedelta(days=14),
+            start_date=timezone.localdate() + timedelta(days=7),
+            end_date=timezone.localdate() + timedelta(days=14),
             capacity=2,
             price="25.00",
-            registration_deadline=timezone.now() + timezone.timedelta(days=3),
+            registration_deadline=timezone.now() + timedelta(days=3),
             status=Tournament.Status.OPEN,
         )
         api_client.force_authenticate(client_user)
@@ -172,11 +174,11 @@ class TestTournamentsAPI:
 
         tournament = Tournament.objects.create(
             name="Lleno",
-            start_date=timezone.localdate() + timezone.timedelta(days=7),
-            end_date=timezone.localdate() + timezone.timedelta(days=14),
+            start_date=timezone.localdate() + timedelta(days=7),
+            end_date=timezone.localdate() + timedelta(days=14),
             capacity=1,
             price="10.00",
-            registration_deadline=timezone.now() + timezone.timedelta(days=3),
+            registration_deadline=timezone.now() + timedelta(days=3),
             status=Tournament.Status.OPEN,
         )
         other = get_user_model().objects.create_user(email="o@test.com", password="pass12345")
@@ -190,11 +192,11 @@ class TestTournamentsAPI:
 
         tournament = Tournament.objects.create(
             name="Torneo",
-            start_date=timezone.localdate() + timezone.timedelta(days=7),
-            end_date=timezone.localdate() + timezone.timedelta(days=14),
+            start_date=timezone.localdate() + timedelta(days=7),
+            end_date=timezone.localdate() + timedelta(days=14),
             capacity=2,
             price="25.00",
-            registration_deadline=timezone.now() + timezone.timedelta(days=3),
+            registration_deadline=timezone.now() + timedelta(days=3),
             status=Tournament.Status.OPEN,
         )
         api_client.force_authenticate(client_user)

@@ -282,5 +282,17 @@
     }
   },
   "uploadProof": "Pujar comprovant",
-  "uploadProofHint": "Fes una foto o selecciona de la galeria"
+  "uploadProofHint": "Fes una foto o selecciona de la galeria",
+    "stepDate": "1. Tria un dia",
+    "stepDuration": "2. Durada",
+    "stepStartTime": "3. Hora d’inici",
+    "freeSlotsOnlyHint": "Només horaris amb pista lliure (segons ocupació real).",
+    "noFreeSlotsForSelection": "No hi ha hores lliures per a aquest dia i durada. Prova un altre dia.",
+    "timeMorning": "Matí",
+    "timeAfternoon": "Tarda",
+    "timeEvening": "Nit",
+    "freeCourtsCountOne": "{count} lliure",
+    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
+    "freeCourtsCountOther": "{count} lliures",
+    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
 }

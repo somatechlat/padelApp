@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.utils import timezone
@@ -24,11 +26,11 @@ def manager():
 def tournament(user):
     return Tournament.objects.create(
         name="Torneo Nocturno",
-        start_date=timezone.localdate() + timezone.timedelta(days=7),
-        end_date=timezone.localdate() + timezone.timedelta(days=14),
+        start_date=timezone.localdate() + timedelta(days=7),
+        end_date=timezone.localdate() + timedelta(days=14),
         capacity=2,
         price="25.00",
-        registration_deadline=timezone.now() + timezone.timedelta(days=3),
+        registration_deadline=timezone.now() + timedelta(days=3),
         status=Tournament.Status.OPEN,
     )
 
@@ -74,7 +76,7 @@ class TestTournamentService:
             TournamentService.register(third, tournament)
 
     def test_closed_after_deadline(self, tournament, user):
-        tournament.registration_deadline = timezone.now() - timezone.timedelta(hours=1)
+        tournament.registration_deadline = timezone.now() - timedelta(hours=1)
         tournament.save()
         with pytest.raises(ValueError):
             TournamentService.register(user, tournament)
@@ -104,7 +106,7 @@ class TestTournamentService:
 
 class TestTournamentStatusFlow:
     def test_close_registration_when_deadline_passes(self, tournament):
-        tournament.registration_deadline = timezone.now() - timezone.timedelta(minutes=1)
+        tournament.registration_deadline = timezone.now() - timedelta(minutes=1)
         tournament.save()
         tournament.close_if_deadline_passed()
         tournament.refresh_from_db()

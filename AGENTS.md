@@ -78,7 +78,8 @@ Known violations (do not add more; fix when you touch the file):
 - `apps/events/models.py` — `OpenMatch.notify_category` and `NewsPost.publish`
   fire Celery tasks from model methods.
 - `apps/users/` has no `services.py`; auth flows live in serializers/views.
-- `apps/adminpanel/views.py` is a monolith with five 90–165 line `post()` methods.
+- `apps/adminpanel/` was a 1046-line monolith; it is now the `views/` package
+  plus `mixins.py` for role scoping. Keep per-view modules focused.
 
 ### API surface
 
@@ -204,14 +205,15 @@ fallback; device locale is deliberately ignored.
 - Django tests: colocated per app (`apps/<app>/tests.py`, `tests_api.py`,
   `tests_auth.py`, `tests_security.py`). 215 tests. Need Postgres —
   `make up-dev && make test-dev`.
-- Flutter tests: `mobile/test/`. Some are **integration tests against a live
-  dev API** (`make up-dev` first). Offline-safe: `brand_logo_test.dart`,
-  `password_field_test.dart`.
+- Flutter tests: `mobile/test/`. **Hermetic** — `test/helpers/fake_api.dart`
+  stubs `ApiClient`, so `flutter test` needs no Docker and no network. Failure
+  injection is available (`FakeApi.offline = true`, bad password → real 401).
 - Playwright E2E: `tests/e2e/` with its own `pytest.ini` — 111 admin + 28 auth
   tests. Separate from the Django suite.
-- Tests asserting on `AuthState.error` are weak: that getter returns `null` for
-  Dio/network exceptions, so they pass when the API is down. Assert
-  `hasError` / `lastError` or a real success signal instead.
+- `AuthState.error(l10n)` takes `l10n` and maps through `friendlyErrorMessage`,
+  so it is non-null exactly when `hasError` is. Do **not** use it as a success
+  signal — assert `authenticated`, written tokens, or a call-log entry instead.
+- Never assert `error, isNull` as proof that something worked.
 
 ---
 
@@ -223,7 +225,7 @@ fallback; device locale is deliberately ignored.
 | `make seed-test` | Not a target. It is `seeddemo-test`. |
 | `_ , created = Model.objects.get_or_create(...)` | Shadows gettext. Always. |
 | Adding an ARB key to `en`+`es` only | Ships Spanish UI to ca/pt users. |
-| `firebase_options.dart` | Gitignored and **imported** by `push_notification_service.dart`. Fresh clones need `flutterfire configure`; the build does not work without it. |
+| `firebase_options.dart` | Gitignored. Push is **optional**: without it the app still builds and runs, with push disabled. Run `flutterfire configure` to enable FCM. |
 | `Manual_Usuario_AndesPadel.docx`, `images/Archive.zip` | Were tracked despite `*.docx`/`*.zip` in `.gitignore`. Ignore rules do not untrack. |
 | `disenio ` (trailing space) | Accidental design-asset dump, also has `loos/` (typo for "logos"). Not code. |
 | `apps/common/timefmt.py` | Was untracked while imported in 5 places. Commit files before pushing work that depends on them. |
@@ -236,11 +238,13 @@ fallback; device locale is deliberately ignored.
 
 Trust levels as of 2026-09-29:
 
-- **Current:** `docs/DEPLOYMENTS.md`, `store/README.md`, this file.
-- **Stale — will mislead:** `docs/BUILD_AND_DEPLOY.md`, `TESTING_GUIDE.md` (old
-  ports, old compose model, wrong API URL). Fix or retire before relying on them.
+- **Current:** `README.md`, `docs/DEPLOYMENTS.md`, `docs/BUILD_AND_DEPLOY.md`,
+  `TESTING_GUIDE.md`, `mobile/README.md`, `store/README.md`, this file.
 - **Historical:** `docs/DEPLOYMENT_PLAN.md`, `docs/plans/`, `docs/srs/`.
-- `mobile/README.md` is stock Flutter boilerplate.
+
+Two facts still need operator confirmation and are marked `UNVERIFIED` in the
+docs rather than guessed: the server IP (`140.82.15.48` vs `140.82.155.48`), and
+whether a `resend` route should exist (there is currently none).
 
 When you change a port, a make target, a URL, or add an API route, update
 `docs/DEPLOYMENTS.md` and this file in the same commit.
@@ -249,33 +253,33 @@ When you change a port, a make target, a URL, or add an API route, update
 
 ## 10. Known debt (do not pretend it is not there)
 
-Ordered by cost of ignoring it. Not a to-do list — a map of the sharp edges.
+Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
 
-1. **Firebase is half-removed.** `google-services.json`, `firebase_options.dart`
-   and `GoogleService-Info.plist` were committed and then deleted; the keys are
-   still in git history and should be rotated in Google Cloud Console. Dart
-   still imports `firebase_options.dart`, pubspec still has
-   `firebase_core`/`firebase_messaging`, gradle still applies
-   `com.google.gms.google-services`. Decide: restore config out-of-band, or
-   remove Firebase entirely.
-2. **Admin panel RBAC is all-or-nothing.** `StaffRequiredMixin` grants every
-   staff role the ability to change roles, issue refunds, edit bank details, and
-   export customer CSVs. Should be split by role.
-3. **`apps/adminpanel/views.py`** — 1046 lines, five god `post()` methods.
-4. **`booking_wizard_screen.dart`** — 946 lines; extract the calendar, time
-   grid, and court step widgets.
-5. **Mobile tests lost their fakes** (`test/helpers/fake_api.dart` deleted) and
-   now require Docker. Restore a stub API so `flutter test` is hermetic.
-6. **Events migrations** are misnumbered (two `0002_*`, two `0003_*`) and the
-   graph is linear only by dependency, not by name. Renumber before adding more.
-7. **Duplicate helpers:** `record_cash`/`record_cash_on_arrival` in
-   `apps/payments/services.py`; the two reminder tasks in
-   `apps/notifications/tasks.py`; two Accept-Language parsers
-   (`apps/users/views.py` and `apps/courts/lang.py`).
-8. **`ruff format` is not enforced** — 66 files would reformat. Either adopt it
-   in one commit or stop checking it.
-
----
+1. **Dart lint rules parked at `ignore`.** `always_use_package_imports` (116
+   hits), `require_trailing_commas` (79) and `unawaited_futures` (6) are
+   enabled but severity-overridden in `mobile/analysis_options.yaml`. Sweep
+   `lib/` and `mobile/test/widget_test.dart`, then flip them to `info`.
+2. **`ruff format` is not enforced** — a large set of files would reformat.
+   Either adopt it in one commit or stop checking it.
+3. **`apps/.bandit` is load-bearing.** bandit does not read `pyproject.toml`;
+   it only discovers a `.bandit` INI inside the scanned trees. Keep exactly one
+   under `apps/`+`padel/` or bandit errors with "Multiple .bandit files found".
+   B105/B106/B107 (password-shaped-string heuristics) are globally skipped
+   because they fire on every test fixture; a real secret scanner is the right
+   tool for credential leaks.
+4. **Cash-on-arrival re-raises** if `transition_to("confirmed")` fails, so the
+   API can return 500 in a race where the booking was cancelled. The `Payment`
+   row is already created. A compensating rollback would be stricter.
+5. **Adminpanel RBAC calls still open to review:** `confirm_transfer` /
+   `reject_transfer` are `gerente`+ (receptionists may need them);
+   `change_status` is open to every staff role; reports still show revenue
+   cards to `gerente`.
+6. **Server IP is unverified** (`140.82.15.48` vs `140.82.155.48`).
+7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
+   policy, partner-matching). Historical contract — do not treat as ground truth.
+8. **`timezone.datetime` / `timezone.timedelta`** are gone from `apps/`, but
+   they worked only because Django re-exports those stdlib names. Use
+   `from datetime import datetime, timedelta`.
 
 ## 11. Commit style
 

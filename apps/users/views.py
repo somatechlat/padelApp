@@ -1,3 +1,5 @@
+import logging
+
 from django.conf import settings
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
@@ -10,6 +12,7 @@ from rest_framework.response import Response
 from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
+from apps.courts.lang import resolve_request_lang
 from apps.notifications.models import DeviceToken
 from apps.users.models import SkillLevel
 from apps.users.serializers import (
@@ -26,17 +29,7 @@ from apps.users.serializers import (
 from apps.verification.models import VerificationCode, VerificationCodeService
 
 User = get_user_model()
-
-
-def _negotiate_language(request):
-    """Map the Accept-Language header to one of the supported language codes."""
-    header = request.META.get("HTTP_ACCEPT_LANGUAGE", "")
-    supported = dict(settings.LANGUAGES)
-    for part in header.split(","):
-        code = part.split(";")[0].strip().split("-")[0].lower()
-        if code in supported:
-            return code
-    return None
+logger = logging.getLogger(__name__)
 
 
 class AuthThrottle(SimpleRateThrottle):
@@ -50,7 +43,7 @@ class SkillLevelListView(generics.ListAPIView):
     """Public combo-box options for 'Nivel de juego' (editable in admin)."""
 
     serializer_class = SkillLevelSerializer
-    permission_classes = []
+    permission_classes: list = []
 
     def get_queryset(self):
         return SkillLevel.objects.filter(is_active=True)
@@ -58,7 +51,7 @@ class SkillLevelListView(generics.ListAPIView):
 
 class RegisterView(generics.CreateAPIView):
     serializer_class = RegisterSerializer
-    permission_classes = []
+    permission_classes: list = []
     throttle_classes = [AuthThrottle]
 
     def create(self, request, *args, **kwargs):
@@ -71,7 +64,7 @@ class RegisterView(generics.CreateAPIView):
         # Seed from Accept-Language once at registration only. After that the
         # in-app language picker is the single source of truth (login no longer
         # overwrites it).
-        lang = _negotiate_language(request)
+        lang = resolve_request_lang(request, default=None)
         if lang and lang != user.language_code:
             user.language_code = lang
             user.save(update_fields=["language_code"])
@@ -88,8 +81,7 @@ class RegisterView(generics.CreateAPIView):
                 fail_silently=False,
             )
         except Exception:
-            import logging
-            logging.getLogger(__name__).exception(
+            logger.exception(
                 "Failed to send verification email to %s", user.email
             )
         return Response(
@@ -99,7 +91,7 @@ class RegisterView(generics.CreateAPIView):
 
 
 class VerifyEmailView(APIView):
-    permission_classes = []
+    permission_classes: list = []
 
     def post(self, request):
         serializer = VerifySerializer(data=request.data)
@@ -118,7 +110,7 @@ class VerifyEmailView(APIView):
 
 
 class LoginView(APIView):
-    permission_classes = []
+    permission_classes: list = []
     throttle_classes = [AuthThrottle]
 
     def post(self, request):
@@ -140,7 +132,7 @@ class LoginView(APIView):
 
 
 class LogoutView(APIView):
-    permission_classes = []
+    permission_classes: list = []
 
     def post(self, request):
         from rest_framework_simplejwt.tokens import RefreshToken
@@ -149,12 +141,12 @@ class LogoutView(APIView):
             token = RefreshToken(request.data.get("refresh"))
             token.blacklist()
         except Exception:
-            pass
+            logger.warning("Failed to blacklist refresh token on logout", exc_info=True)
         return Response(status=status.HTTP_205_RESET_CONTENT)
 
 
 class PasswordResetView(APIView):
-    permission_classes = []
+    permission_classes: list = []
     throttle_classes = [AuthThrottle]
 
     def post(self, request):
@@ -179,15 +171,14 @@ class PasswordResetView(APIView):
                 fail_silently=False,
             )
         except Exception:
-            import logging
-            logging.getLogger(__name__).exception(
+            logger.exception(
                 "Failed to send password reset email to %s", user.email
             )
         return Response({"detail": _("Si el email existe, recibira un codigo")})
 
 
 class PasswordResetConfirmView(APIView):
-    permission_classes = []
+    permission_classes: list = []
     throttle_classes = [AuthThrottle]
 
     def post(self, request):

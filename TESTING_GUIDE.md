@@ -1,260 +1,266 @@
-# 🚀 PadelApp Testing Guide
+# Testing Guide
 
-## ✅ What's Ready to Test
+How to run the suites and how the live HTTP surface is shaped. Ports, commands and routes below are taken from the Makefile, compose overlays and `apps/*/urls.py`.
 
-**All Systems Running:**
-- ✅ PostgreSQL Database (port 5432)
-- ✅ Redis Cache (port 6379)
-- ✅ Django Backend API (port 8000)
-- ✅ Celery Worker (async tasks)
-- ✅ Flutter APK Built & Ready
+## Prerequisites
 
-**APK Location:** `./padelapp-debug.apk` (86 MB)
+| Suite | Needs |
+|---|---|
+| Django (`make test-dev`) | Dev stack up (`make up-dev`) — Postgres and Redis |
+| Flutter (`make fltest-dev`) | Dev stack up for integration-style tests. Offline-safe: `brand_logo_test.dart`, `password_field_test.dart` |
+| Playwright (`tests/e2e/`) | A reachable admin panel. Default target `https://andespadel.yachaq.io` (override with `E2E_BASE_URL`) |
 
-**Full build & deploy instructions:** [docs/BUILD_AND_DEPLOY.md](docs/BUILD_AND_DEPLOY.md)
+Host Flutter for `make fltest-dev` / `make flcheck` / `make flrun` is `/usr/local/bin/flutter` (see `AGENTS.md`). Do not use `~/development/flutter`.
 
----
+Fresh clones also need `mobile/lib/firebase_options.dart` (gitignored, required to compile). See `AGENTS.md` section 10.
 
-## 📱 Installation on Physical Phone
+## Environments and ports
 
-### Option 1: Via ADB (USB or Wireless Debugging)
+There is no host port 8000. Inside the container Django binds 8000; host ports are:
+
+| Env | Project | Postgres | Redis | API | Nginx |
+|---|---|---|---|---|---|
+| dev | `andespadel` | 28000 | 28001 | 28002 | 28003 |
+| test | `andespadel-test` | 29000 | 29001 | 29002 | 29003 |
+| prod | `andespadel-prod` | 34000 | 34001 | 34002 | 34003 |
+
+API base URLs used by the Makefile and the mobile client:
+
+| Env | API base |
+|---|---|
+| dev | `http://127.0.0.1:28002/api` |
+| test | `http://127.0.0.1:29002/api` |
+| prod | `https://andespadel.yachaq.io/api` |
+
+Compose is always base + overlay + project name:
 
 ```bash
-# If phone is connected via USB with debugging enabled
-adb install ./padelapp-debug.apk
-
-# OR for wireless debugging (phone & computer on same WiFi)
-adb connect 192.168.100.XXX:5555  # Replace XXX with phone IP
-adb install ./padelapp-debug.apk
+docker compose -p andespadel      -f docker-compose.yml -f docker-compose.dev.yml  up -d
+docker compose -p andespadel-test -f docker-compose.yml -f docker-compose.test.yml up -d
+docker compose -p andespadel-prod -f docker-compose.yml -f docker-compose.prod.yml up -d
 ```
 
-### Option 2: Manual Installation
-1. Copy `padelapp-debug.apk` to your phone (USB, email, cloud storage)
-2. On phone: Open file manager → locate APK → tap to install
-3. Confirm permissions and install
+Prefer the make targets. Test and prod use `padel.settings.dev` and `padel.settings.prod` respectively (test is plain `padel.settings.dev`, not a special test settings module).
 
----
+## Commands
 
-## 🔑 Test Accounts
+### Django
 
-### Mobile App Login
-
-```
-Email:    cliente@andespadel.com
-Password: Andes12345!
-Role:     cliente
-```
-
-### Admin Panel Access
-
-```
-URL:      https://andespadel.yachaq.io/adminpanel/login/
-Email:    admin@andespadel.com
-Password: Andes12345!
-```
-
----
-
-## ✨ What to Test
-
-### Mobile App
-
-1. **Authentication**
-   - Login with above credentials
-   - Check dashboard loads
-   - View existing bookings
-   - Check notifications
-
-2. **Bookings**
-   - View available courts
-   - Check court availability
-   - Make a new booking
-
-3. **User Profile**
-   - View profile information
-   - Edit language preferences (Spanish, English, Catalan, Portuguese)
-   - Change password
-
-4. **Events & Tournaments**
-   - Browse events
-   - View tournament details
-   - Check event calendar
-
-### Admin Dashboard
-
-1. **Dashboard**
-   - View bookings for today
-   - Check court occupancy
-   - Monitor revenue
-   - Review alerts
-
-2. **Courts Management**
-   - View all courts
-   - Check scheduling
-   - Manage maintenance windows
-
-3. **Users**
-   - View all users
-   - Check roles and status
-   - Edit user details
-
-4. **Bookings Management**
-   - View all bookings
-   - Apply cancellation policies
-   - Track no-show penalties
-
-5. **Reports**
-   - Generate revenue reports
-   - Check occupancy reports
-   - Review audit logs
-
----
-
-## 🌐 Network Details
-
-**Production Server:** `https://andespadel.yachaq.io`
-
-**Services Available:**
-
-| Service | URL | Port |
-|---------|-----|------|
-| Backend API | https://andespadel.yachaq.io/api | 443 |
-| Admin Panel | https://andespadel.yachaq.io/adminpanel | 443 |
-| Landing Page | https://andespadel.yachaq.io | 443 |
-
-**Local Development (Docker):**
-
-| Service | URL | Port |
-|---------|-----|------|
-| Backend API | http://localhost:8000/api | 8000 |
-| Admin Panel | http://localhost:8000/adminpanel | 8000 |
-| Database | localhost:5432 | 5432 |
-| Redis | localhost:6379 | 6379 |
-
----
-
-## 🛠️ Useful Commands
-
-### View Backend Logs
 ```bash
-cd /Users/macbookpro201916i964gb1tb/Documents/GitHub/padelApp
+make up-dev      # stack must be up first
+make test-dev    # pytest apps -q  inside the backend container
+make test-test   # same, against the test project
+```
+
+Tests live colocated per app (`apps/<app>/tests.py`, `tests_api.py`, `tests_auth.py`, `tests_security.py`). 215 tests (count as of `AGENTS.md`).
+
+### Flutter
+
+```bash
+make up-dev        # most mobile tests hit the live dev API
+make fltest-dev    # flutter test --dart-define=API_BASE_URL=http://127.0.0.1:28002/api
+make flcheck       # flutter analyze
+```
+
+Direct (host Flutter):
+
+```bash
+cd mobile
+/usr/local/bin/flutter test --no-version-check --suppress-analytics \
+  --dart-define=API_BASE_URL=http://127.0.0.1:28002/api
+```
+
+Tests live in `mobile/test/`. Some assert on `AuthState.error`; that getter returns `null` for Dio/network failures, so those assertions pass when the API is down. Prefer `hasError` / `lastError` or a real success signal.
+
+### Playwright E2E
+
+```bash
+./tests/e2e/run.sh                 # all tests
+./tests/e2e/run.sh test_login.py   # one file
+```
+
+Uses `tests/e2e/pytest.ini` (marker `e2e`) and defaults to `https://andespadel.yachaq.io` (override with `E2E_BASE_URL`). 111 admin + 28 auth tests (count as of `AGENTS.md`). Separate from the Django suite.
+
+### Lint
+
+```bash
+make lint      # ruff check . && flake8 && bandit -r apps   (backend container)
+make flcheck   # flutter analyze
+```
+
+Host Python (faster):
+
+```bash
+python3 -m ruff check .
+python3 -m flake8 apps padel
+```
+
+## Demo data
+
+```bash
+make seeddemo-dev     # or seeddemo-test
+make seed             # seed_courts only (dev project)
+```
+
+Demo password for all seeded users: `Andes12345!`. Seed targets are for dev/test only — never run them against prod.
+
+There is no `make seed-test`. Use `seeddemo-test`.
+
+## API surface
+
+Mounted at `/api/` with **no version segment**. Source: `padel/urls.py` and `apps/*/urls.py`.
+
+### Auth and account (`/api/auth/`)
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/auth/register/` | |
+| POST | `/api/auth/verify/` | Email verification |
+| POST | `/api/auth/login/` | Returns JWT |
+| POST | `/api/auth/refresh/` | Token refresh |
+| POST | `/api/auth/logout/` | |
+| POST | `/api/auth/password-reset/` | |
+| POST | `/api/auth/password-reset/confirm/` | |
+| POST | `/api/auth/password/change/` | |
+| GET | `/api/auth/skill-levels/` | |
+| GET, PUT, PATCH | `/api/auth/me/` | Current user |
+| POST | `/api/auth/me/devices/` | Register push device token |
+| POST | `/api/auth/me/consent/` | GDPR consent |
+| GET | `/api/auth/me/export/` | GDPR export |
+| POST | `/api/auth/me/erase/` | GDPR erase |
+
+No `resend` route exists in `apps/users/urls.py`.
+
+### Courts and club
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/courts/` | |
+| POST | `/api/courts/` | Staff |
+| GET | `/api/courts/{id}/` | |
+| PUT, PATCH | `/api/courts/{id}/` | Staff |
+| DELETE | `/api/courts/{id}/` | Staff |
+| GET | `/api/courts/{id}/availability/` | Auth. Query `date=YYYY-MM-DD` |
+| GET | `/api/club/` | Club info |
+| GET | `/api/banners/` | Promo banners |
+
+### Bookings
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/bookings/` | Owner sees own; staff see all |
+| POST | `/api/bookings/` | Create |
+| GET | `/api/bookings/{id}/` | |
+| POST | `/api/bookings/preview/` | Price preview |
+| POST | `/api/bookings/{id}/confirm/` | |
+| POST | `/api/bookings/{id}/cancel/` | |
+| GET | `/api/bookings/available-starts/` | Public. Query `date`, `duration_minutes` |
+
+There is no booking update or delete route; cancel is the exit path.
+
+### Payments
+
+| Method | Path | Notes |
+|---|---|---|
+| POST | `/api/bookings/{booking_id}/payments/` | Create/record payment for a booking |
+| POST | `/api/payments/{id}/upload-proof/` | Transfer proof upload |
+| POST | `/api/payments/{id}/confirm/` | |
+| POST | `/api/payments/{id}/confirm-transfer/` | Staff |
+| POST | `/api/payments/{id}/reject-transfer/` | Staff |
+| POST | `/api/payments/{id}/refund/` | Staff |
+| POST | `/api/webhooks/stripe/` | Stripe webhook |
+
+There is no `POST /api/payments/`. Payment creation is nested under the booking.
+
+### Events, tournaments, open matches, news
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/events/` | |
+| POST | `/api/events/` | Staff |
+| GET, PUT, PATCH, DELETE | `/api/events/{id}/` | Writes staff-only |
+| POST | `/api/events/{id}/join/` | |
+| POST | `/api/events/{id}/leave/` | |
+| GET | `/api/tournaments/` | Read-only list |
+| GET | `/api/tournaments/{id}/` | |
+| POST | `/api/tournaments/{id}/register/` | |
+| POST | `/api/tournaments/{id}/confirm/` | |
+| GET | `/api/open-matches/` | |
+| POST | `/api/open-matches/` | |
+| GET, PUT, PATCH, DELETE | `/api/open-matches/{id}/` | Writes restricted |
+| POST | `/api/open-matches/{id}/join/` | |
+| POST | `/api/open-matches/{id}/leave/` | |
+| GET | `/api/news/` | |
+| POST | `/api/news/` | Staff |
+| GET, PUT, PATCH, DELETE | `/api/news/{id}/` | Writes staff-only |
+
+### Notifications
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/notifications/` | |
+| GET | `/api/notifications/unread-count/` | |
+| POST | `/api/notifications/read-all/` | |
+| POST | `/api/notifications/{id}/read/` | |
+| GET, PUT | `/api/notifications/preferences/` | |
+
+### Reports (staff)
+
+| Method | Path |
+|---|---|
+| GET | `/api/reports/revenue/` |
+| GET | `/api/reports/occupancy/` |
+| GET | `/api/reports/customers/` |
+| GET | `/api/reports/cancellations/` |
+
+### Schema and admin
+
+| Method | Path | Notes |
+|---|---|---|
+| GET | `/api/schema/` | OpenAPI (drf-spectacular) |
+| GET | `/api/docs/` | Swagger UI |
+| GET | `/api/redoc/` | ReDoc |
+| * | `/adminpanel/` | Server-rendered staff dashboard |
+| * | `/adminpanel/login/` | Admin login |
+| * | `/adminpanel/logout/` | |
+| * | `/adminpanel/dashboard/` | |
+| * | `/adminpanel/calendar/` | |
+| * | `/adminpanel/courts/` | |
+| * | `/adminpanel/users/` | |
+| * | `/adminpanel/payments/` | |
+| * | `/adminpanel/events/` | |
+| * | `/adminpanel/reports/` | |
+| * | `/adminpanel/settings/` | |
+| * | `/adminpanel/banners/` | |
+| * | `/adminpanel/audit/` | |
+| * | `/admin/` | Django admin |
+
+## Smoke checks
+
+```bash
+# API is up (expects an auth error body without credentials)
+curl http://127.0.0.1:28002/api/auth/me/
+
+# OpenAPI schema
+curl http://127.0.0.1:28002/api/schema/
+
+# Logs / DB
 make logs
-```
-
-### Database Shell
-```bash
 make psql
 ```
 
-### Django Shell
+## Build artifacts
+
+| Artifact | How |
+|---|---|
+| Debug APK | `make flbuild` or `make flapk` (copies to `./padelapp-debug.apk`) |
+| iOS simulator (dev API) | `make ios-sim-dev` |
+| TestFlight | `make ship-ios` (needs `ASC_USER`, `ASC_PASSWORD`) |
+
+API URL for any release build must be set explicitly:
+
 ```bash
-make shell
+--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api
 ```
 
-### Run Tests
-```bash
-make test
-```
-
-### Lint Code
-```bash
-make lint
-```
-
-### Rebuild Services
-```bash
-make down
-make build
-make up
-make migrate
-make seeddemo
-```
-
----
-
-## 🎯 Demo Data Loaded
-
-**Sample Data:**
-- ✅ Courts created
-- ✅ Time slots configured
-- ✅ Sample bookings created (3 test reservations)
-- ✅ Notification emails simulated
-
-**Login:** All demo users have password: `Andes12345!`
-
----
-
-## 🚨 Troubleshooting
-
-### APK Won't Install
-- Ensure `Unknown Sources` is enabled in phone settings
-- Check Android version (min SDK 24, target 34)
-- Try clearing app cache first: `adb shell pm clear com.andes.padel.padel_app`
-
-### Can't Connect to Backend
-- Verify phone has internet access
-- Test: Open browser on phone → `https://andespadel.yachaq.io/api/auth/me/`
-- Should see: `{"detail":"Las credenciales de autenticación no se proveyeron."}`
-
-### Bookings Not Loading
-- Check backend logs: `make logs`
-- Verify database is healthy: `make psql` then `SELECT count(*) FROM bookings_booking;`
-
-### Login Issues
-- Clear app cache: `adb shell pm clear com.andes.padel.padel_app`
-- Force stop app and restart
-- Check storage permissions on phone
-
----
-
-## 📊 Dashboard Features
-
-**Real-Time Metrics:**
-- Bookings today count
-- Court occupancy percentage
-- Revenue tracking
-- System alerts
-- Pending actions
-
-**Admin Actions:**
-- Manage courts & schedules
-- Process payments
-- Handle cancellations
-- Generate reports
-- View audit logs
-
----
-
-## ✅ Checklist Before Presentation
-
-- [ ] APK installed on phone
-- [ ] Phone has internet access (connects to andespadel.yachaq.io)
-- [ ] Backend running (check https://andespadel.yachaq.io/api/auth/me/)
-- [ ] Can login to mobile app
-- [ ] Can access admin dashboard (https://andespadel.yachaq.io/adminpanel)
-- [ ] Can view bookings on mobile
-- [ ] Can see demo data in admin panel
-- [ ] Test booking creation workflow
-
----
-
-## 🔗 API Endpoints Ready
-
-**Public (No Auth):**
-- POST `/api/auth/login/`
-- POST `/api/auth/register/`
-- POST `/api/auth/verify/`
-- POST `/api/auth/password-reset/`
-
-**Protected (JWT Auth):**
-- GET `/api/auth/me/`
-- GET `/api/bookings/`
-- GET `/api/courts/`
-- GET `/api/tournaments/`
-- GET `/api/notifications/`
-- POST `/api/bookings/` (create booking)
-- POST `/api/payments/` (process payment)
-
----
-
-**🎉 Ready to Test! Happy Coding!**
+Bundle ids differ on purpose: Android `com.andes.padel.padel_app`, iOS `com.andes.padel.padelApp`.

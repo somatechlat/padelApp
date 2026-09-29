@@ -1,32 +1,10 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
 from django.utils import timezone
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def venue():
-    from apps.courts.models import Venue
-
-    return Venue.objects.create(name="Andes Padel", timezone="America/Guayaquil", currency="USD")
-
-
-@pytest.fixture
-def court(venue):
-    from apps.courts.models import Court
-
-    return Court.objects.create(
-        venue=venue, name="Cancha 1", court_type="techada", price_base="12.00"
-    )
-
-
-@pytest.fixture
-def user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(email="u@test.com", password="pass12345")
 
 
 @pytest.fixture
@@ -51,7 +29,7 @@ def booking(court, user):
         CourtSchedule.objects.create(
             court=court, weekday=wd, open_time="08:00", close_time="22:00"
         )
-    day = timezone.localdate() + timezone.timedelta(days=5)
+    day = timezone.localdate() + timedelta(days=5)
     b = BookingService.hold(user, court, day, "10:00", 60)
     BookingService.confirm(b)
     b.refresh_from_db()
@@ -62,7 +40,7 @@ class TestPenaltyPolicy:
     def test_free_cancellation_inside_window(self, policy, booking):
         from apps.policies.services import PolicyService
 
-        now = booking.start_at - timezone.timedelta(hours=25)
+        now = booking.start_at - timedelta(hours=25)
         result = PolicyService.evaluate(booking, now)
         assert result.ratio == 0
         assert result.amount == 0
@@ -70,7 +48,7 @@ class TestPenaltyPolicy:
     def test_penalty_inside_24h(self, policy, booking):
         from apps.policies.services import PolicyService
 
-        now = booking.start_at - timezone.timedelta(hours=12)
+        now = booking.start_at - timedelta(hours=12)
         result = PolicyService.evaluate(booking, now)
         assert result.ratio == Decimal("0.50")
         assert result.amount == booking.price * Decimal("0.5")
@@ -78,7 +56,7 @@ class TestPenaltyPolicy:
     def test_full_penalty_at_no_show(self, policy, booking):
         from apps.policies.services import PolicyService
 
-        now = booking.start_at + timezone.timedelta(minutes=30)
+        now = booking.start_at + timedelta(minutes=30)
         result = PolicyService.evaluate(booking, now)
         assert result.ratio == Decimal("1.00")
         assert result.amount == booking.price

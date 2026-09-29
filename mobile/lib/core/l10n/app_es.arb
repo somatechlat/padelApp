@@ -291,5 +291,17 @@
   "instagram": "Instagram",
   "showPassword": "Mostrar contraseña",
   "hidePassword": "Ocultar contraseña",
-  "extraInfo": "Información adicional"
+  "extraInfo": "Información adicional",
+    "stepDate": "1. Elige el día",
+    "stepDuration": "2. Duración",
+    "stepStartTime": "3. Hora de inicio",
+    "freeSlotsOnlyHint": "Solo horarios con cancha libre (según ocupación real).",
+    "noFreeSlotsForSelection": "No hay horas libres para este día y duración. Prueba otro día.",
+    "timeMorning": "Mañana",
+    "timeAfternoon": "Tarde",
+    "timeEvening": "Noche",
+    "freeCourtsCountOne": "{count} libre",
+    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
+    "freeCourtsCountOther": "{count} libres",
+    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
 }

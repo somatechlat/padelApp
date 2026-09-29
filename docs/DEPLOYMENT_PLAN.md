@@ -1,7 +1,11 @@
 # DEPLOYMENT PLAN — AndesPadel
 
+> **HISTORICAL ARCHIVE** — this was a one-shot plan. Do not use as a runbook. See docs/DEPLOYMENTS.md.
+
 **Date:** 2026-08-26
 **Two environments:** Local (dev) + Testing Server (LOYALLIA)
+
+**Server IP — UNVERIFIED:** this document mentions `140.82.15.48`. `docs/BUILD_AND_DEPLOY.md` (historical) mentioned `140.82.155.48`. The two disagree; neither has been confirmed against the live host. Treat every IP below as **UNVERIFIED** and confirm with the operator before SSH or DNS work. Stable public hostname: `https://andespadel.yachaq.io`.
 
 ---
 

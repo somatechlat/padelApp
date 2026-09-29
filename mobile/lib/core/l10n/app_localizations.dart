@@ -1547,6 +1547,66 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Información adicional'**
   String get extraInfo;
+
+  /// No description provided for @stepDate.
+  ///
+  /// In es, this message translates to:
+  /// **'1. Elige el día'**
+  String get stepDate;
+
+  /// No description provided for @stepDuration.
+  ///
+  /// In es, this message translates to:
+  /// **'2. Duración'**
+  String get stepDuration;
+
+  /// No description provided for @stepStartTime.
+  ///
+  /// In es, this message translates to:
+  /// **'3. Hora de inicio'**
+  String get stepStartTime;
+
+  /// No description provided for @freeSlotsOnlyHint.
+  ///
+  /// In es, this message translates to:
+  /// **'Solo horarios con cancha libre (según ocupación real).'**
+  String get freeSlotsOnlyHint;
+
+  /// No description provided for @noFreeSlotsForSelection.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay horas libres para este día y duración. Prueba otro día.'**
+  String get noFreeSlotsForSelection;
+
+  /// No description provided for @timeMorning.
+  ///
+  /// In es, this message translates to:
+  /// **'Mañana'**
+  String get timeMorning;
+
+  /// No description provided for @timeAfternoon.
+  ///
+  /// In es, this message translates to:
+  /// **'Tarde'**
+  String get timeAfternoon;
+
+  /// No description provided for @timeEvening.
+  ///
+  /// In es, this message translates to:
+  /// **'Noche'**
+  String get timeEvening;
+
+  /// No description provided for @freeCourtsCountOne.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} libre'**
+  String freeCourtsCountOne(num count);
+
+  /// No description provided for @freeCourtsCountOther.
+  ///
+  /// In es, this message translates to:
+  /// **'{count} libres'**
+  String freeCourtsCountOther(num count);
 }
 
 class _AppLocalizationsDelegate

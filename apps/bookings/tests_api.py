@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.utils import timezone
 from rest_framework import status
@@ -5,49 +7,8 @@ from rest_framework import status
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def venue():
-    from apps.courts.models import Venue
-
-    return Venue.objects.create(name="Andes Padel", timezone="America/Guayaquil", currency="USD")
-
-
-@pytest.fixture
-def court(venue):
-    from apps.courts.models import Court
-
-    return Court.objects.create(
-        venue=venue, name="Cancha 1", court_type="techada", price_base="12.00"
-    )
-
-
-@pytest.fixture
-def client_user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(email="c@test.com", password="pass12345")
-
-
-@pytest.fixture
-def client(api_client, client_user):
-    from rest_framework_simplejwt.tokens import RefreshToken
-
-    token = RefreshToken.for_user(client_user)
-    api_client.credentials(HTTP_AUTHORIZATION=f"Bearer {token.access_token}")
-    return api_client
-
-
-@pytest.fixture
-def scheduled_court(court):
-    from apps.courts.models import CourtSchedule
-
-    for wd in range(7):
-        CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
-    return court
-
-
 def _future_day():
-    return timezone.localdate() + timezone.timedelta(days=3)
+    return timezone.localdate() + timedelta(days=3)
 
 
 class TestBookingAPI:

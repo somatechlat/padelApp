@@ -1,9 +1,17 @@
+# Renumbered from 0002_openmatch_openmatchplayer (was a second "0002_*").
+# `replaces` keeps old database records resolving so a shared DB that already
+# applied the old name is treated as applied without re-running.
+
 import django.db.models.deletion
 from django.conf import settings
 from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
+    replaces = [
+        ("events", "0002_openmatch_openmatchplayer"),
+    ]
+
     dependencies = [
         ("users", "0002_skilllevel_user_birth_date_user_first_name_and_more"),
         ("events", "0004_event_category"),

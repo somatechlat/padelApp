@@ -747,4 +747,40 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get extraInfo => 'Información adicional';
+
+  @override
+  String get stepDate => '1. Elige el día';
+
+  @override
+  String get stepDuration => '2. Duración';
+
+  @override
+  String get stepStartTime => '3. Hora de inicio';
+
+  @override
+  String get freeSlotsOnlyHint =>
+      'Solo horarios con cancha libre (según ocupación real).';
+
+  @override
+  String get noFreeSlotsForSelection =>
+      'No hay horas libres para este día y duración. Prueba otro día.';
+
+  @override
+  String get timeMorning => 'Mañana';
+
+  @override
+  String get timeAfternoon => 'Tarde';
+
+  @override
+  String get timeEvening => 'Noche';
+
+  @override
+  String freeCourtsCountOne(num count) {
+    return '$count libre';
+  }
+
+  @override
+  String freeCourtsCountOther(num count) {
+    return '$count libres';
+  }
 }

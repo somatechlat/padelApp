@@ -1,4 +1,5 @@
 import threading
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -7,42 +8,8 @@ from django.utils import timezone
 pytestmark = pytest.mark.django_db
 
 
-@pytest.fixture
-def venue():
-    from apps.courts.models import Venue
-
-    return Venue.objects.create(name="Andes Padel", timezone="America/Guayaquil", currency="USD")
-
-
-@pytest.fixture
-def court(venue):
-    from apps.courts.models import Court
-
-    return Court.objects.create(
-        venue=venue, name="Cancha 1", court_type="techada", price_base="12.00"
-    )
-
-
-@pytest.fixture
-def user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(email="u@test.com", password="pass12345")
-
-
-@pytest.fixture
-def scheduled_court(court):
-    from apps.courts.models import CourtSchedule
-
-    for wd in range(7):
-        CourtSchedule.objects.create(
-            court=court, weekday=wd, open_time="08:00", close_time="22:00"
-        )
-    return court
-
-
 def _future_day():
-    return timezone.localdate() + timezone.timedelta(days=1)
+    return timezone.localdate() + timedelta(days=1)
 
 
 class TestBookingCreation:
@@ -77,7 +44,7 @@ class TestBookingCreation:
         from apps.bookings.services import BookingService
 
         with pytest.raises(Exception, match="La hora ya pas"):
-            BookingService.hold(user, scheduled_court, timezone.localdate() - timezone.timedelta(days=1), "08:00", 60)
+            BookingService.hold(user, scheduled_court, timezone.localdate() - timedelta(days=1), "08:00", 60)
 
     def test_confirm_booking(self, scheduled_court, user):
         from apps.bookings.services import BookingService

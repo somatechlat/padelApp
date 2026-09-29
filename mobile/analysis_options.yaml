@@ -17,6 +17,18 @@ analyzer:
     - windows/**
     - macos/**
     - linux/**
+  errors:
+    # Severity overrides so `flutter analyze` stays at its pre-change baseline
+    # until a lib/ sweep lands. Measured hits when these run at full strength:
+    #   always_use_package_imports  116 (all in lib/)
+    #   require_trailing_commas      79 (73 lib/ + 6 test/)
+    #   unawaited_futures             6 (all in lib/)
+    # mobile/test/ must stay clean and is owned by another agent, so
+    # require_trailing_commas cannot be raised here yet.
+    # Flip each of these to `info` after the sweep.
+    always_use_package_imports: ignore
+    require_trailing_commas: ignore
+    unawaited_futures: ignore
 include: package:flutter_lints/flutter.yaml
 
 linter:
@@ -31,8 +43,14 @@ linter:
   # `// ignore_for_file: name_of_lint` syntax on the line or in the file
   # producing the lint.
   rules:
-    # avoid_print: false  # Uncomment to disable the `avoid_print` rule
-    # prefer_single_quotes: true  # Uncomment to enable the `prefer_single_quotes` rule
+    # Clean on lib/, test/, and tool/ today — enforced at full strength.
+    prefer_final_locals: true
+    prefer_final_in_for_each: true
+    prefer_single_quotes: true
+    # Enabled but severity-overridden to `ignore` above until lib/ is swept.
+    unawaited_futures: true
+    always_use_package_imports: true
+    require_trailing_commas: true
 
 # Additional information about this file can be found at
 # https://dart.dev/guides/language/analysis-options

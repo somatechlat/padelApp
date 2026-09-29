@@ -12,7 +12,7 @@
       <option value="cliente" {% if request.GET.role == 'cliente' %}selected{% endif %}>Cliente</option>
       <option value="recepcionista" {% if request.GET.role == 'recepcionista' %}selected{% endif %}>Recepcionista</option>
       <option value="gerente" {% if request.GET.role == 'gerente' %}selected{% endif %}>Gerente</option>
-      <option value="dueño" {% if request.GET.role == 'dueño' %}selected{% endif %}>Dueño</option>
+      <option value="dueno" {% if request.GET.role == 'dueno' %}selected{% endif %}>Dueño</option>
       <option value="superadmin" {% if request.GET.role == 'superadmin' %}selected{% endif %}>Superadmin</option>
     </select>
 
@@ -62,7 +62,7 @@
               <option value="cliente" {% if u.role == 'cliente' %}selected{% endif %}>Cliente</option>
               <option value="recepcionista" {% if u.role == 'recepcionista' %}selected{% endif %}>Recepcionista</option>
               <option value="gerente" {% if u.role == 'gerente' %}selected{% endif %}>Gerente</option>
-              <option value="dueño" {% if u.role == 'dueño' %}selected{% endif %}>Dueño</option>
+              <option value="dueno" {% if u.role == 'dueno' %}selected{% endif %}>Dueño</option>
               <option value="superadmin" {% if u.role == 'superadmin' %}selected{% endif %}>Superadmin</option>
             </select>
             <button type="submit" class="btn btn-sm btn-outline">Guardar</button>

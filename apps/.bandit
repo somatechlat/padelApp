@@ -1,0 +1,4 @@
+# Bandit only auto-discovers a .bandit file inside the scanned trees
+# (`bandit -r apps padel`). Point it at the real config in pyproject.toml.
+[bandit]
+configfile = pyproject.toml

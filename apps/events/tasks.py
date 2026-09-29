@@ -1,14 +1,19 @@
+import logging
+from datetime import timedelta
+
 from celery import shared_task
 from django.utils import timezone
 
 from apps.events.models import Tournament, TournamentRegistration
 from apps.notifications.services import NotificationService
 
+logger = logging.getLogger(__name__)
+
 
 @shared_task(bind=True, max_retries=3, default_retry_delay=5)
 def tournament_reminder_task(self):
     """Notify confirmed participants one day before the tournament starts."""
-    start = timezone.now() + timezone.timedelta(days=1)
+    start = timezone.now() + timedelta(days=1)
     start_day = start.date()
     tournaments = Tournament.objects.filter(
         status__in=(Tournament.Status.OPEN, Tournament.Status.IN_PROGRESS),
@@ -31,5 +36,9 @@ def tournament_reminder_task(self):
                 )
                 sent += 1
             except Exception:
-                continue
+                logger.exception(
+                    "Failed to send tournament reminder to user %s for tournament %s",
+                    reg.user_id,
+                    tournament.id,
+                )
     return sent

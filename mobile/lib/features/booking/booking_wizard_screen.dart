@@ -8,6 +8,9 @@ import '../../core/api_client.dart';
 import '../../core/friendly_error.dart';
 import '../../core/theme/app_theme.dart';
 import 'payment_method_screen.dart';
+import 'widgets/booking_constants.dart';
+import 'widgets/court_step.dart';
+import 'widgets/when_step.dart';
 
 /// Reservation wizard.
 ///
@@ -24,10 +27,6 @@ class BookingWizardScreen extends StatefulWidget {
 }
 
 class _BookingWizardScreenState extends State<BookingWizardScreen> {
-  /// Only 90 and 120 minutes (product decision).
-  static const _durations = [90, 120];
-  static const _slotMinutes = 30;
-
   // 0 when · 1 courts · 2 summary · 3 done
   int _step = 0;
   List<dynamic>? _allCourts;
@@ -54,12 +53,6 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   }
 
   String _fmtDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
-
-  String _fmtTime(Duration d) {
-    final h = d.inHours.toString().padLeft(2, '0');
-    final m = (d.inMinutes % 60).toString().padLeft(2, '0');
-    return '$h:$m';
-  }
 
   /// Real free starts from occupancy (TimeSlot), not a hardcoded grid.
   Future<void> _loadAvailableStarts() async {
@@ -92,15 +85,6 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     }
   }
 
-  Duration? _parseStart(String hhmm) {
-    final parts = hhmm.split(':');
-    if (parts.length < 2) return null;
-    final h = int.tryParse(parts[0]);
-    final m = int.tryParse(parts[1]);
-    if (h == null || m == null) return null;
-    return Duration(hours: h, minutes: m);
-  }
-
   Future<void> _loadAllCourts() async {
     try {
       final data = await context.read<ApiClient>().get('/courts/');
@@ -126,7 +110,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     try {
       if (_allCourts == null) await _loadAllCourts();
       final courts = _allCourts ?? [];
-      final needed = (_duration / _slotMinutes).ceil();
+      final needed = (_duration / kSlotMinutes).ceil();
       final results = await Future.wait(courts.map((raw) async {
         final c = Map<String, dynamic>.from(raw as Map);
         try {
@@ -143,7 +127,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           var ok = true;
           for (var i = 0; i < needed; i++) {
             final t = DateTime(2000, 1, 1)
-                .add(start + Duration(minutes: _slotMinutes * i));
+                .add(start + Duration(minutes: kSlotMinutes * i));
             final hh = t.hour.toString().padLeft(2, '0');
             final mm = t.minute.toString().padLeft(2, '0');
             if (!freeStarts.contains('$hh:$mm:00') &&
@@ -185,7 +169,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           await context.read<ApiClient>().post('/bookings/preview/', data: {
         'court': court['id'],
         'date': _fmtDate(_date),
-        'start_time': _fmtTime(start),
+        'start_time': fmtBookTime(start),
         'duration_minutes': _duration,
       });
       if (!mounted) return;
@@ -220,7 +204,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       final booking = await api.post('/bookings/', data: {
         'court': court['id'],
         'date': _fmtDate(_date),
-        'start_time': _fmtTime(start),
+        'start_time': fmtBookTime(start),
         'duration_minutes': _duration,
       });
       final bookingId = booking['id'];
@@ -271,6 +255,46 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     }
   }
 
+  void _onMonthChanged(DateTime month) {
+    setState(() => _visibleMonth = month);
+  }
+
+  void _onDateSelected(DateTime d) {
+    setState(() {
+      _date = d;
+      _start = null;
+      _court = null;
+      _price = null;
+    });
+    _loadAvailableStarts();
+  }
+
+  void _onDurationSelected(int d) {
+    setState(() {
+      _duration = d;
+      _start = null;
+      _court = null;
+      _price = null;
+    });
+    _loadAvailableStarts();
+  }
+
+  void _onStartSelected(Duration? d) {
+    setState(() {
+      _start = d;
+      _court = null;
+      _price = null;
+      _error = null;
+    });
+  }
+
+  void _onCourtSelected(Map<String, dynamic> c) {
+    setState(() {
+      _court = c;
+      _error = null;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -290,9 +314,45 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Widget _buildBody(AppLocalizations l10n) {
     switch (_step) {
       case 0:
-        return _buildWhenStep(l10n);
+        return BookingWhenStep(
+          l10n: l10n,
+          selectedDate: _date,
+          visibleMonth: _visibleMonth,
+          duration: _duration,
+          start: _start,
+          starts: _starts,
+          loadingStarts: _loadingStarts,
+          onMonthChanged: _onMonthChanged,
+          onDateSelected: _onDateSelected,
+          onDurationSelected: _onDurationSelected,
+          onStartSelected: _onStartSelected,
+          onContinue: () {
+            setState(() => _step = 1);
+            _loadCourtsForSlot();
+          },
+        );
       case 1:
-        return _buildCourtStep(l10n);
+        return BookingCourtStep(
+          l10n: l10n,
+          date: _date,
+          start: _start,
+          duration: _duration,
+          courtsFree: _courtsFree,
+          selectedCourt: _court,
+          loadingCourts: _loadingCourts,
+          error: _error,
+          onCourtSelected: _onCourtSelected,
+          onBack: () {
+            setState(() {
+              _step = 0;
+              _error = null;
+            });
+          },
+          onContinue: () {
+            setState(() => _step = 2);
+            _previewPrice();
+          },
+        );
       case 2:
         return _buildSummaryStep(l10n);
       default:
@@ -303,7 +363,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   Widget _errorBox() {
     if (_error == null) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Text(
         _error!,
         style: TextStyle(color: Theme.of(context).colorScheme.error),
@@ -311,486 +371,10 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
-  // ── Step 0: ONE screen — calendar + duration + real free times ─────────
-  Widget _buildWhenStep(AppLocalizations l10n) {
-    final theme = Theme.of(context);
-    final canContinue = _start != null;
-    final starts = _starts;
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        // ── 1. Pick a day ──
-        Text(
-          '1. Elige el dia',
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        _buildCalendar(l10n, theme),
-        const SizedBox(height: AppSpacing.lg),
-        // ── 2. Duration ──
-        Text(
-          '2. Duracion',
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            for (final d in _durations) ...[
-              Expanded(
-                child: Padding(
-                  padding: EdgeInsets.only(
-                      right: d == _durations.first ? AppSpacing.sm : 0),
-                  child: ChoiceChip(
-                    label: SizedBox(
-                      width: double.infinity,
-                      child: Text(
-                        '$d min',
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.w700),
-                      ),
-                    ),
-                    selected: _duration == d,
-                    onSelected: (_) {
-                      setState(() {
-                        _duration = d;
-                        _start = null;
-                        _court = null;
-                        _price = null;
-                      });
-                      _loadAvailableStarts();
-                    },
-                  ),
-                ),
-              ),
-            ],
-          ],
-        ),
-        const SizedBox(height: AppSpacing.lg),
-        // ── 3. Real free times ──
-        Text(
-          '3. Hora de inicio',
-          style: theme.textTheme.titleMedium
-              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
-        ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          'Solo horarios con cancha libre (según ocupación real).',
-          style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        if (_loadingStarts)
-          const Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (starts.isEmpty)
-          Container(
-            width: double.infinity,
-            padding: const EdgeInsets.all(AppSpacing.md),
-            decoration: BoxDecoration(
-              color: theme.colorScheme.surface,
-              borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-              border: Border.all(color: theme.colorScheme.outline),
-            ),
-            child: Text(
-              'No hay horas libres para este dia y duracion. Prueba otro dia.',
-              style: TextStyle(
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
-            ),
-          )
-        else
-          _buildTimeGrid(theme, starts),
-        const SizedBox(height: AppSpacing.xl),
-        FilledButton(
-          onPressed: canContinue
-              ? () {
-                  setState(() => _step = 1);
-                  _loadCourtsForSlot();
-                }
-              : null,
-          child: Text(l10n.next, style: const TextStyle(fontSize: 16)),
-        ),
-      ],
-    );
-  }
-
-  /// Clear 3-column time grid, grouped by morning / afternoon / evening.
-  Widget _buildTimeGrid(ThemeData theme, List<Map<String, dynamic>> starts) {
-    final groups = <String, List<Map<String, dynamic>>>{
-      'Manana': [],
-      'Tarde': [],
-      'Noche': [],
-    };
-    for (final s in starts) {
-      final t = '${s['start']}';
-      final hour = int.tryParse(t.split(':').first) ?? 0;
-      if (hour < 12) {
-        groups['Manana']!.add(s);
-      } else if (hour < 18) {
-        groups['Tarde']!.add(s);
-      } else {
-        groups['Noche']!.add(s);
-      }
-    }
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        for (final entry in groups.entries)
-          if (entry.value.isNotEmpty) ...[
-            Padding(
-              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: 6),
-              child: Text(
-                entry.key,
-                style: theme.textTheme.labelLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
-                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
-                ),
-              ),
-            ),
-            GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 3,
-                mainAxisSpacing: 8,
-                crossAxisSpacing: 8,
-                childAspectRatio: 2.4,
-              ),
-              itemCount: entry.value.length,
-              itemBuilder: (context, i) {
-                final s = entry.value[i];
-                final label = '${s['start']}';
-                final free = (s['courts_free'] as num?)?.toInt() ?? 0;
-                final selected = _start != null && _fmtTime(_start!) == label;
-                return Material(
-                  color: selected ? AppColors.brand : theme.colorScheme.surface,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
-                    side: BorderSide(
-                      color: selected
-                          ? AppColors.brand
-                          : theme.colorScheme.outline,
-                    ),
-                  ),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: () {
-                      final d = _parseStart(label);
-                      setState(() {
-                        _start = d;
-                        _court = null;
-                        _price = null;
-                        _error = null;
-                      });
-                    },
-                    child: Center(
-                      child: Column(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            label,
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w800,
-                              color: selected
-                                  ? Colors.white
-                                  : theme.colorScheme.onSurface,
-                            ),
-                          ),
-                          Text(
-                            '$free libre${free == 1 ? '' : 's'}',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: selected
-                                  ? Colors.white70
-                                  : theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.5),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ],
-      ],
-    );
-  }
-
-  Widget _buildCalendar(AppLocalizations l10n, ThemeData theme) {
-    final firstOfMonth = DateTime(_visibleMonth.year, _visibleMonth.month, 1);
-    final daysInMonth =
-        DateTime(_visibleMonth.year, _visibleMonth.month + 1, 0).day;
-    // Monday-first grid (locale ES/PT/CA/EN all start the week on Monday here).
-    final startWeekday = (firstOfMonth.weekday + 6) % 7; // Mon=0 … Sun=6
-    final today = DateTime.now();
-    final todayDate = DateTime(today.year, today.month, today.day);
-    final selected = DateTime(_date.year, _date.month, _date.day);
-    // Never crash on missing intl locale data (ca/pt edge cases).
-    String monthLabel;
-    try {
-      monthLabel =
-          DateFormat('MMMM yyyy', l10n.localeName).format(_visibleMonth);
-    } catch (_) {
-      monthLabel = DateFormat('MMMM yyyy', 'es').format(_visibleMonth);
-    }
-
-    return Container(
-      decoration: BoxDecoration(
-        color: theme.colorScheme.surface,
-        borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-        border: Border.all(color: theme.colorScheme.outline),
-      ),
-      padding: const EdgeInsets.all(AppSpacing.md),
-      child: Column(
-        children: [
-          Row(
-            children: [
-              IconButton(
-                tooltip: l10n.back,
-                onPressed: () => setState(() {
-                  _visibleMonth =
-                      DateTime(_visibleMonth.year, _visibleMonth.month - 1, 1);
-                }),
-                icon: const Icon(Icons.chevron_left),
-              ),
-              Expanded(
-                child: Text(
-                  monthLabel.isEmpty
-                      ? ''
-                      : monthLabel[0].toUpperCase() + monthLabel.substring(1),
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.titleMedium?.copyWith(
-                    fontSize: 18,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ),
-              IconButton(
-                tooltip: l10n.next,
-                onPressed: () => setState(() {
-                  _visibleMonth =
-                      DateTime(_visibleMonth.year, _visibleMonth.month + 1, 1);
-                }),
-                icon: const Icon(Icons.chevron_right),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          Row(
-            children: [
-              for (final label in _weekdayLabels(l10n))
-                Expanded(
-                  child: Text(
-                    label,
-                    textAlign: TextAlign.center,
-                    style: theme.textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      color: theme.colorScheme.onSurface.withValues(alpha: 0.5),
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.xs),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 7,
-              childAspectRatio: 1,
-            ),
-            itemCount: startWeekday + daysInMonth,
-            itemBuilder: (context, i) {
-              if (i < startWeekday) return const SizedBox.shrink();
-              final day = i - startWeekday + 1;
-              final d = DateTime(_visibleMonth.year, _visibleMonth.month, day);
-              final isPast = d.isBefore(todayDate);
-              final isSelected = d == selected;
-              final isToday = d == todayDate;
-              return Padding(
-                padding: const EdgeInsets.all(2),
-                child: Material(
-                  color: isSelected
-                      ? AppColors.brand
-                      : isToday
-                          ? AppColors.accentSoft
-                          : Colors.transparent,
-                  borderRadius: BorderRadius.circular(10),
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(10),
-                    onTap: isPast
-                        ? null
-                        : () {
-                            setState(() {
-                              _date = d;
-                              _start = null;
-                              _court = null;
-                              _price = null;
-                            });
-                            _loadAvailableStarts();
-                          },
-                    child: Center(
-                      child: Text(
-                        '$day',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: isSelected || isToday
-                              ? FontWeight.w800
-                              : FontWeight.w500,
-                          color: isSelected
-                              ? Colors.white
-                              : isPast
-                                  ? theme.colorScheme.onSurface
-                                      .withValues(alpha: 0.3)
-                                  : theme.colorScheme.onSurface,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  List<String> _weekdayLabels(AppLocalizations l10n) {
-    // One letter per weekday, localized via DateFormat.
-    final out = <String>[];
-    // 2024-01-01 is a Monday — perfect for building Mon..Sun labels.
-    final monday = DateTime(2024, 1, 1);
-    for (var i = 0; i < 7; i++) {
-      final d = monday.add(Duration(days: i));
-      out.add(DateFormat('EEE', l10n.localeName).format(d).substring(0, 2));
-    }
-    return out;
-  }
-
-  // ── Step 1: COURTS free for the chosen slot ────────────────────────────
-  Widget _buildCourtStep(AppLocalizations l10n) {
-    final dateLabel = DateFormat('EEEE, d MMM', l10n.localeName).format(_date);
-    final timeLabel = _start == null ? '' : _fmtTime(_start!);
-    return ListView(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      children: [
-        Text(
-          '$dateLabel · $timeLabel · $_duration ${l10n.durationMin}',
-          style:
-              Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-        ),
-        const SizedBox(height: AppSpacing.sm),
-        Text(
-          l10n.availableCourts,
-          style:
-              Theme.of(context).textTheme.titleMedium?.copyWith(fontSize: 18),
-        ),
-        const SizedBox(height: AppSpacing.md),
-        _errorBox(),
-        if (_loadingCourts)
-          const Padding(
-            padding: EdgeInsets.symmetric(vertical: 32),
-            child: Center(child: CircularProgressIndicator()),
-          )
-        else if (_courtsFree.isEmpty)
-          Padding(
-            padding: const EdgeInsets.symmetric(vertical: 24),
-            child: Center(
-              child: Text(
-                l10n.noCourtsAvailable,
-                style: const TextStyle(fontSize: 16),
-              ),
-            ),
-          )
-        else
-          ..._courtsFree.map((entry) {
-            final c = entry['court'] as Map<String, dynamic>;
-            final selected = _court?['id'] == c['id'];
-            return Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-              child: Card(
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-                  side: BorderSide(
-                    color: selected
-                        ? Theme.of(context).colorScheme.primary
-                        : Theme.of(context).colorScheme.outline,
-                    width: selected ? 2 : 1,
-                  ),
-                ),
-                child: ListTile(
-                  contentPadding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-                  leading: Icon(
-                    Icons.sports_tennis_outlined,
-                    size: 28,
-                    color: Theme.of(context).colorScheme.primary,
-                  ),
-                  title: Text(
-                    '${c['name']}',
-                    style: const TextStyle(
-                        fontSize: 17, fontWeight: FontWeight.w700),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  subtitle: Text(
-                    '${c['court_type']} · \$${c['price_base']} ${l10n.perHour}',
-                    style: const TextStyle(fontSize: 14),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  trailing: selected
-                      ? Icon(Icons.check_circle,
-                          color: Theme.of(context).colorScheme.primary)
-                      : const Icon(Icons.chevron_right),
-                  onTap: () => setState(() {
-                    _court = c;
-                    _error = null;
-                  }),
-                ),
-              ),
-            );
-          }),
-        const SizedBox(height: AppSpacing.lg),
-        Row(
-          children: [
-            TextButton(
-              onPressed: () => setState(() {
-                _step = 0;
-                _error = null;
-              }),
-              child: Text(l10n.back, style: const TextStyle(fontSize: 16)),
-            ),
-            const Spacer(),
-            FilledButton(
-              onPressed: _court == null
-                  ? null
-                  : () {
-                      setState(() => _step = 2);
-                      _previewPrice();
-                    },
-              child: Text(l10n.next, style: const TextStyle(fontSize: 16)),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-
   // ── Step 2: SUMMARY + CONFIRM ──────────────────────────────────────────
   Widget _buildSummaryStep(AppLocalizations l10n) {
     final court = _court!;
+    final theme = Theme.of(context);
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
@@ -801,32 +385,28 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text('${court['name']}',
-                    style: Theme.of(context)
-                        .textTheme
-                        .titleLarge
-                        ?.copyWith(fontSize: 22),
+                    style: theme.textTheme.titleLarge
+                        ?.copyWith(fontSize: BookDim.sectionTitleSize + 4),
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: AppSpacing.sm),
                 _row(l10n.selectDate,
                     DateFormat('EEEE, d MMM', l10n.localeName).format(_date)),
-                if (_start != null) _row(l10n.selectSlot, _fmtTime(_start!)),
+                if (_start != null) _row(l10n.selectSlot, fmtBookTime(_start!)),
                 _row(l10n.duration, '$_duration ${l10n.durationMin}'),
                 const Divider(height: AppSpacing.lg),
                 Row(
                   children: [
                     Text(l10n.total,
-                        style: Theme.of(context)
-                            .textTheme
-                            .titleMedium
-                            ?.copyWith(fontSize: 18)),
+                        style: theme.textTheme.titleMedium
+                            ?.copyWith(fontSize: BookDim.sectionTitleSize)),
                     const Spacer(),
                     Text(
                       _price == null ? l10n.loading : '\$$_price',
-                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                            fontSize: 24,
-                            color: Theme.of(context).colorScheme.primary,
-                          ),
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontSize: 24,
+                        color: theme.colorScheme.primary,
+                      ),
                     ),
                   ],
                 ),
@@ -845,22 +425,24 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                         _step = 1;
                         _error = null;
                       }),
-              child: Text(l10n.back, style: const TextStyle(fontSize: 16)),
+              child: Text(l10n.back,
+                  style: const TextStyle(fontSize: BookDim.buttonLabelSize)),
             ),
             const Spacer(),
             FilledButton(
               onPressed: _submitting ? null : _submitBooking,
               child: _submitting
                   ? const SizedBox(
-                      height: 22,
-                      width: 22,
-                      child: CircularProgressIndicator(strokeWidth: 2),
+                      height: BookDim.progressSize,
+                      width: BookDim.progressSize,
+                      child: CircularProgressIndicator(
+                          strokeWidth: BookDim.progressStroke),
                     )
                   : Text(
                       '${l10n.confirm} · \$$_price',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(fontSize: 16),
+                      style: const TextStyle(fontSize: BookDim.buttonLabelSize),
                     ),
             ),
           ],
@@ -877,16 +459,17 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           Flexible(
             child: Text(
               label,
-              style: const TextStyle(fontSize: 16),
+              style: const TextStyle(fontSize: BookDim.bodySize),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
           ),
-          const SizedBox(width: 8),
+          const SizedBox(width: AppSpacing.xs),
           Flexible(
             child: Text(
               value,
-              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+              style: const TextStyle(
+                  fontSize: BookDim.bodySize, fontWeight: FontWeight.w600),
               textAlign: TextAlign.end,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
@@ -899,6 +482,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
 
   // ── Step 3: DONE ───────────────────────────────────────────────────────
   Widget _buildDoneStep(AppLocalizations l10n) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
@@ -907,28 +491,26 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           children: [
             Icon(
               Icons.check_circle_outlined,
-              color: Theme.of(context).colorScheme.primary,
+              color: theme.colorScheme.primary,
               size: 80,
             ),
             const SizedBox(height: AppSpacing.md),
             Text(
               l10n.paymentSuccess,
-              style: Theme.of(context)
-                  .textTheme
-                  .titleLarge
-                  ?.copyWith(fontSize: 24),
+              style: theme.textTheme.titleLarge?.copyWith(fontSize: 24),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.sm),
             Text(l10n.paymentPending,
-                style: const TextStyle(fontSize: 16),
+                style: const TextStyle(fontSize: BookDim.bodySize),
                 textAlign: TextAlign.center),
             const SizedBox(height: AppSpacing.lg),
             FilledButton(
               onPressed: () {
                 Navigator.of(context).popUntil((route) => route.isFirst);
               },
-              child: Text(l10n.bookings, style: const TextStyle(fontSize: 16)),
+              child: Text(l10n.bookings,
+                  style: const TextStyle(fontSize: BookDim.buttonLabelSize)),
             ),
           ],
         ),

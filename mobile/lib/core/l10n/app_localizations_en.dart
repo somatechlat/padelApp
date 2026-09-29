@@ -746,4 +746,40 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get extraInfo => 'Additional information';
+
+  @override
+  String get stepDate => '1. Pick a day';
+
+  @override
+  String get stepDuration => '2. Duration';
+
+  @override
+  String get stepStartTime => '3. Start time';
+
+  @override
+  String get freeSlotsOnlyHint =>
+      'Only times with a free court (based on real occupancy).';
+
+  @override
+  String get noFreeSlotsForSelection =>
+      'No free times for this day and duration. Try another day.';
+
+  @override
+  String get timeMorning => 'Morning';
+
+  @override
+  String get timeAfternoon => 'Afternoon';
+
+  @override
+  String get timeEvening => 'Evening';
+
+  @override
+  String freeCourtsCountOne(num count) {
+    return '$count free';
+  }
+
+  @override
+  String freeCourtsCountOther(num count) {
+    return '$count free';
+  }
 }

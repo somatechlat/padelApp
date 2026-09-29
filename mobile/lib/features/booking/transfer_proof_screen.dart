@@ -9,6 +9,7 @@ import 'package:provider/provider.dart';
 import '../../core/api_client.dart';
 import '../../core/models/club_info.dart';
 import '../../core/theme/app_theme.dart';
+import 'widgets/booking_constants.dart';
 
 class TransferProofScreen extends StatefulWidget {
   final int paymentId;
@@ -154,118 +155,26 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
   }
 
   Widget _buildForm(AppLocalizations l10n, ColorScheme scheme) {
-    final club = _club;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        Card(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.md),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.transferInstructions,
-                    style: Theme.of(context).textTheme.titleMedium),
-                const Divider(height: AppSpacing.lg),
-                if (!_clubLoaded)
-                  const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(AppSpacing.md),
-                      child: CircularProgressIndicator(),
-                    ),
-                  )
-                else if (club == null || !club.hasBank)
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
-                    child: Text(
-                      l10n.error,
-                      style: TextStyle(color: scheme.onSurface),
-                    ),
-                  )
-                else ...[
-                  if (club.bankName.isNotEmpty)
-                    _bankRow(l10n.bankName, club.bankName),
-                  if (club.bankAccountNumber.isNotEmpty)
-                    _bankRow(l10n.accountNumber, club.bankAccountNumber),
-                  if (club.bankAccountHolder.isNotEmpty)
-                    _bankRow(l10n.accountHolder, club.bankAccountHolder),
-                  if (club.bankAccountCode.isNotEmpty)
-                    _bankRow(l10n.beneficiaryCode, club.bankAccountCode),
-                  if (club.bankExtra.isNotEmpty)
-                    _bankRow(l10n.extraInfo, club.bankExtra),
-                ],
-                const Divider(height: AppSpacing.lg),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(l10n.transferAmount,
-                        style: Theme.of(context).textTheme.bodyMedium),
-                    Text(
-                      '\$${widget.amount}',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: scheme.primary,
-                            fontWeight: FontWeight.w700,
-                          ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ),
+        _BankDetailsCard(
+          l10n: l10n,
+          scheme: scheme,
+          club: _club,
+          clubLoaded: _clubLoaded,
+          amount: widget.amount,
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(l10n.uploadProof, style: Theme.of(context).textTheme.titleMedium),
-        const SizedBox(height: AppSpacing.xs),
-        Text(l10n.maxFileSize, style: Theme.of(context).textTheme.bodySmall),
-        const SizedBox(height: AppSpacing.md),
-        if (_image != null) ...[
-          ClipRRect(
-            borderRadius: BorderRadius.circular(AppSpacing.radius),
-            child: Image.file(
-              _image!,
-              height: 200,
-              width: double.infinity,
-              fit: BoxFit.cover,
-            ),
-          ),
-          const SizedBox(height: AppSpacing.sm),
-        ],
-        Row(
-          children: [
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed:
-                    _uploading ? null : () => _pickImage(ImageSource.camera),
-                icon: const Icon(Icons.camera_alt_outlined),
-                label: Text(l10n.camera),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.sm),
-            Expanded(
-              child: OutlinedButton.icon(
-                onPressed:
-                    _uploading ? null : () => _pickImage(ImageSource.gallery),
-                icon: const Icon(Icons.photo_library_outlined),
-                label: Text(l10n.gallery),
-              ),
-            ),
-          ],
-        ),
-        if (_error != null) ...[
-          const SizedBox(height: AppSpacing.sm),
-          Text(_error!, style: TextStyle(color: scheme.error)),
-        ],
-        const SizedBox(height: AppSpacing.lg),
-        FilledButton(
-          onPressed: (_image != null && !_uploading) ? _uploadProof : null,
-          child: _uploading
-              ? const SizedBox(
-                  height: 20,
-                  width: 20,
-                  child: CircularProgressIndicator(strokeWidth: 2),
-                )
-              : Text(l10n.send),
+        _ProofPicker(
+          l10n: l10n,
+          scheme: scheme,
+          image: _image,
+          uploading: _uploading,
+          error: _error,
+          onPickCamera: () => _pickImage(ImageSource.camera),
+          onPickGallery: () => _pickImage(ImageSource.gallery),
+          onUpload: _uploadProof,
         ),
       ],
     );
@@ -302,8 +211,85 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
       ),
     );
   }
+}
 
-  Widget _bankRow(String label, String value) {
+/// Transfer instructions + bank details + amount row.
+class _BankDetailsCard extends StatelessWidget {
+  const _BankDetailsCard({
+    required this.l10n,
+    required this.scheme,
+    required this.club,
+    required this.clubLoaded,
+    required this.amount,
+  });
+
+  final AppLocalizations l10n;
+  final ColorScheme scheme;
+  final ClubInfo? club;
+  final bool clubLoaded;
+  final double amount;
+
+  @override
+  Widget build(BuildContext context) {
+    final c = club;
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(l10n.transferInstructions,
+                style: Theme.of(context).textTheme.titleMedium),
+            const Divider(height: AppSpacing.lg),
+            if (!clubLoaded)
+              const Center(
+                child: Padding(
+                  padding: EdgeInsets.all(AppSpacing.md),
+                  child: CircularProgressIndicator(),
+                ),
+              )
+            else if (c == null || !c.hasBank)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.sm),
+                child: Text(
+                  l10n.error,
+                  style: TextStyle(color: scheme.onSurface),
+                ),
+              )
+            else ...[
+              if (c.bankName.isNotEmpty)
+                _bankRow(context, l10n.bankName, c.bankName),
+              if (c.bankAccountNumber.isNotEmpty)
+                _bankRow(context, l10n.accountNumber, c.bankAccountNumber),
+              if (c.bankAccountHolder.isNotEmpty)
+                _bankRow(context, l10n.accountHolder, c.bankAccountHolder),
+              if (c.bankAccountCode.isNotEmpty)
+                _bankRow(context, l10n.beneficiaryCode, c.bankAccountCode),
+              if (c.bankExtra.isNotEmpty)
+                _bankRow(context, l10n.extraInfo, c.bankExtra),
+            ],
+            const Divider(height: AppSpacing.lg),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(l10n.transferAmount,
+                    style: Theme.of(context).textTheme.bodyMedium),
+                Text(
+                  '\$$amount',
+                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        color: scheme.primary,
+                        fontWeight: FontWeight.w700,
+                      ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _bankRow(BuildContext context, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -322,6 +308,89 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+/// Proof image preview + camera/gallery pickers + upload button.
+class _ProofPicker extends StatelessWidget {
+  const _ProofPicker({
+    required this.l10n,
+    required this.scheme,
+    required this.image,
+    required this.uploading,
+    required this.error,
+    required this.onPickCamera,
+    required this.onPickGallery,
+    required this.onUpload,
+  });
+
+  final AppLocalizations l10n;
+  final ColorScheme scheme;
+  final File? image;
+  final bool uploading;
+  final String? error;
+  final VoidCallback onPickCamera;
+  final VoidCallback onPickGallery;
+  final VoidCallback onUpload;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Text(l10n.uploadProof, style: Theme.of(context).textTheme.titleMedium),
+        const SizedBox(height: AppSpacing.xs),
+        Text(l10n.maxFileSize, style: Theme.of(context).textTheme.bodySmall),
+        const SizedBox(height: AppSpacing.md),
+        if (image != null) ...[
+          ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radius),
+            child: Image.file(
+              image!,
+              height: 200,
+              width: double.infinity,
+              fit: BoxFit.cover,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.sm),
+        ],
+        Row(
+          children: [
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: uploading ? null : onPickCamera,
+                icon: const Icon(Icons.camera_alt_outlined),
+                label: Text(l10n.camera),
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: OutlinedButton.icon(
+                onPressed: uploading ? null : onPickGallery,
+                icon: const Icon(Icons.photo_library_outlined),
+                label: Text(l10n.gallery),
+              ),
+            ),
+          ],
+        ),
+        if (error != null) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(error!, style: TextStyle(color: scheme.error)),
+        ],
+        const SizedBox(height: AppSpacing.lg),
+        FilledButton(
+          onPressed: (image != null && !uploading) ? onUpload : null,
+          child: uploading
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                      strokeWidth: BookDim.progressStroke),
+                )
+              : Text(l10n.send),
+        ),
+      ],
     );
   }
 }

@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 from django.utils import timezone
 
@@ -31,8 +33,8 @@ def _make_booking(user, court, day, price, status=Booking.Status.COMPLETED):
         user=user,
         court=court,
         date=day,
-        start_time=timezone.datetime.strptime("10:00", "%H:%M").time(),
-        end_time=timezone.datetime.strptime("11:00", "%H:%M").time(),
+        start_time=datetime.strptime("10:00", "%H:%M").time(),
+        end_time=datetime.strptime("11:00", "%H:%M").time(),
         duration_minutes=60,
         players=4,
         price=price,
@@ -83,11 +85,10 @@ class TestRevenueReports:
 class TestOperationalReports:
     def test_occupancy_percentage(self, venue, court, user):
         today = timezone.localdate()
-        from datetime import timedelta
 
         from apps.scheduling.models import TimeSlot
         for t in ("10:00", "10:30", "11:00", "11:30"):
-            start = timezone.datetime.strptime(t, "%H:%M")
+            start = datetime.strptime(t, "%H:%M")
             end = start + timedelta(minutes=30)
             TimeSlot.objects.create(
                 court=court, date=today,

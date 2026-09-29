@@ -1,3 +1,4 @@
+from datetime import timedelta
 from decimal import Decimal
 
 import pytest
@@ -41,7 +42,7 @@ class TestTariffService:
     def test_default_price_when_no_rules(self, court):
         from apps.pricing.services import TariffService
 
-        day = timezone.localdate() + timezone.timedelta(days=1)
+        day = timezone.localdate() + timedelta(days=1)
         price = TariffService.compute(court, day, 60)
         assert price == Decimal("12.00")
 
@@ -62,7 +63,7 @@ class TestTariffService:
     def test_duration_scales_price(self, court):
         from apps.pricing.services import TariffService
 
-        day = timezone.localdate() + timezone.timedelta(days=1)
+        day = timezone.localdate() + timedelta(days=1)
         assert TariffService.compute(court, day, 90) == Decimal("18.00")
         assert TariffService.compute(court, day, 120) == Decimal("24.00")
 
@@ -79,7 +80,7 @@ class TestTariffService:
             multiplier="0.80",
             priority=5,
         )
-        day = timezone.localdate() + timezone.timedelta(days=1)
+        day = timezone.localdate() + timedelta(days=1)
         assert TariffService.compute(court, day, 60) == Decimal("9.60")
 
     def test_inactive_rule_ignored(self, court, pico_weekend_rule):
@@ -102,12 +103,12 @@ class TestTariffService:
             venue=court.venue, name="High prio", zone="valle",
             day_of_week=None, court_type=None, multiplier="1.90", priority=99,
         )
-        day = timezone.localdate() + timezone.timedelta(days=1)
+        day = timezone.localdate() + timedelta(days=1)
         assert TariffService.compute(court, day, 60) == Decimal("22.80")  # 12 x 1.90
 
 
 def _next_weekday(target: int):
-    day = timezone.localdate() + timezone.timedelta(days=1)
+    day = timezone.localdate() + timedelta(days=1)
     while day.weekday() != target:
-        day += timezone.timedelta(days=1)
+        day += timedelta(days=1)
     return day

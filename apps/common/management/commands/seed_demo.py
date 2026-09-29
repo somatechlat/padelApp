@@ -1,7 +1,10 @@
+import logging
 from datetime import time as dtime
+from datetime import timedelta
 
+from django.conf import settings
 from django.contrib.auth import get_user_model
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from apps.bookings.models import Booking
@@ -11,6 +14,8 @@ from apps.courts.models import Court, CourtSchedule
 from apps.events.models import Event, NewsPost, Tournament
 from apps.notifications.models import Notification
 
+logger = logging.getLogger(__name__)
+
 DEMO_PASSWORD = "Andes12345!"
 
 
@@ -18,6 +23,19 @@ class Command(BaseCommand):
     help = "Seed an idempotent demo dataset: users, courts, events, tournaments, news, sample bookings."
 
     def handle(self, *args, **options):
+        if not settings.DEBUG:
+            raise CommandError(
+                "seed_demo creates users with a well-known password "
+                f"({DEMO_PASSWORD}) and is disposable-env-only. "
+                "Refusing to run with DEBUG=False."
+            )
+        self.stdout.write(
+            self.style.WARNING(
+                "DISPOSABLE ENVIRONMENT ONLY: seed_demo writes demo users whose "
+                f"password is the public constant {DEMO_PASSWORD}. Never run this "
+                "against a real club database."
+            )
+        )
         User = get_user_model()
         created = {"users": 0, "courts": 0, "bookings": 0}
 
@@ -77,8 +95,8 @@ class Command(BaseCommand):
             defaults={
                 "title_es": "Clínica de verano",
                 "description_es": "Entrenamiento guiado para todos los niveles.",
-                "start_at": now + timezone.timedelta(days=5),
-                "end_at": now + timezone.timedelta(days=5, hours=2),
+                "start_at": now + timedelta(days=5),
+                "end_at": now + timedelta(days=5, hours=2),
                 "location": "Cancha Ambacar",
                 "status": Event.Status.PUBLISHED,
                 "created_by": admin,
@@ -89,8 +107,8 @@ class Command(BaseCommand):
             defaults={
                 "title_es": "Torneo social mensual",
                 "description_es": "Dia de partidos informales entre socios.",
-                "start_at": now + timezone.timedelta(days=12),
-                "end_at": now + timezone.timedelta(days=12, hours=4),
+                "start_at": now + timedelta(days=12),
+                "end_at": now + timedelta(days=12, hours=4),
                 "location": "Complejo Andes Padel",
                 "status": Event.Status.PUBLISHED,
                 "created_by": admin,
@@ -102,11 +120,11 @@ class Command(BaseCommand):
             defaults={
                 "name_es": "Torneo Nocturno",
                 "description_es": "Torneo de parejas por la noche. Premios para los finalistas.",
-                "start_date": today + timezone.timedelta(days=7),
-                "end_date": today + timezone.timedelta(days=14),
+                "start_date": today + timedelta(days=7),
+                "end_date": today + timedelta(days=14),
                 "capacity": 8,
                 "price": "15.00",
-                "registration_deadline": now + timezone.timedelta(days=5),
+                "registration_deadline": now + timedelta(days=5),
                 "status": Tournament.Status.OPEN,
                 "created_by": admin,
             },
@@ -116,11 +134,11 @@ class Command(BaseCommand):
             defaults={
                 "name_es": "Torneo del Sábado",
                 "description_es": "Torneo express de un dia.",
-                "start_date": today + timezone.timedelta(days=30),
-                "end_date": today + timezone.timedelta(days=31),
+                "start_date": today + timedelta(days=30),
+                "end_date": today + timedelta(days=31),
                 "capacity": 16,
                 "price": "0.00",
-                "registration_deadline": now + timezone.timedelta(days=28),
+                "registration_deadline": now + timedelta(days=28),
                 "status": Tournament.Status.OPEN,
                 "created_by": admin,
             },
@@ -130,11 +148,11 @@ class Command(BaseCommand):
             defaults={
                 "name_es": "Liga interna",
                 "description_es": "Liga interna de otono en curso.",
-                "start_date": today - timezone.timedelta(days=10),
-                "end_date": today + timezone.timedelta(days=50),
+                "start_date": today - timedelta(days=10),
+                "end_date": today + timedelta(days=50),
                 "capacity": 32,
                 "price": "0.00",
-                "registration_deadline": now - timezone.timedelta(days=1),
+                "registration_deadline": now - timedelta(days=1),
                 "status": Tournament.Status.IN_PROGRESS,
                 "created_by": admin,
             },
@@ -146,7 +164,7 @@ class Command(BaseCommand):
                 "title_es": "Reapertura de canchas",
                 "body_es": "Las canchas renovadas ya estan disponibles para reserva.",
                 "status": NewsPost.Status.PUBLISHED,
-                "published_at": now - timezone.timedelta(days=2),
+                "published_at": now - timedelta(days=2),
                 "created_by": admin,
             },
         )
@@ -156,15 +174,16 @@ class Command(BaseCommand):
                 "title_es": "Nuevo horario de verano",
                 "body_es": "A partir del lunes abrimos una hora antes.",
                 "status": NewsPost.Status.PUBLISHED,
-                "published_at": now - timezone.timedelta(days=1),
+                "published_at": now - timedelta(days=1),
                 "created_by": admin,
             },
         )
 
         Notification.objects.filter(user=cliente).delete()
         court = Court.objects.first()
+        booking_failures = 0
         for day_offset, start in ((1, dtime(18, 0)), (3, dtime(20, 0)), (5, dtime(17, 0))):
-            day = today + timezone.timedelta(days=day_offset)
+            day = today + timedelta(days=day_offset)
             if Booking.objects.filter(court=court, date=day, start_time=start).exists():
                 continue
             try:
@@ -174,13 +193,17 @@ class Command(BaseCommand):
                 BookingService.confirm(booking)
                 created["bookings"] += 1
             except Exception:
-                pass
+                booking_failures += 1
+                logger.exception(
+                    "Failed to seed demo booking on %s at %s", day, start
+                )
 
         self.stdout.write(
             self.style.SUCCESS(
                 "Seed demo: "
                 f"users={created['users']} courts={created['courts']} "
-                f"bookings={created['bookings']} banners={created.get('banners', 0)}. "
-                "Password for all demo users: Andes12345!"
+                f"bookings={created['bookings']} banners={created.get('banners', 0)} "
+                f"booking_failures={booking_failures}. "
+                f"Password for all demo users: {DEMO_PASSWORD}"
             )
         )

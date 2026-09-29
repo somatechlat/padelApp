@@ -3,6 +3,7 @@ import 'package:flutter/foundation.dart';
 import '../../core/api_client.dart';
 import '../../core/friendly_error.dart';
 import '../../core/storage.dart';
+import '../../core/l10n/app_localizations.dart';
 
 /// Thrown when the API rejects a request with a message the UI may show.
 /// Anything else is mapped through [friendlyErrorMessage] before display.
@@ -32,12 +33,14 @@ class AuthState extends ChangeNotifier {
   Object? get lastError => _lastError;
   bool get hasError => _lastError != null;
 
-  /// Safe fallback when no `AppLocalizations` is in scope. Never a
-  /// DioException/stack-trace dump.
-  String? get error {
+  /// Localized, non-technical message for the last failure, or null when the
+  /// last call succeeded. Takes [l10n] so a raw DioException/stack-trace dump
+  /// can never reach the UI. Never use this as a success signal — check
+  /// [authenticated] or the call's own result instead.
+  String? error(AppLocalizations l10n) {
     final e = _lastError;
-    if (e is AppAuthException) return e.message;
-    return null;
+    if (e == null) return null;
+    return friendlyErrorMessage(e, l10n);
   }
 
   Future<void> restoreSession() async {

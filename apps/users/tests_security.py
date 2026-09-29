@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 
@@ -88,7 +90,7 @@ class TestAuditTrail:
 
         venue = Venue.objects.create(name="V")
         court = Court.objects.create(venue=venue, name="C1", price_base="10.00")
-        day = timezone.localdate() + timezone.timedelta(days=1)
+        day = timezone.localdate() + timedelta(days=1)
         wd = day.weekday()
         CourtSchedule.objects.create(
             court=court, weekday=wd, open_time="08:00", close_time="22:00"

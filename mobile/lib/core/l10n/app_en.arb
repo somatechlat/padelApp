@@ -291,5 +291,17 @@
   "instagram": "Instagram",
   "showPassword": "Show password",
   "hidePassword": "Hide password",
-  "extraInfo": "Additional information"
+  "extraInfo": "Additional information",
+    "stepDate": "1. Pick a day",
+    "stepDuration": "2. Duration",
+    "stepStartTime": "3. Start time",
+    "freeSlotsOnlyHint": "Only times with a free court (based on real occupancy).",
+    "noFreeSlotsForSelection": "No free times for this day and duration. Try another day.",
+    "timeMorning": "Morning",
+    "timeAfternoon": "Afternoon",
+    "timeEvening": "Evening",
+    "freeCourtsCountOne": "{count} free",
+    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
+    "freeCourtsCountOther": "{count} free",
+    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
 }

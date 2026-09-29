@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 import pytest
 
 pytestmark = pytest.mark.django_db
@@ -133,7 +135,7 @@ class TestLocalizedMessages:
         Booking.objects.create(
             user=user,
             court=court,
-            date=timezone.localdate() + timezone.timedelta(days=1),
+            date=timezone.localdate() + timedelta(days=1),
             start_time="10:00",
             end_time="11:00",
             duration_minutes=60,

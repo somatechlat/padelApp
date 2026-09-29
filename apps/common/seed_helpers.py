@@ -117,7 +117,7 @@ BANNER_SEEDS = [
 
 def seed_club_profile(name="Andes Padel"):
     """Upsert the singleton-like Venue with real Andes Padel contact/bank data."""
-    venue, _ = Venue.objects.get_or_create(name=name, defaults={})
+    venue, _created = Venue.objects.get_or_create(name=name, defaults={})
     changed = False
     for field, value in CLUB_DEFAULTS.items():
         current = getattr(venue, field)

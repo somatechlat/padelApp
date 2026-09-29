@@ -37,7 +37,7 @@ class SkillLevel(models.Model):
 
 
 class User(AbstractUser):
-    username = None
+    username = None  # type: ignore[assignment]
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=120)
     # Registration form: Nombre / Apellido / Correo / Clave /
@@ -70,7 +70,7 @@ class User(AbstractUser):
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = []
 
-    objects = UserManager()
+    objects = UserManager()  # type: ignore[assignment, misc]
 
     class Meta:
         verbose_name = "usuario"

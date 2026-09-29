@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.db import transaction
 from django.utils import timezone
@@ -24,7 +24,7 @@ class SlotService:
             t = schedule.open_time
             end_limit = schedule.close_time
             while True:
-                end = (timezone.datetime.combine(day, t) + timedelta(minutes=SLOT_MINUTES)).time()
+                end = (datetime.combine(day, t) + timedelta(minutes=SLOT_MINUTES)).time()
                 if t >= end_limit or end > end_limit:
                     break
                 slots.append(TimeSlot(court=court, date=day, start=t, end=end))
@@ -39,8 +39,8 @@ class SlotService:
 
     @staticmethod
     def _is_in_maintenance(slot, windows):
-        slot_start = timezone.datetime.combine(slot.date, slot.start, tzinfo=timezone.get_current_timezone())
-        slot_end = timezone.datetime.combine(slot.date, slot.end, tzinfo=timezone.get_current_timezone())
+        slot_start = datetime.combine(slot.date, slot.start, tzinfo=timezone.get_current_timezone())
+        slot_end = datetime.combine(slot.date, slot.end, tzinfo=timezone.get_current_timezone())
         for w in windows:
             if slot_start < w.end and slot_end > w.start:
                 return True
@@ -59,7 +59,7 @@ class SlotService:
         result = []
         tz = timezone.get_current_timezone()
         for s in slots:
-            start_dt = timezone.datetime.combine(s.date, s.start, tzinfo=tz)
+            start_dt = datetime.combine(s.date, s.start, tzinfo=tz)
             if day == now.date() and start_dt <= now:
                 continue
             if SlotService._is_in_maintenance(s, windows):
@@ -76,7 +76,7 @@ class SlotService:
     @staticmethod
     def slots_in_range(court, day, start_time, duration_minutes):
         count = duration_minutes // SLOT_MINUTES
-        start_dt = timezone.datetime.combine(day, start_time)
+        start_dt = datetime.combine(day, start_time)
         ids = []
         for i in range(count):
             st = (start_dt + timedelta(minutes=SLOT_MINUTES * i)).time()

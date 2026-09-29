@@ -1,3 +1,5 @@
+from datetime import datetime, timedelta
+
 import pytest
 from django.contrib.auth import get_user_model
 from django.core.files.uploadedfile import SimpleUploadedFile
@@ -45,13 +47,25 @@ def staff_users():
     recepcionista = User.objects.create_user(
         email="rec@test.com", password="pass12345", role="recepcionista", is_staff=True
     )
+    gerente = User.objects.create_user(
+        email="gerente@test.com", password="pass12345", role="gerente", is_staff=True
+    )
     dueno = User.objects.create_user(
         email="dueno@test.com", password="pass12345", role="dueno", is_staff=True
+    )
+    superadmin = User.objects.create_user(
+        email="super@test.com", password="pass12345", role="superadmin", is_staff=True
     )
     cliente = User.objects.create_user(
         email="cli@test.com", password="pass12345", role="cliente"
     )
-    return {"recepcionista": recepcionista, "dueno": dueno, "cliente": cliente}
+    return {
+        "recepcionista": recepcionista,
+        "gerente": gerente,
+        "dueno": dueno,
+        "superadmin": superadmin,
+        "cliente": cliente,
+    }
 
 
 @pytest.fixture
@@ -60,8 +74,8 @@ def booking(staff_users, court):
         user=staff_users["cliente"],
         court=court,
         date=timezone.localdate(),
-        start_time=timezone.datetime.strptime("10:00", "%H:%M").time(),
-        end_time=timezone.datetime.strptime("11:00", "%H:%M").time(),
+        start_time=datetime.strptime("10:00", "%H:%M").time(),
+        end_time=datetime.strptime("11:00", "%H:%M").time(),
         duration_minutes=60,
         players=4,
         price="10.00",
@@ -138,7 +152,7 @@ class TestAdminpanelViews:
     def test_audit_list_and_filter(self, client, staff_users):
         log_event(staff_users["dueno"], "booking.cancel", "Booking", "1")
         log_event(staff_users["dueno"], "login", "User", "2")
-        client.force_login(staff_users["recepcionista"])
+        client.force_login(staff_users["dueno"])
         resp = client.get("/adminpanel/audit/")
         assert resp.status_code == 200
         assert len(resp.context["entries"]) == 2
@@ -218,11 +232,11 @@ class TestPromoBannerModel:
         banner.active = False
         assert banner.is_visible_now() is False
         banner.active = True
-        banner.starts_at = timezone.now() + timezone.timedelta(days=1)
-        banner.ends_at = timezone.now() + timezone.timedelta(days=2)
+        banner.starts_at = timezone.now() + timedelta(days=1)
+        banner.ends_at = timezone.now() + timedelta(days=2)
         assert banner.is_visible_now() is False
-        banner.starts_at = timezone.now() - timezone.timedelta(days=1)
-        banner.ends_at = timezone.now() + timezone.timedelta(days=1)
+        banner.starts_at = timezone.now() - timedelta(days=1)
+        banner.ends_at = timezone.now() + timedelta(days=1)
         assert banner.is_visible_now() is True
 
     def test_image_required_on_model(self):
@@ -504,3 +518,225 @@ class TestBannersAdminCRUD:
         )
         assert resp.status_code == 302
         assert PromoBanner.objects.count() == 0
+
+
+class TestAdminPanelRoleScoping:
+    """RBAC on the custom admin panel: recepcionista is operational-only."""
+
+    def test_recepcionista_cannot_refund(self, client, staff_users, payment):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "refund", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 403
+        payment.refresh_from_db()
+        assert payment.status != Payment.Status.REFUNDED
+
+    def test_recepcionista_cannot_confirm_transfer(self, client, staff_users, payment):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "confirm_transfer", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 403
+
+    def test_recepcionista_cannot_change_role(self, client, staff_users):
+        client.force_login(staff_users["recepcionista"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "superadmin"},
+        )
+        assert resp.status_code == 403
+        target.refresh_from_db()
+        assert target.role == "cliente"
+
+    def test_recepcionista_cannot_edit_bank_settings(self, client, staff_users, venue):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/settings/",
+            {"action": "update_club", "bank_name": "Banco Hackeado"},
+        )
+        assert resp.status_code == 403
+        venue.refresh_from_db()
+        assert venue.bank_name != "Banco Hackeado"
+
+    def test_recepcionista_cannot_view_settings(self, client, staff_users, venue):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.get("/adminpanel/settings/")
+        assert resp.status_code == 403
+
+    def test_recepcionista_cannot_view_audit(self, client, staff_users):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.get("/adminpanel/audit/")
+        assert resp.status_code == 403
+
+    def test_recepcionista_cannot_view_reports(self, client, staff_users):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.get("/adminpanel/reports/")
+        assert resp.status_code == 403
+
+    def test_recepcionista_cannot_export_csv(self, client, staff_users, booking):
+        client.force_login(staff_users["recepcionista"])
+        resp = client.get("/adminpanel/reports/?export=csv")
+        assert resp.status_code == 403
+
+    def test_gerente_cannot_refund(self, client, staff_users, payment):
+        client.force_login(staff_users["gerente"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "refund", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 403
+        payment.refresh_from_db()
+        assert payment.status != Payment.Status.REFUNDED
+
+    def test_gerente_cannot_change_role(self, client, staff_users):
+        client.force_login(staff_users["gerente"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "gerente"},
+        )
+        assert resp.status_code == 403
+
+    def test_gerente_cannot_edit_bank_settings(self, client, staff_users, venue):
+        client.force_login(staff_users["gerente"])
+        resp = client.post(
+            "/adminpanel/settings/",
+            {"action": "update_club", "bank_name": "Banco Hackeado"},
+        )
+        assert resp.status_code == 403
+
+    def test_gerente_cannot_export_csv(self, client, staff_users, booking):
+        client.force_login(staff_users["gerente"])
+        resp = client.get("/adminpanel/reports/?export=csv")
+        assert resp.status_code == 403
+
+    def test_gerente_can_view_reports(self, client, staff_users, booking):
+        client.force_login(staff_users["gerente"])
+        resp = client.get("/adminpanel/reports/")
+        assert resp.status_code == 200
+
+    def test_gerente_can_confirm_transfer(self, client, staff_users, payment, monkeypatch):
+        from apps.notifications.services import NotificationService
+
+        monkeypatch.setattr(NotificationService, "notify", staticmethod(lambda *a, **k: None))
+        client.force_login(staff_users["gerente"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "confirm_transfer", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 302
+
+    def test_dueno_can_refund(self, client, staff_users, payment, monkeypatch):
+        from apps.notifications.services import NotificationService
+
+        monkeypatch.setattr(NotificationService, "notify", staticmethod(lambda *a, **k: None))
+        client.force_login(staff_users["dueno"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "refund", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 302
+        payment.refresh_from_db()
+        assert payment.status == Payment.Status.REFUNDED
+
+    def test_dueno_can_export_csv(self, client, staff_users, booking):
+        client.force_login(staff_users["dueno"])
+        resp = client.get("/adminpanel/reports/?export=csv")
+        assert resp.status_code == 200
+        assert resp["Content-Type"] == "text/csv"
+
+    def test_dueno_can_change_role_to_gerente(self, client, staff_users):
+        client.force_login(staff_users["dueno"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "gerente"},
+        )
+        assert resp.status_code == 302
+        target.refresh_from_db()
+        assert target.role == "gerente"
+
+    def test_dueno_cannot_promote_to_superadmin(self, client, staff_users):
+        client.force_login(staff_users["dueno"])
+        target = staff_users["recepcionista"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "superadmin"},
+        )
+        assert resp.status_code == 302
+        target.refresh_from_db()
+        assert target.role == "recepcionista"
+
+    def test_superadmin_can_grant_superadmin(self, client, staff_users):
+        client.force_login(staff_users["superadmin"])
+        target = staff_users["recepcionista"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "superadmin"},
+        )
+        assert resp.status_code == 302
+        target.refresh_from_db()
+        assert target.role == "superadmin"
+
+    def test_dueno_can_edit_bank_settings(self, client, staff_users, venue):
+        client.force_login(staff_users["dueno"])
+        resp = client.post(
+            "/adminpanel/settings/",
+            {"action": "update_club", "bank_name": "Banco Pichincha"},
+        )
+        assert resp.status_code == 302
+        venue.refresh_from_db()
+        assert venue.bank_name == "Banco Pichincha"
+
+    def test_court_image_upload_rejects_bad_type(self, client, staff_users, venue):
+        client.force_login(staff_users["recepcionista"])
+        bad = SimpleUploadedFile("evil.php", b"<?php ?>", content_type="application/x-php")
+        resp = client.post(
+            "/adminpanel/courts/",
+            {"action": "create_court", "name": "Cancha X", "image": bad},
+        )
+        assert resp.status_code == 302
+        assert not Court.objects.filter(name="Cancha X").exists()
+
+    def test_edit_event_invalid_capacity_rejected(self, client, staff_users):
+        from apps.events.models import Event
+
+        client.force_login(staff_users["recepcionista"])
+        event = Event.objects.create(
+            title="Prueba",
+            title_es="Prueba",
+            start_at=timezone.now(),
+            end_at=timezone.now() + timedelta(hours=2),
+            status="published",
+            capacity=10,
+            created_by=staff_users["dueno"],
+        )
+        resp = client.post(
+            "/adminpanel/events/",
+            {
+                "action": "edit_event",
+                "event_id": str(event.id),
+                "capacity": "not-a-number",
+            },
+        )
+        assert resp.status_code == 302
+        event.refresh_from_db()
+        assert event.capacity == 10
+
+    def test_edit_banner_invalid_sort_order_rejected(self, client, staff_user, banner):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/banners/",
+            {
+                "action": "edit_banner",
+                "banner_id": str(banner.id),
+                "sort_order": "not-a-number",
+            },
+        )
+        assert resp.status_code == 302
+        banner.refresh_from_db()
+        assert banner.sort_order == 1

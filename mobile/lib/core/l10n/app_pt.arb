@@ -282,5 +282,17 @@
     }
   },
   "uploadProof": "Enviar comprovante",
-  "uploadProofHint": "Tire uma foto ou selecione da galeria"
+  "uploadProofHint": "Tire uma foto ou selecione da galeria",
+    "stepDate": "1. Escolha o dia",
+    "stepDuration": "2. Duração",
+    "stepStartTime": "3. Hora de início",
+    "freeSlotsOnlyHint": "Apenas horários com quadra livre (conforme ocupação real).",
+    "noFreeSlotsForSelection": "Não há horários livres para este dia e duração. Tente outro dia.",
+    "timeMorning": "Manhã",
+    "timeAfternoon": "Tarde",
+    "timeEvening": "Noite",
+    "freeCourtsCountOne": "{count} livre",
+    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
+    "freeCourtsCountOther": "{count} livres",
+    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
 }

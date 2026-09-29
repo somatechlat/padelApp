@@ -1,3 +1,5 @@
+from datetime import datetime
+
 from django.utils import timezone
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
@@ -12,8 +14,8 @@ def _parse_range(request):
     start = request.GET.get("start", "")
     end = request.GET.get("end", "")
     try:
-        start = timezone.datetime.strptime(start, "%Y-%m-%d").date() if start else today
-        end = timezone.datetime.strptime(end, "%Y-%m-%d").date() if end else today
+        start = datetime.strptime(start, "%Y-%m-%d").date() if start else today
+        end = datetime.strptime(end, "%Y-%m-%d").date() if end else today
     except ValueError:
         start, end = today, today
     if end < start:

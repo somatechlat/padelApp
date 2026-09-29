@@ -1,607 +1,271 @@
-# Build & Deploy — Andes Pádel
+# Build and Deploy
 
-**Last updated:** 2026-08-26  
-**Covers:** 3 deployment modes + Android APK + iOS build
+Last verified against source: 2026-09-29.
 
----
+Covers the three Docker Compose environments, backend images, mobile builds, and the TestFlight pipeline.
 
-## Deployment Modes Overview
+## Compose model
 
-| Mode | Compose file | Settings | Use case |
-|------|-------------|----------|----------|
-| **A. Local Development** | `docker-compose.yml` | `padel.settings.dev` | Daily dev on your machine |
-| **B. Testing Server** | `compose.server.yml` | `padel.settings.prod` | LOYALLIA server (140.82.155.48) |
-| **C. Production (basic)** | `compose.prod.yml` | `padel.settings.prod` | Minimal production without landing page |
+`docker-compose.yml` holds the shared service definitions. It must never be run alone. Always pair it with an env overlay and a project name:
 
----
+| Env | Project | Command shape | Settings module |
+|---|---|---|---|
+| dev | `andespadel` | `docker compose -p andespadel -f docker-compose.yml -f docker-compose.dev.yml ...` | `padel.settings.dev` |
+| test | `andespadel-test` | `docker compose -p andespadel-test -f docker-compose.yml -f docker-compose.test.yml ...` | `padel.settings.dev` |
+| prod | `andespadel-prod` | `docker compose -p andespadel-prod -f docker-compose.yml -f docker-compose.prod.yml ...` | `padel.settings.prod` |
 
-## MODE A: Local Development
+Use the Makefile targets (`up-dev`, `up-test`, `up-prod`, and the matching `down-*` / `test-*` / `seeddemo-*`). They encode the correct `-p` and `-f` flags.
 
-Everything runs on your machine via Docker. No external server needed.
+`compose.prod.yml` and `compose.server.yml` at the repo root are **legacy and unused** by the Makefile. Do not extend them.
 
-### A1. Prerequisites
+Services in every env: `db` (Postgres 15), `redis` (Redis 7), `backend`, `worker` (Celery), `beat` (Celery beat), `nginx`, and an optional `flutter` tools container (compose profile `tools`).
 
-| Requirement | Version | Check |
-|-------------|---------|-------|
-| Docker Desktop | Latest | `docker --version` |
-| Docker Compose | v2+ | `docker compose version` |
-| Git | Any | `git --version` |
+## Ports
 
-### A2. Start all services
+There is **no host port 8000**. Django binds 8000 inside the container.
 
-```bash
-cd padelApp
+| Offset | Service | dev | test | prod |
+|---|---|---|---|---|
+| +0 | Postgres | 28000 | 29000 | 34000 |
+| +1 | Redis | 28001 | 29001 | 34001 |
+| +2 | backend / API | 28002 | 29002 | 34002 |
+| +3 | nginx | 28003 | 29003 | 34003 |
 
-# Build images (first time or after Dockerfile changes)
-make build
+Nginx serves the landing page from `./landing/` and proxies `/api/`, `/adminpanel/`, `/admin/` to the backend.
 
-# Start all services (db, redis, backend, worker, flutter)
-make up
+## Volumes and network
+
+Named volumes are prefixed by compose project, not `padelapp_*`:
+
+| Env | Volume examples |
+|---|---|
+| dev | `andespadel_db_data`, `andespadel_media_data`, `andespadel_static_data`, `andespadel_flutter_home`, `andespadel_gradle_home`, `andespadel_android_sdk` |
+| test | `andespadel-test_db_data`, `andespadel-test_media_data`, … |
+| prod | `andespadel-prod_db_data`, `andespadel-prod_media_data`, … |
+
+Networks: `andespadel-net`, `andespadel-test-net`, `andespadel-prod-net`.
+
+If a Docker Flutter/Gradle cache is corrupt, remove the matching `*_gradle_home` / `*_flutter_home` / `*_android_sdk` volumes and rebuild.
+
+## Backend images
+
+| File | User | Purpose |
+|---|---|---|
+| `Dockerfile.dev` | `app` (uid 1000) | Dev/test. `requirements-dev.txt`, venv at `/opt/venv`, `runserver` |
+| `Dockerfile.prod` | `appuser` | Prod. `requirements.txt`, gunicorn `padel.wsgi:application --bind 0.0.0.0:8000 --workers 3` |
+
+Non-root usernames differ on purpose: `app` in `Dockerfile.dev`, `appuser` in `Dockerfile.prod`.
+
+Dev/test mount `./docker/backend` as `/app/runsecrets` (read-only). Prod secrets live on the server under `/opt/padelapp/docker/backend/secrets.py` and are validated at startup by `padel/settings/prod.py` / `_checks.py`.
+
+## Django settings
+
+| File | Role |
+|---|---|
+| `padel/settings/base.py` | Shared. `TIME_ZONE=America/Guayaquil`, `LANGUAGE_CODE=es`, Celery, DRF/JWT, i18n |
+| `padel/settings/dev.py` | `DEBUG=True`, `ALLOWED_HOSTS=["*"]`, open CORS, `CELERY_TASK_ALWAYS_EAGER=True` |
+| `padel/settings/prod.py` | `DEBUG=False`, host allowlist, SSL/HSTS, secret validation |
+| `padel/settings/local_sqlite.py` | Overlay for docker-less tests |
+| `padel/settings/_checks.py` | Fail-fast production secret validation |
+
+Prod `ALLOWED_HOSTS` includes `andespadel.yachaq.io`. Test env uses `padel.settings.dev` — there is no separate test settings module.
+
+## API URL (mobile)
+
+`mobile/lib/core/api_client.dart` defaults to:
+
+```
+http://127.0.0.1:28002/api
 ```
 
-This starts:
-
-| Service | Container | Port | What it does |
-|---------|-----------|------|--------------|
-| `db` | PostgreSQL 15 | 5432 | Database |
-| `redis` | Redis 7 | 6379 | Cache + Celery broker |
-| `backend` | Django dev server | 8000 | API + Admin panel |
-| `worker` | Celery worker | — | Background tasks |
-| `flutter` | Flutter SDK | — | For building mobile app |
-
-### A3. Setup database
+That is the dev API. Every release build must override it:
 
 ```bash
-# Run migrations
-make migrate
-
-# Load demo data (optional)
-make seeddemo
+--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api
 ```
 
-### A4. Verify it's running
+| Env | API base |
+|---|---|
+| dev | `http://127.0.0.1:28002/api` |
+| test | `http://127.0.0.1:29002/api` |
+| prod | `https://andespadel.yachaq.io/api` |
+
+Makefile `API_DEV` / `API_TEST` / `API_PROD` match these values.
+
+## Bundle identifiers
+
+| Platform | Identifier | Source |
+|---|---|---|
+| Android `applicationId` | `com.andes.padel.padel_app` | `mobile/android/app/build.gradle` |
+| iOS `PRODUCT_BUNDLE_IDENTIFIER` | `com.andes.padel.padelApp` | `mobile/ios/Runner.xcodeproj/project.pbxproj` |
+
+These differ on purpose. Do not conflate them.
+
+## Makefile targets
+
+| Target | What it does |
+|---|---|
+| `up-dev` / `up-test` / `up-prod` | Start the matching stack |
+| `down-dev` / `down-test` / `down-prod` | Stop the matching stack |
+| `test-dev` / `test-test` | `pytest apps -q` inside that stack's backend |
+| `fltest-dev` | `flutter test` against `API_DEV` |
+| `seeddemo-dev` / `seeddemo-test` | `manage.py seed_demo` (dev/test only) |
+| `seed` | `manage.py seed_courts` (dev project) |
+| `lint` | `ruff check . && flake8 && bandit -r apps` in the backend container |
+| `flcheck` | `flutter analyze` |
+| `flrun` | `flutter run` against `API_DEV` |
+| `flbuild` / `flapk` | Debug APK; `flapk` copies it to `./padelapp-debug.apk` |
+| `ios-sim-dev` | `flutter run -d "iPhone 17 Pro"` against `API_DEV` |
+| `ship-ios` | Build release IPA and upload to TestFlight |
+| `migrate` / `makemigrations` | Django migrations (dev project) |
+| `logs` / `shell` / `bash` / `psql` | Ops helpers (dev project) |
+| `build` | Build the dev backend image |
+
+Aliases `up`, `down`, `test`, `seeddemo`, `fltest` map to the dev variants.
+
+There is no `make seed-test`. Use `seeddemo-test`.
+
+## Local development
 
 ```bash
-# Check all containers are up
-docker compose ps
-
-# Test the API
-curl http://localhost:8000/api/auth/me/
-
-# Check logs
-make logs
+make up-dev
+make migrate            # also runs automatically on backend start
+make seeddemo-dev       # optional demo data, password Andes12345!
+curl http://127.0.0.1:28002/api/auth/me/
 ```
 
-### A5. Access points
+Access points on dev:
 
 | URL | What |
-|-----|------|
-| `http://localhost:8000/api/` | REST API |
-| `http://localhost:8000/adminpanel/` | Admin dashboard |
-| `http://localhost:8000/admin/` | Django admin |
-| `http://localhost:8000/api/docs/` | Swagger API docs |
+|---|---|
+| `http://127.0.0.1:28002/api/` | REST API |
+| `http://127.0.0.1:28002/api/docs/` | Swagger |
+| `http://127.0.0.1:28002/adminpanel/` | Staff dashboard |
+| `http://127.0.0.1:28002/admin/` | Django admin |
+| `http://127.0.0.1:28003/` | nginx (landing + proxy) |
 
-### A6. Secrets (dev)
+## Production deploy (compose)
 
-Secrets are pre-configured for local dev. File: `docker/backend/secrets.py`
-
-```
-DB_NAME=padel
-DB_USER=padel
-DB_PASSWORD=padel_dev
-DB_HOST=db
-REDIS_URL=redis://redis:6379/0
-```
-
-This file is git-ignored. It's volume-mounted into the container at `/app/runsecrets/secrets.py`.
-
-### A7. Useful commands
-
-| Command | Purpose |
-|---------|---------|
-| `make up` | Start all services |
-| `make down` | Stop all services |
-| `make logs` | Follow logs |
-| `make build` | Rebuild Docker images |
-| `make migrate` | Run database migrations |
-| `make makemigrations` | Create new migrations |
-| `make seeddemo` | Load demo data |
-| `make seed` | Seed courts only |
-| `make shell` | Django management shell |
-| `make bash` | Bash into backend container |
-| `make psql` | PostgreSQL shell |
-| `make test` | Run backend tests (pytest) |
-| `make lint` | Lint backend code (ruff + flake8 + bandit) |
-
----
-
-## MODE B: Testing Server (LOYALLIA)
-
-Full production deployment on the LOYALLIA server (140.82.155.48).
-
-### B1. Server constraints
-
-- **DO NOT** touch Loyallia containers/networks/configs
-- **DO NOT** use ports 33900-33914 (Loyallia range)
-- **DO NOT** use ports 80/443 on Docker (host nginx owns these)
-- Nginx reload only (no restart)
-
-### B2. Server architecture
-
-```
-┌──────────────── Host (140.82.155.48) ────────────────┐
-│                                                       │
-│  Host nginx (ports 80/443)                            │
-│    └─ andespadel.yachaq.io:443 → 127.0.0.1:34003    │
-│                                                       │
-│  Docker: padelapp-net (isolated bridge)               │
-│  ┌──────────────────────────────────────────────┐     │
-│  │ db:34000      (PostgreSQL 15)                │     │
-│  │ redis:34001   (Redis 7)                      │     │
-│  │ backend:34002 (Django/Gunicorn)              │     │
-│  │ worker         (Celery worker)                │     │
-│  │ beat           (Celery beat)                  │     │
-│  │ nginx:34003   (Reverse proxy)                │     │
-│  └──────────────────────────────────────────────┘     │
-│                                                       │
-│  Loyallia containers (UNTOUCHED)                      │
-│    loyallia-postgres, loyallia-redis, etc.            │
-│    on loyallia_backend-net, ports 33900-33914         │
-└───────────────────────────────────────────────────────┘
-```
-
-### B3. Port mapping
-
-| Service | Host Port | Container Port |
-|---------|-----------|----------------|
-| PostgreSQL | 34000 | 5432 |
-| Redis | 34001 | 6379 |
-| Backend | 34002 | 8000 |
-| Nginx | 34003 | 80 |
-
-### B4. Deploy step by step
+On the server (path `/opt/padelapp` per current runbook):
 
 ```bash
-# 1. SSH into the server
-ssh root@140.82.155.48
+docker compose -p andespadel-prod \
+  -f docker-compose.yml -f docker-compose.prod.yml \
+  up -d
 
-# 2. Clone or pull the repo
-cd /root
-git clone https://github.com/somatechlat/padelApp.git
-cd padelApp
+docker compose -p andespadel-prod \
+  -f docker-compose.yml -f docker-compose.prod.yml \
+  exec backend python manage.py migrate
 
-# 3. Configure secrets for production
-cp docker/backend/secrets.example.py docker/backend/secrets.py
-# Edit docker/backend/secrets.py with real production values:
-#   SECRET_KEY, DB_NAME=padel_prod, DB_USER, DB_PASSWORD, DB_HOST=db
-#   REDIS_URL, EMAIL_HOST, EMAIL_HOST_USER, EMAIL_HOST_PASSWORD
-#   STRIPE_SECRET_KEY, STRIPE_PUBLISHABLE_KEY, STRIPE_WEBHOOK_SECRET
-#   FIREBASE_CREDENTIALS_PATH
-
-# 4. Deploy with compose.server.yml
-docker compose -f compose.server.yml up -d --build
-
-# 5. Run migrations
-docker compose -f compose.server.yml exec backend python manage.py migrate
-
-# 6. Create superuser
-docker compose -f compose.server.yml exec backend python manage.py createsuperuser
-
-# 7. Load demo data (optional)
-docker compose -f compose.server.yml exec backend python manage.py seed_demo
-
-# 8. Collect static files
-docker compose -f compose.server.yml exec backend python manage.py collectstatic --no-input
-
-# 9. Verify
-docker compose -f compose.server.yml ps
-curl https://andespadel.yachaq.io/api/auth/me/
+docker compose -p andespadel-prod \
+  -f docker-compose.yml -f docker-compose.prod.yml \
+  exec backend python manage.py collectstatic --no-input
 ```
 
-### B5. What runs in production
+Or simply `make up-prod` / `make down-prod` from a checkout with the Makefile.
 
-| Service | Command | Purpose |
-|---------|---------|---------|
-| `backend` | `gunicorn padel.wsgi:application --bind 0.0.0.0:8000 --workers 3` | WSGI server |
-| `worker` | `celery -A padel worker -l info` | Background tasks |
-| `beat` | `celery -A padel beat -l info` | Scheduled tasks (reminders, hold release) |
-| `nginx` | Reverse proxy | Routes traffic, serves landing page + static files |
+Prod backend runs gunicorn (see `docker-compose.prod.yml` command override). Public URL: `https://andespadel.yachaq.io`.
 
-### B6. Celery beat schedule
+### Server host IP — UNVERIFIED
 
-| Task | Interval | What it does |
-|------|----------|-------------|
-| `tournament-reminder-daily` | 24 hours | Send tournament reminders |
-| `booking-reminder-daily` | 24 hours | Send booking reminders |
-| `booking-reminder-2h` | 30 min | Send 2-hour-before reminders |
-| `release-expired-holds` | 5 min | Release expired time slot holds |
+This repo disagrees on the production server address:
 
-### B7. SSL / HTTPS
+- `docs/BUILD_AND_DEPLOY.md` (historical text) said `140.82.155.48`
+- `docs/DEPLOYMENTS.md` and `docs/DEPLOYMENT_PLAN.md` say `140.82.15.48`
 
-SSL is handled by the **host nginx** (not Docker). The host nginx:
+**UNVERIFIED — do not treat either IP as authoritative.** Confirm with the operator before SSH or DNS work. The public hostname `andespadel.yachaq.io` is the stable reference.
 
-1. Terminates SSL on port 443
-2. Proxies to `127.0.0.1:34003` (Docker nginx)
-3. Docker nginx proxies to `backend:8000`
+### Server constraints (from ops notes)
 
-Django sees `X-Forwarded-Proto: https` header → `SECURE_PROXY_SSL_HEADER` in `prod.py`.
+- Do not touch Loyallia containers, networks, or configs.
+- Do not use ports 33900–33914 (Loyallia range).
+- Do not bind host 80/443 from Docker; host nginx owns those and proxies to `127.0.0.1:34003`.
+- Reload host nginx (`nginx -s reload`); do not restart it.
 
-### B8. Nginx routing
-
-| Path | Proxied to | What |
-|------|-----------|------|
-| `/` | Landing page | Static HTML from `./landing/` |
-| `/api/` | `backend:8000` | Django REST API |
-| `/adminpanel/` | `backend:8000` | Admin dashboard |
-| `/admin/` | `backend:8000` | Django admin |
-| `/webhooks/` | `backend:8000` | Stripe webhooks |
-| `/static/` | Served directly | Cached 30 days |
-| `/media/` | Served directly | Cached 7 days |
-
-### B9. Production secrets
-
-File: `docker/backend/secrets.py` (on the server)
-
-```python
-import secrets as _std
-
-SECRET_KEY = "your-real-secret-key"
-DB_NAME = "padel_prod"
-DB_USER = "padel"
-DB_PASSWORD = "your-strong-password"
-DB_HOST = "db"
-DB_PORT = 5432
-REDIS_URL = "redis://redis:6379/0"
-
-EMAIL_HOST = "smtp.your-provider.com"
-EMAIL_PORT = 587
-EMAIL_HOST_USER = "your-email"
-EMAIL_HOST_PASSWORD = "your-password"
-
-STRIPE_SECRET_KEY = "sk_live_..."
-STRIPE_PUBLISHABLE_KEY = "pk_live_..."
-STRIPE_WEBHOOK_SECRET = "whsec_..."
-
-FIREBASE_CREDENTIALS_PATH = "/app/runsecrets/firebase-service-account.json"
-```
-
-The `prod.py` settings validate these at startup — the app will crash if any are missing or contain dev placeholders.
-
-### B10. Updating the server
+## Mobile — Android
 
 ```bash
-# 1. Pull latest code
-git pull origin main
-
-# 2. Rebuild and restart
-docker compose -f compose.server.yml up -d --build
-
-# 3. Run migrations (if any new ones)
-docker compose -f compose.server.yml exec backend python manage.py migrate
-
-# 4. Collect static files (if any new ones)
-docker compose -f compose.server.yml exec backend python manage.py collectstatic --no-input
-
-# 5. Verify
-docker compose -f compose.server.yml ps
+make flbuild            # debug APK against the dev API
+make flapk              # same, copies to ./padelapp-debug.apk
 ```
 
----
-
-## MODE C: Production (Basic — No Landing Page)
-
-Minimal production setup without landing page or Celery beat.
-
-### C1. Deploy
+Or on the host:
 
 ```bash
-# 1. Configure secrets
-cp docker/backend/secrets.example.py docker/backend/secrets.py
-# Edit with production values (same as B9 above)
-
-# 2. Deploy
-docker compose -f compose.prod.yml up -d --build
-
-# 3. Setup database
-docker compose -f compose.prod.yml exec backend python manage.py migrate
-docker compose -f compose.prod.yml exec backend python manage.py createsuperuser
-docker compose -f compose.prod.yml exec backend python manage.py collectstatic --no-input
-```
-
-### C2. Differences from Mode B
-
-| Feature | Mode B (server) | Mode C (basic) |
-|---------|----------------|-----------------|
-| Celery beat | Yes | No |
-| Landing page | Yes (nginx serves `./landing/`) | No |
-| Healthchecks | Yes | No |
-| Dedicated network | `padelapp-net` | Default |
-| DB name | `padel_prod` | `padel` |
-| DB password | Env var `${DB_PASSWORD}` | Hardcoded `padel_dev` |
-| Nginx port | `34003:80` | `80:80` |
-
----
-
-## Android APK
-
-### Prerequisites
-
-| Mode | Requirements |
-|------|-------------|
-| Docker (recommended) | Docker Desktop, Docker Compose, Git |
-| Local (no Docker) | Flutter 3.27.3, Java 21 (OpenJDK), Android SDK |
-
-### API URL configuration
-
-**File:** `mobile/lib/core/api_client.dart` (line 17)
-
-```dart
-_dio.options.baseUrl = baseUrl ??
-    const String.fromEnvironment('API_BASE_URL',
-        defaultValue: 'https://andespadel.yachaq.io/api');
-```
-
-Override at build time without changing code:
-
-```bash
---dart-define=API_BASE_URL=https://your-server.com/api
-```
-
-### Build with Docker
-
-```bash
-cd padelApp
-
-# Quick build (builds APK + copies to project root)
-make flapk
-
-# Output: ./padelapp-debug.apk
-```
-
-### Build without Docker
-
-```bash
-cd padelApp/mobile
-
-# 1. Get dependencies
+cd mobile
 flutter pub get
-
-# 2. Analyze (optional)
-flutter analyze
-
-# 3. Test (optional)
-flutter test
-
-# 4. Build debug APK
-flutter build apk --debug
-
-# 5. Build release APK
-flutter build apk --release
+flutter build apk --debug \
+  --dart-define=API_BASE_URL=http://127.0.0.1:28002/api
 ```
 
-| Build type | Output |
-|------------|--------|
+| Build | Output |
+|---|---|
 | Debug | `mobile/build/app/outputs/flutter-apk/app-debug.apk` |
 | Release | `mobile/build/app/outputs/flutter-apk/app-release.apk` |
 
-### Install on phone
+Release APK/AAB must pass `--dart-define=API_BASE_URL=https://andespadel.yachaq.io/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
 
-**Option 1: ADB (USB)**
+`applicationId`: `com.andes.padel.padel_app`.
+
+## Mobile — iOS
+
+### Simulator against dev
+
 ```bash
-adb install ./padelapp-debug.apk
+make ios-sim-dev
 ```
 
-**Option 2: ADB (Wireless)**
+### TestFlight pipeline (`make ship-ios`)
+
+One command builds a release IPA and uploads it to App Store Connect TestFlight:
+
 ```bash
-adb connect <phone-ip>:5555
-adb install ./padelapp-debug.apk
+ASC_USER='<apple-id>' ASC_PASSWORD='<app-specific-password>' make ship-ios
 ```
 
-**Option 3: Manual**
-1. Copy `padelapp-debug.apk` to phone (USB, email, cloud)
-2. On phone: Open file manager → tap APK → Install
-3. Enable "Install from unknown sources" if prompted
+What `mobile/tool/release_ipa.sh` does (invoked by `make ship-ios`):
 
----
+1. Requires `ASC_USER` and `ASC_PASSWORD` (app-specific password from appleid.apple.com).
+2. Bumps the `version:` build number in `mobile/pubspec.yaml`.
+3. `flutter pub get`.
+4. Deletes any stale `build/ios/ipa/padel_app.ipa`.
+5. `flutter build ipa --release --export-options-plist ios/ExportOptions.plist`.
+6. Verifies the IPA exists, then `xcrun altool --upload-app --type ios`.
 
-## iOS Build
+Output IPA: `mobile/build/ios/ipa/padel_app.ipa`. It appears in App Store Connect → TestFlight after Apple processes it (typically 5–15 minutes).
 
-> **Requires:** macOS + Xcode + CocoaPods + Apple Developer account (for signed builds)
+Flutter used by the script defaults to `/usr/local/bin/flutter` (override with `FLUTTER=`). SPM packages cache under `~/Library/Caches/org.swift.swiftpm/` after the first run.
 
-### Setup
+iOS bundle id: `com.andes.padel.padelApp`. Export team and provisioning live in `mobile/ios/ExportOptions.plist` and `store/README.md`.
 
-```bash
-# Verify Xcode
-xcodebuild -version
-
-# Install CocoaPods (if not installed)
-sudo gem install cocoapods
-
-# Point xcode-select to Xcode (not CommandLineTools)
-sudo xcode-select --switch /Applications/Xcode.app/Contents/Developer
-
-# Verify Flutter sees Xcode
-flutter doctor
-```
-
-### Build (debug — no signing)
+### Unsigned debug
 
 ```bash
-cd padelApp/mobile
-
+cd mobile
 flutter pub get
-
 cd ios && pod install && cd ..
-
 flutter build ios --debug --no-codesign
 ```
 
-### Build (release — requires signing)
+## Celery beat schedule (prod)
 
-```bash
-flutter build ios --release
-```
+Defined in `padel/settings/base.py` `CELERY_BEAT_SCHEDULE`. Dev sets `CELERY_TASK_ALWAYS_EAGER=True`, so tasks run inline.
 
-### Export IPA for client delivery
-
-**Option A: Xcode**
-
-1. Open `mobile/ios/Runner.xcworkspace` in Xcode
-2. Runner target → Signing & Capabilities → set Team + Bundle ID (`com.andes.padel.padel_app`)
-3. Product → Archive → Distribute App → Ad Hoc or Development
-
-**Option B: Command line**
-
-```bash
-flutter build ipa --release
-# Output: mobile/build/ios/ipa/
-```
-
-### Install on iPhone
-
-| Method | Requirements |
-|--------|-------------|
-| Xcode | USB cable, Apple Developer account |
-| TestFlight | Apple Developer account, upload to App Store Connect |
-| `ios-deploy` | `npm install -g ios-deploy`, USB cable |
-
-### iOS signing checklist
-
-- [ ] Apple Developer account active
-- [ ] Bundle ID registered: `com.andes.padel.padel_app`
-- [ ] Provisioning profile created
-- [ ] Xcode project signed with correct team
-- [ ] `ios/Podfile` generated and `pod install` run
-
----
-
-## Django Settings Chain
-
-```
-padel/settings/base.py     → shared config, imports runsecrets/secrets.py
-padel/settings/dev.py      → DEBUG=True, ALLOWED_HOSTS=["*"], CORS open, Celery eager
-padel/settings/prod.py     → DEBUG=False, ALLOWED_HOSTS=[andespadel.yachaq.io], SSL, SMTP
-padel/settings/_checks.py  → validates production secrets at startup
-```
-
-| Setting | dev.py | prod.py |
-|---------|--------|---------|
-| `DEBUG` | `True` | `False` |
-| `ALLOWED_HOSTS` | `["*"]` | `["andespadel.yachaq.io", ...]` |
-| `CORS_ALLOW_ALL_ORIGINS` | `True` | `False` (whitelist) |
-| `CELERY_TASK_ALWAYS_EAGER` | `True` | Not set (real broker) |
-| `EMAIL_BACKEND` | Console | SMTP |
-| `SECURE_SSL_REDIRECT` | No | Yes |
-| `SECRET_KEY validation` | No | Yes (rejects dev placeholders) |
-
----
+| Task | Interval | Purpose |
+|---|---|---|
+| `tournament-reminder-daily` | 24 hours | Tournament reminders |
+| `booking-reminder-daily` | 24 hours | Booking reminders |
+| `booking-reminder-2h` | 30 minutes | Two-hour-before booking reminders |
+| `release-expired-holds` | 5 minutes | Release expired slot holds |
 
 ## Troubleshooting
 
-### Gradle zip corruption (Docker)
-
-**Symptom:** `java.util.zip.ZipException: zip END header not found`
-
-```bash
-docker volume rm padelapp_gradle_home
-make flapk
-```
-
-### "Matrix4 isn't a type" (Docker)
-
-**Symptom:** Hundreds of Flutter SDK internal compile errors
-
-**Cause:** Corrupted Flutter SDK cache in Docker volumes
-
-```bash
-docker volume rm padelapp_flutter_home padelapp_gradle_home padelapp_android_sdk
-make flapk
-```
-
-### APK won't install
-
-- Enable "Install from unknown sources" in Android settings
-- Check Android version (min SDK 24)
-- Clear old install: `adb shell pm clear com.andes.padel.padel_app`
-
-### Can't connect to backend
-
-- **Local:** Check `docker compose ps`, test `curl http://localhost:8000/api/auth/me/`
-- **Server:** Test `curl https://andespadel.yachaq.io/api/auth/me/`
-- Expected response: `{"detail":"Las credenciales de autenticación no se proveyeron."}`
-
-### iOS "pod install" fails
-
-```bash
-cd ios
-pod deintegrate
-pod install --verbose
-```
-
-### iOS Xcode signing errors
-
-1. Open `Runner.xcworkspace` in Xcode
-2. Runner target → Signing & Capabilities → select Team
-3. No team? Xcode → Settings → Accounts → add Apple Developer account
-
-### Production app crashes on startup
-
-- Check secrets are not dev placeholders (validated by `prod.py`)
-- Check Firebase credentials file exists at the configured path
-- Check database is accessible from the container
-
----
-
-## Quick Reference
-
-### Build commands
-
-| Target | Command |
-|--------|---------|
-| Android APK (Docker) | `make flapk` |
-| Android APK (local) | `cd mobile && flutter build apk --debug` |
-| Android APK (custom URL) | `flutter build apk --debug --dart-define=API_BASE_URL=https://...` |
-| iOS debug | `cd mobile && flutter build ios --debug --no-codesign` |
-| iOS release | `cd mobile && flutter build ios --release` |
-| iOS IPA | `cd mobile && flutter build ipa --release` |
-| Flutter analyze | `make flcheck` or `flutter analyze` |
-| Flutter tests | `make fltest` or `flutter test` |
-
-### Install commands
-
-| Target | Command |
-|--------|---------|
-| Android (ADB) | `adb install ./padelapp-debug.apk` |
-| Android (wireless) | `adb connect <ip>:5555 && adb install ./padelapp-debug.apk` |
-| iOS (Xcode) | Open `.xcworkspace` → Run on device |
-| iOS (TestFlight) | Upload IPA to App Store Connect → invite testers |
-
-### Local dev commands (Makefile)
-
-| Command | Purpose |
-|---------|---------|
-| `make up` | Start all services |
-| `make down` | Stop all services |
-| `make logs` | Follow logs |
-| `make build` | Rebuild Docker images |
-| `make migrate` | Run database migrations |
-| `make seeddemo` | Load demo data |
-| `make shell` | Django management shell |
-| `make psql` | PostgreSQL shell |
-| `make test` | Run backend tests |
-| `make lint` | Lint backend code |
-
-### Server commands (compose.server.yml)
-
-| Command | Purpose |
-|---------|---------|
-| `docker compose -f compose.server.yml up -d --build` | Deploy |
-| `docker compose -f compose.server.yml ps` | Check status |
-| `docker compose -f compose.server.yml logs -f` | Follow logs |
-| `docker compose -f compose.server.yml exec backend python manage.py migrate` | Migrate |
-| `docker compose -f compose.server.yml exec backend python manage.py createsuperuser` | Create admin |
-
----
-
-**Last APK built:** `./padelapp-debug.apk` (86 MB, 2026-08-26)  
-**Production server:** https://andespadel.yachaq.io
+| Symptom | Action |
+|---|---|
+| Gradle zip corruption in Docker | `docker volume rm andespadel_gradle_home` then `make flapk` (adjust prefix for test/prod) |
+| Mass Flutter SDK compile errors in Docker | Corrupted cache: remove `andespadel_flutter_home`, `andespadel_gradle_home`, `andespadel_android_sdk` and rebuild |
+| APK will not install | Enable unknown sources; clear old install: `adb shell pm clear com.andes.padel.padel_app` |
+| App cannot reach API | Confirm the build's `API_BASE_URL`. Dev is `http://127.0.0.1:28002/api`, not port 8000 |
+| Backend will not start in prod | Secrets missing or still placeholders — `prod.py` / `_checks.py` reject them |
+| Fresh clone does not compile Flutter | `mobile/lib/firebase_options.dart` is gitignored and imported. Generate it (`flutterfire configure`) or restore out-of-band. See `AGENTS.md` §10 |
+| `make seed-test` fails | Target does not exist. Use `seeddemo-test` |

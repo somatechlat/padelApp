@@ -754,4 +754,40 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get extraInfo => 'Informació addicional';
+
+  @override
+  String get stepDate => '1. Tria un dia';
+
+  @override
+  String get stepDuration => '2. Durada';
+
+  @override
+  String get stepStartTime => '3. Hora d’inici';
+
+  @override
+  String get freeSlotsOnlyHint =>
+      'Només horaris amb pista lliure (segons ocupació real).';
+
+  @override
+  String get noFreeSlotsForSelection =>
+      'No hi ha hores lliures per a aquest dia i durada. Prova un altre dia.';
+
+  @override
+  String get timeMorning => 'Matí';
+
+  @override
+  String get timeAfternoon => 'Tarda';
+
+  @override
+  String get timeEvening => 'Nit';
+
+  @override
+  String freeCourtsCountOne(num count) {
+    return '$count lliure';
+  }
+
+  @override
+  String freeCourtsCountOther(num count) {
+    return '$count lliures';
+  }
 }

@@ -4,11 +4,14 @@
 pytest>=8.3
 pytest-django>=4.9
 pytest-cov>=6.0
+pytest-timeout>=2.3
 
 # --- Linting / security --------------------------------------------------
 ruff>=0.9
 flake8>=7.1
 bandit>=1.8
+mypy>=1.13
+django-stubs>=5.1
 
 # --- Load testing ----------------------------------------------------------
 locust>=2.31

@@ -6,3 +6,38 @@ exclude = ["runsecrets", "**/migrations/*", "mobile"]
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]
 ignore = ["E501"]
+
+# --- bandit ---------------------------------------------------------------
+# Keep every security check on for production code (apps/, padel/).
+# B101 (assert) is fine and required in tests — skip it only for test files.
+# B105/B106/B107 are password-shaped-string heuristics; they fire on every
+# test fixture `password="pass12345"` and on the documented demo seed password.
+# Bandit has no per-path config for those checks, so they are skipped globally.
+# Real credential leaks belong in a secret scanner, not bandit's string heuristic.
+[tool.bandit]
+skips = ["B105", "B106", "B107"]
+
+[tool.bandit.assert_used]
+skips = [
+    "*/tests*.py",
+    "*/test_*.py",
+    "tests/*",
+    "tests/**",
+    "conftest.py",
+    "*/conftest.py",
+]
+
+# --- mypy -----------------------------------------------------------------
+# Configured with django-stubs so model fields type-check. Not yet enforced in
+# CI (`make lint` runs ruff + flake8 + bandit); enable `mypy apps padel` once
+# the residual error count is driven to zero.
+[tool.mypy]
+python_version = "3.12"
+plugins = ["mypy_django_plugin.main"]
+ignore_missing_imports = true
+exclude = ["(?x)(^|/)migrations/"]
+check_untyped_defs = false
+warn_unused_ignores = true
+
+[tool.django-stubs]
+django_settings_module = "padel.settings.dev"

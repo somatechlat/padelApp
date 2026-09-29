@@ -1,32 +1,10 @@
+from datetime import timedelta
 from unittest import mock
 
 import pytest
 from django.utils import timezone
 
 pytestmark = pytest.mark.django_db
-
-
-@pytest.fixture
-def venue():
-    from apps.courts.models import Venue
-
-    return Venue.objects.create(name="Andes Padel", timezone="America/Guayaquil", currency="USD")
-
-
-@pytest.fixture
-def court(venue):
-    from apps.courts.models import Court
-
-    return Court.objects.create(
-        venue=venue, name="Cancha 1", court_type="techada", price_base="12.00"
-    )
-
-
-@pytest.fixture
-def user():
-    from django.contrib.auth import get_user_model
-
-    return get_user_model().objects.create_user(email="u@test.com", password="pass12345")
 
 
 @pytest.fixture
@@ -38,7 +16,7 @@ def confirmed_booking(court, user):
         CourtSchedule.objects.create(
             court=court, weekday=wd, open_time="08:00", close_time="22:00"
         )
-    day = timezone.localdate() + timezone.timedelta(days=2)
+    day = timezone.localdate() + timedelta(days=2)
     booking = BookingService.hold(user, court, day, "10:00", 60)
     BookingService.confirm(booking)
     booking.refresh_from_db()
