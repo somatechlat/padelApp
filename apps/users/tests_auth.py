@@ -36,7 +36,8 @@ class TestRegister:
             {
                 "email": "nuevo@test.com",
                 "password": "pass12345",
-                "full_name": "Nuevo Usuario",
+                "first_name": "Nuevo",
+                "last_name": "Usuario",
                 "phone": "0991111111",
                 "consent_version": "v1",
             },
@@ -45,13 +46,21 @@ class TestRegister:
         u = User.objects.get(email="nuevo@test.com")
         assert u.email_verified is False
         assert u.status == "active"
+        assert u.first_name == "Nuevo"
+        assert u.last_name == "Usuario"
+        assert u.full_name == "Nuevo Usuario"
         assert VerificationCode.objects.filter(user=u, purpose="email_verify").exists()
         assert len(mailoutbox) == 1
 
     def test_register_requires_consent(self, api_client):
         resp = api_client.post(
             "/api/auth/register/",
-            {"email": "x@test.com", "password": "pass12345", "full_name": "X"},
+            {
+                "email": "x@test.com",
+                "password": "pass12345",
+                "first_name": "X",
+                "last_name": "Y",
+            },
         )
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
@@ -61,7 +70,8 @@ class TestRegister:
             {
                 "email": user.email,
                 "password": "pass12345",
-                "full_name": "Dupe",
+                "first_name": "Dupe",
+                "last_name": "User",
                 "consent_version": "v1",
             },
         )
@@ -73,7 +83,8 @@ class TestRegister:
             {
                 "email": "weak@test.com",
                 "password": "123",
-                "full_name": "Weak",
+                "first_name": "Weak",
+                "last_name": "Pass",
                 "consent_version": "v1",
             },
         )

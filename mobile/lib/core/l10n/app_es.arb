@@ -43,6 +43,27 @@
   "lastName": "Apellido",
   "birthDate": "Fecha de nacimiento",
   "birthDateRequired": "Selecciona tu fecha de nacimiento",
+  "joinEvent": "Me apunto",
+  "eventJoined": "\u00a1Te apuntaste a la quedada!",
+  "eventLeft": "Ya no asistes a esta quedada",
+  "eventGoing": "Ya est\u00e1s apuntado",
+  "eventFull": "Completo",
+  "fieldRequired": "Este campo es obligatorio",
+  "fieldRequiredNamed": "El campo {field} es obligatorio",
+  "@fieldRequiredNamed": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldTooShort": "Mínimo 2 caracteres",
+  "emailRequired": "Ingresa tu email",
+  "emailInvalid": "Email no válido",
+  "passwordRequired": "Ingresa tu contraseña",
+  "passwordTooShort": "La contraseña debe tener al menos 8 caracteres",
+  "codeRequired": "Ingresa el código de verificación",
+  "codeInvalid": "El código debe tener 6 dígitos",
   "skillLevel": "Nivel de juego",
   "skillIniciacion": "Iniciación",
   "skillIntermedio": "Intermedio",
@@ -110,6 +131,7 @@
   "networkError": "Error de conexión. Verifica tu internet.",
   "invalidCredentials": "Credenciales inválidas",
   "accountLocked": "Cuenta temporalmente bloqueada",
+  "accountInactive": "Cuenta no activa",
   "emailNotVerified": "Verifica tu email antes de iniciar sesión",
   "passwordMismatch": "Las contraseñas no coinciden",
   "fillAllFields": "Completa todos los campos",

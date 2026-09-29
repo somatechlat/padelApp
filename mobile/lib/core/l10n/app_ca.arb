@@ -2,7 +2,6 @@
   "@@locale": "ca",
   "appTitle": "Andes Pádel",
   "appTagline": "Reserva la teva pista de pàdel",
-
   "login": "Iniciar sessió",
   "loginSubtitle": "Accedeix per reservar la teva pista",
   "email": "Email",
@@ -11,7 +10,6 @@
   "noAccount": "No tens compte?",
   "registerLink": "Registra't",
   "forgotPassword": "Has oblidat la contrasenya?",
-
   "register": "Crear compte",
   "registerSubtitle": "Completa les teves dades per registrar-te",
   "fullName": "Nom complet",
@@ -20,22 +18,18 @@
   "registerButton": "Crear compte",
   "alreadyHaveAccount": "Ja tens compte?",
   "loginLink": "Inicia sessió",
-
   "verify": "Verificar email",
   "verifySubtitle": "Introdueix el codi que t'hem enviat al teu email",
   "code": "Codi de verificació",
   "verifyButton": "Verificar",
   "resendCode": "Reenviar codi",
-
   "resetPassword": "Recuperar contrasenya",
   "resetSubtitle": "Introdueix el teu email i t'enviarem un codi",
   "resetButton": "Enviar codi",
-
   "resetConfirm": "Nova contrasenya",
   "resetConfirmSubtitle": "Introdueix el codi i la teva nova contrasenya",
   "confirmPassword": "Confirmar contrasenya",
   "saveButton": "Desar",
-
   "home": "Inici",
   "homeWelcome": "Hola",
   "eventsEmpty": "Properament noves quedades i esdeveniments.",
@@ -43,6 +37,27 @@
   "lastName": "Cognom",
   "birthDate": "Data de naixement",
   "birthDateRequired": "Selecciona la teva data de naixement",
+  "joinEvent": "M'apunto",
+  "eventJoined": "T'has apuntat!",
+  "eventLeft": "Ja no hi vas",
+  "eventGoing": "Hi vas",
+  "eventFull": "Complet",
+  "fieldRequired": "Aquest camp és obligatori",
+  "fieldRequiredNamed": "El camp {field} és obligatori",
+  "@fieldRequiredNamed": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldTooShort": "Mínim 2 caràcters",
+  "emailRequired": "Introdueix el teu email",
+  "emailInvalid": "Email no vàlid",
+  "passwordRequired": "Introdueix la teva contrasenya",
+  "passwordTooShort": "La contrasenya ha de tenir com a mínim 8 caràcters",
+  "codeRequired": "Introdueix el codi de verificació",
+  "codeInvalid": "El codi ha de tenir 6 dígits",
   "skillLevel": "Nivell de joc",
   "skillIniciacion": "Iniciació",
   "skillIntermedio": "Intermedi",
@@ -60,17 +75,15 @@
   "bookNow": "Reservar ara",
   "bookCourt": "Reservar pista",
   "upcomingEvents": "Properes esdeveniments",
-
   "bookings": "Les meves reserves",
   "navBookings": "Reserves",
-  "navEvents": "Events",
+  "navEvents": "Esdeveniments",
   "navNotifications": "Avisos",
   "noBookings": "Encara no tens reserves",
   "bookingStatus_confirmed": "Confirmada",
   "bookingStatus_pending": "Pendent",
   "bookingStatus_cancelled": "Cancel·lada",
   "bookingStatus_held": "En espera",
-
   "events": "Esdeveniments",
   "tournaments": "Torneigs",
   "noEvents": "No hi ha esdeveniments publicats",
@@ -90,14 +103,12 @@
   "tournamentStatus_closed": "Tancat",
   "tournamentStatus_finished": "Finalitzat",
   "tournamentStatus_draft": "Esborrany",
-
   "notifications": "Notificacions",
   "noNotifications": "No tens notificacions",
   "markRead": "Marcar com a llegida",
   "markAllRead": "Marca-les totes com a llegides",
   "unread": "Sense llegir",
   "newBadge": "Nova",
-
   "profile": "Perfil",
   "role": "Perfil",
   "language": "Idioma",
@@ -105,11 +116,11 @@
   "logoutConfirm": "Segur que vols tancar sessió?",
   "cancel": "Cancel·lar",
   "confirm": "Confirmar",
-
   "error": "S'ha produït un error",
   "networkError": "Error de connexió. Comprova el teu internet.",
   "invalidCredentials": "Credencials invàlides",
   "accountLocked": "Compte bloquejat temporalment",
+  "accountInactive": "Compte no actiu",
   "emailNotVerified": "Verifica el teu email abans d'iniciar sessió",
   "passwordMismatch": "Les contrasenyes no coincideixen",
   "fillAllFields": "Omple tots els camps",
@@ -119,7 +130,6 @@
   "codeSent": "T'hem enviat un codi al teu email",
   "success": "Operació correcta",
   "sessionExpired": "La teva sessió ha expirat. Torna a iniciar sessió.",
-
   "stepCourt": "Tria la pista",
   "stepSchedule": "Data i hora",
   "stepSummary": "Resum",
@@ -145,7 +155,6 @@
   "slotTaken": "Aquest horari ja no està disponible. Tria'n un altre.",
   "minPlayers": "Jugadors",
   "confirmedAt": "Confirmada el",
-
   "notificationSettings": "Configuració de notificacions",
   "save": "Desa",
   "bookingReminder": "Recordatori de reserva",
@@ -156,24 +165,29 @@
   "channelEmail": "Email",
   "channelPush": "Notificacions push",
   "channelInApp": "Notificacions a l'app",
-
   "timeNow": "Ara",
   "timeAgoMinutes": "Fa {minutes} min",
   "@timeAgoMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "timeAgoHours": "Fa {hours} h",
   "@timeAgoHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "timeAgoDays": "Fa {days} d",
   "@timeAgoDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "timeYesterday": "Ahir",
@@ -183,11 +197,12 @@
   "role_gerente": "Gerent",
   "role_dueno": "Propietari",
   "role_superadmin": "Administrador",
-
   "homeGreeting": "Hola, {name}",
   "@homeGreeting": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "findYourCourt": "Busca la teva pista",
@@ -210,7 +225,6 @@
   "noQuedadas": "No hi ha quedades programades",
   "noLigas": "No hi ha lligues actives",
   "noAcademia": "No hi ha classes disponibles",
-
   "reserveYourCourt": "Reserva la teva pista",
   "reserveNow": "Reserva ara",
   "clubContact": "Contacte del club",
@@ -222,5 +236,51 @@
   "instagram": "Instagram",
   "showPassword": "Mostra la contrasenya",
   "hidePassword": "Amaga la contrasenya",
-  "extraInfo": "Informació addicional"
+  "extraInfo": "Informació addicional",
+  "accountHolder": "Titular del compte",
+  "accountNumber": "Número de compte",
+  "allowedFormats": "Formats: JPEG, PNG",
+  "bankName": "Banc",
+  "beneficiaryCode": "Codi de beneficiari",
+  "bookingModified": "Reserva modificada",
+  "camera": "Càmera",
+  "cardDescription": "Dèbit o crèdit mitjançant Stripe",
+  "cashDescription": "Paga a l'establiment en arribar",
+  "confirmTransfer": "Confirmar transferència",
+  "durationMin": "min",
+  "gallery": "Galeria",
+  "imageTooLarge": "La imatge supera els 5 MB",
+  "invalidFormat": "Format no permès. Useu JPEG o PNG",
+  "maxFileSize": "Mida màxima: 5 MB",
+  "newsPublished": "Notícia publicada",
+  "noShowPenalty": "Penalització per incompareixença",
+  "payWithCard": "Pagar amb targeta",
+  "payWithCash": "Pagament a l'establiment",
+  "payWithTransfer": "Transferència bancària",
+  "paymentMethodSubtitle": "Tria com vols pagar",
+  "paymentProcessing": "S'està processant el pagament...",
+  "proofPending": "S'espera la confirmació del comprovant",
+  "proofUploadError": "Error en pujar el comprovant",
+  "proofUploadSuccess": "Comprovant enviat correctament",
+  "proofUploaded": "Comprovant pujat",
+  "rejectTransfer": "Rebutjar transferència",
+  "rejectionReason": "Motiu del rebuig",
+  "send": "Enviar comprovant",
+  "tournamentRegistered": "Inscripció registrada",
+  "transferAmount": "Import a transferir",
+  "transferConfirmed": "Transferència confirmada",
+  "transferDescription": "Fes una transferència i puja el comprovant",
+  "transferInstructions": "Dades per a la transferència",
+  "transferPending": "Transferència pendent de verificació",
+  "transferRejected": "Transferència rebutjada",
+  "transferRejectedReason": "Motiu: {reason}",
+  "@transferRejectedReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadProof": "Pujar comprovant",
+  "uploadProofHint": "Fes una foto o selecciona de la galeria"
 }

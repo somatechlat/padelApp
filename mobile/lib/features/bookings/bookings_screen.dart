@@ -78,7 +78,9 @@ class _BookingsScreenState extends State<BookingsScreen> {
     );
     if (confirmed != true || !mounted) return;
     try {
-      await context.read<ApiClient>().post('/bookings/${booking['id']}/cancel/');
+      await context
+          .read<ApiClient>()
+          .post('/bookings/${booking['id']}/cancel/');
       if (mounted) _load();
     } catch (_) {
       if (mounted) {

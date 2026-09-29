@@ -1,6 +1,7 @@
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 SUPPORTED_LANGS = ("es", "en", "pt", "ca")
 DEFAULT_LANG = "es"
@@ -114,7 +115,7 @@ class PromoBanner(models.Model):
 
     def save(self, *args, **kwargs):
         if not self.image:
-            raise ValidationError("La imagen del banner es obligatoria.")
+            raise ValidationError(_("La imagen del banner es obligatoria."))
         super().save(*args, **kwargs)
 
     def clear_image(self):

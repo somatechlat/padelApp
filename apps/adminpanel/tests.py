@@ -226,9 +226,11 @@ class TestPromoBannerModel:
         assert banner.is_visible_now() is True
 
     def test_image_required_on_model(self):
+        from django.core.exceptions import ValidationError
+
         b = PromoBanner(title_i18n={"es": "Sin imagen"})
         b.image = None
-        with pytest.raises(Exception):
+        with pytest.raises(ValidationError):
             b.save()
 
 

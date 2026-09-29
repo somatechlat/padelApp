@@ -26,12 +26,6 @@ class BookingWizardScreen extends StatefulWidget {
 class _BookingWizardScreenState extends State<BookingWizardScreen> {
   /// Only 90 and 120 minutes (product decision).
   static const _durations = [90, 120];
-
-  /// Club opening hours: continuous 06:00 → 21:30 (no midday close).
-  static const _openHour = 6;
-  static const _openMinute = 0;
-  static const _closeHour = 21;
-  static const _closeMinute = 30;
   static const _slotMinutes = 30;
 
   // 0 when · 1 courts · 2 summary · 3 done
@@ -47,6 +41,8 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   String? _error;
   bool _submitting = false;
   bool _loadingCourts = false;
+  bool _loadingStarts = false;
+  List<Map<String, dynamic>> _starts = [];
 
   @override
   void initState() {
@@ -54,29 +50,55 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     _date = DateTime.now();
     _visibleMonth = DateTime(DateTime.now().year, DateTime.now().month);
     _loadAllCourts();
+    _loadAvailableStarts();
   }
 
   String _fmtDate(DateTime d) => DateFormat('yyyy-MM-dd').format(d);
-
-  DateTime get _openTime => DateTime(2000, 1, 1, _openHour, _openMinute);
-  DateTime get _closeTime => DateTime(2000, 1, 1, _closeHour, _closeMinute);
-
-  /// Every start that still fits `duration` before closing (21:30).
-  List<Duration> _startTimesForDuration() {
-    final out = <Duration>[];
-    final lastStart = _closeTime.subtract(Duration(minutes: _duration));
-    for (var t = _openTime;
-        !t.isAfter(lastStart);
-        t = t.add(const Duration(minutes: _slotMinutes))) {
-      out.add(Duration(hours: t.hour, minutes: t.minute));
-    }
-    return out;
-  }
 
   String _fmtTime(Duration d) {
     final h = d.inHours.toString().padLeft(2, '0');
     final m = (d.inMinutes % 60).toString().padLeft(2, '0');
     return '$h:$m';
+  }
+
+  /// Real free starts from occupancy (TimeSlot), not a hardcoded grid.
+  Future<void> _loadAvailableStarts() async {
+    setState(() {
+      _loadingStarts = true;
+      _starts = [];
+      _start = null;
+    });
+    try {
+      final data = await context.read<ApiClient>().get(
+        '/bookings/available-starts/',
+        query: {
+          'date': _fmtDate(_date),
+          'duration_minutes': '$_duration',
+        },
+      );
+      if (!mounted) return;
+      final raw = (data as Map)['starts'] as List<dynamic>? ?? [];
+      setState(() {
+        _starts = raw.map((e) => Map<String, dynamic>.from(e as Map)).toList();
+        _loadingStarts = false;
+      });
+    } catch (e) {
+      debugPrint('BOOK available-starts failed: $e');
+      if (!mounted) return;
+      setState(() {
+        _loadingStarts = false;
+        _starts = [];
+      });
+    }
+  }
+
+  Duration? _parseStart(String hhmm) {
+    final parts = hhmm.split(':');
+    if (parts.length < 2) return null;
+    final h = int.tryParse(parts[0]);
+    final m = int.tryParse(parts[1]);
+    if (h == null || m == null) return null;
+    return Duration(hours: h, minutes: m);
   }
 
   Future<void> _loadAllCourts() async {
@@ -183,7 +205,12 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     final l10n = AppLocalizations.of(context);
     final court = _court;
     final start = _start;
-    if (court == null || start == null) return;
+    if (court == null || start == null) {
+      setState(() => _error = l10n.selectSlot);
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(l10n.selectSlot)));
+      return;
+    }
     setState(() {
       _submitting = true;
       _error = null;
@@ -284,21 +311,28 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
-  // ── Step 0: ONE screen — calendar + duration + schedule ────────────────
+  // ── Step 0: ONE screen — calendar + duration + real free times ─────────
   Widget _buildWhenStep(AppLocalizations l10n) {
-    final starts = _startTimesForDuration();
     final theme = Theme.of(context);
     final canContinue = _start != null;
+    final starts = _starts;
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
       children: [
-        // ── Month calendar ──
+        // ── 1. Pick a day ──
+        Text(
+          '1. Elige el dia',
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
+        ),
+        const SizedBox(height: AppSpacing.sm),
         _buildCalendar(l10n, theme),
         const SizedBox(height: AppSpacing.lg),
-        // ── Duration ──
+        // ── 2. Duration ──
         Text(
-          l10n.duration,
-          style: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
+          '2. Duracion',
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: AppSpacing.sm),
         Row(
@@ -312,19 +346,22 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                     label: SizedBox(
                       width: double.infinity,
                       child: Text(
-                        '$d ${l10n.durationMin}',
+                        '$d min',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w700),
                       ),
                     ),
                     selected: _duration == d,
-                    onSelected: (_) => setState(() {
-                      _duration = d;
-                      _start = null;
-                      _court = null;
-                      _price = null;
-                    }),
+                    onSelected: (_) {
+                      setState(() {
+                        _duration = d;
+                        _start = null;
+                        _court = null;
+                        _price = null;
+                      });
+                      _loadAvailableStarts();
+                    },
                   ),
                 ),
               ),
@@ -332,33 +369,41 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           ],
         ),
         const SizedBox(height: AppSpacing.lg),
-        // ── Schedule (06:00–21:30) ──
+        // ── 3. Real free times ──
         Text(
-          l10n.selectSlot,
-          style: theme.textTheme.titleMedium?.copyWith(fontSize: 18),
+          '3. Hora de inicio',
+          style: theme.textTheme.titleMedium
+              ?.copyWith(fontSize: 18, fontWeight: FontWeight.w800),
         ),
         const SizedBox(height: AppSpacing.xs),
-        Wrap(
-          spacing: AppSpacing.xs,
-          runSpacing: AppSpacing.xs,
-          children: [
-            for (final t in starts)
-              ChoiceChip(
-                label: Text(
-                  _fmtTime(t),
-                  style: const TextStyle(
-                      fontSize: 15, fontWeight: FontWeight.w600),
-                ),
-                selected: _start == t,
-                onSelected: (_) => setState(() {
-                  _start = t;
-                  _court = null;
-                  _price = null;
-                  _error = null;
-                }),
-              ),
-          ],
+        Text(
+          'Solo horarios con cancha libre (según ocupación real).',
+          style: theme.textTheme.bodySmall?.copyWith(
+              color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
         ),
+        const SizedBox(height: AppSpacing.sm),
+        if (_loadingStarts)
+          const Padding(
+            padding: EdgeInsets.all(AppSpacing.lg),
+            child: Center(child: CircularProgressIndicator()),
+          )
+        else if (starts.isEmpty)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(AppSpacing.md),
+            decoration: BoxDecoration(
+              color: theme.colorScheme.surface,
+              borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
+              border: Border.all(color: theme.colorScheme.outline),
+            ),
+            child: Text(
+              'No hay horas libres para este dia y duracion. Prueba otro dia.',
+              style: TextStyle(
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.6)),
+            ),
+          )
+        else
+          _buildTimeGrid(theme, starts),
         const SizedBox(height: AppSpacing.xl),
         FilledButton(
           onPressed: canContinue
@@ -373,19 +418,129 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     );
   }
 
+  /// Clear 3-column time grid, grouped by morning / afternoon / evening.
+  Widget _buildTimeGrid(ThemeData theme, List<Map<String, dynamic>> starts) {
+    final groups = <String, List<Map<String, dynamic>>>{
+      'Manana': [],
+      'Tarde': [],
+      'Noche': [],
+    };
+    for (final s in starts) {
+      final t = '${s['start']}';
+      final hour = int.tryParse(t.split(':').first) ?? 0;
+      if (hour < 12) {
+        groups['Manana']!.add(s);
+      } else if (hour < 18) {
+        groups['Tarde']!.add(s);
+      } else {
+        groups['Noche']!.add(s);
+      }
+    }
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        for (final entry in groups.entries)
+          if (entry.value.isNotEmpty) ...[
+            Padding(
+              padding: const EdgeInsets.only(top: AppSpacing.sm, bottom: 6),
+              child: Text(
+                entry.key,
+                style: theme.textTheme.labelLarge?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: theme.colorScheme.onSurface.withValues(alpha: 0.55),
+                ),
+              ),
+            ),
+            GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 3,
+                mainAxisSpacing: 8,
+                crossAxisSpacing: 8,
+                childAspectRatio: 2.4,
+              ),
+              itemCount: entry.value.length,
+              itemBuilder: (context, i) {
+                final s = entry.value[i];
+                final label = '${s['start']}';
+                final free = (s['courts_free'] as num?)?.toInt() ?? 0;
+                final selected = _start != null && _fmtTime(_start!) == label;
+                return Material(
+                  color: selected ? AppColors.brand : theme.colorScheme.surface,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                    side: BorderSide(
+                      color: selected
+                          ? AppColors.brand
+                          : theme.colorScheme.outline,
+                    ),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      final d = _parseStart(label);
+                      setState(() {
+                        _start = d;
+                        _court = null;
+                        _price = null;
+                        _error = null;
+                      });
+                    },
+                    child: Center(
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            label,
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w800,
+                              color: selected
+                                  ? Colors.white
+                                  : theme.colorScheme.onSurface,
+                            ),
+                          ),
+                          Text(
+                            '$free libre${free == 1 ? '' : 's'}',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: selected
+                                  ? Colors.white70
+                                  : theme.colorScheme.onSurface
+                                      .withValues(alpha: 0.5),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ],
+      ],
+    );
+  }
+
   Widget _buildCalendar(AppLocalizations l10n, ThemeData theme) {
-    final firstOfMonth =
-        DateTime(_visibleMonth.year, _visibleMonth.month, 1);
+    final firstOfMonth = DateTime(_visibleMonth.year, _visibleMonth.month, 1);
     final daysInMonth =
         DateTime(_visibleMonth.year, _visibleMonth.month + 1, 0).day;
     // Monday-first grid (locale ES/PT/CA/EN all start the week on Monday here).
     final startWeekday = (firstOfMonth.weekday + 6) % 7; // Mon=0 … Sun=6
     final today = DateTime.now();
     final todayDate = DateTime(today.year, today.month, today.day);
-    final selected =
-        DateTime(_date.year, _date.month, _date.day);
-    final monthLabel =
-        DateFormat('MMMM yyyy', l10n.localeName).format(_visibleMonth);
+    final selected = DateTime(_date.year, _date.month, _date.day);
+    // Never crash on missing intl locale data (ca/pt edge cases).
+    String monthLabel;
+    try {
+      monthLabel =
+          DateFormat('MMMM yyyy', l10n.localeName).format(_visibleMonth);
+    } catch (_) {
+      monthLabel = DateFormat('MMMM yyyy', 'es').format(_visibleMonth);
+    }
 
     return Container(
       decoration: BoxDecoration(
@@ -401,14 +556,16 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
               IconButton(
                 tooltip: l10n.back,
                 onPressed: () => setState(() {
-                  _visibleMonth = DateTime(
-                      _visibleMonth.year, _visibleMonth.month - 1, 1);
+                  _visibleMonth =
+                      DateTime(_visibleMonth.year, _visibleMonth.month - 1, 1);
                 }),
                 icon: const Icon(Icons.chevron_left),
               ),
               Expanded(
                 child: Text(
-                  monthLabel[0].toUpperCase() + monthLabel.substring(1),
+                  monthLabel.isEmpty
+                      ? ''
+                      : monthLabel[0].toUpperCase() + monthLabel.substring(1),
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleMedium?.copyWith(
                     fontSize: 18,
@@ -419,8 +576,8 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
               IconButton(
                 tooltip: l10n.next,
                 onPressed: () => setState(() {
-                  _visibleMonth = DateTime(
-                      _visibleMonth.year, _visibleMonth.month + 1, 1);
+                  _visibleMonth =
+                      DateTime(_visibleMonth.year, _visibleMonth.month + 1, 1);
                 }),
                 icon: const Icon(Icons.chevron_right),
               ),
@@ -446,8 +603,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            gridDelegate:
-                const SliverGridDelegateWithFixedCrossAxisCount(
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 7,
               childAspectRatio: 1,
             ),
@@ -455,8 +611,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
             itemBuilder: (context, i) {
               if (i < startWeekday) return const SizedBox.shrink();
               final day = i - startWeekday + 1;
-              final d =
-                  DateTime(_visibleMonth.year, _visibleMonth.month, day);
+              final d = DateTime(_visibleMonth.year, _visibleMonth.month, day);
               final isPast = d.isBefore(todayDate);
               final isSelected = d == selected;
               final isToday = d == todayDate;
@@ -473,19 +628,23 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                     borderRadius: BorderRadius.circular(10),
                     onTap: isPast
                         ? null
-                        : () => setState(() {
+                        : () {
+                            setState(() {
                               _date = d;
                               _start = null;
                               _court = null;
                               _price = null;
-                            }),
+                            });
+                            _loadAvailableStarts();
+                          },
                     child: Center(
                       child: Text(
                         '$day',
                         style: TextStyle(
                           fontSize: 15,
-                          fontWeight:
-                              isSelected || isToday ? FontWeight.w800 : FontWeight.w500,
+                          fontWeight: isSelected || isToday
+                              ? FontWeight.w800
+                              : FontWeight.w500,
                           color: isSelected
                               ? Colors.white
                               : isPast

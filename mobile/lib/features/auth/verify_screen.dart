@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'package:padel_app/core/friendly_error.dart';
+import 'package:padel_app/core/form_validation.dart';
 import 'auth_state.dart';
 import 'widgets/auth_scaffold.dart';
 
@@ -17,6 +18,7 @@ class VerifyScreen extends StatefulWidget {
 
 class _VerifyScreenState extends State<VerifyScreen> {
   final _code = TextEditingController();
+  String? _codeError;
 
   @override
   void dispose() {
@@ -25,8 +27,16 @@ class _VerifyScreenState extends State<VerifyScreen> {
   }
 
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    final codeErr = FormValidation.code(l10n, _code.text);
+    setState(() => _codeError = codeErr);
+    if (codeErr != null) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(codeErr)));
+      return;
+    }
     final auth = context.read<AuthState>();
-    await auth.verify(widget.email, _code.text);
+    await auth.verify(widget.email, _code.text.trim());
     if (mounted && auth.authenticated) {
       Navigator.of(context).pushNamedAndRemoveUntil('/shell', (route) => false);
     }
@@ -55,9 +65,11 @@ class _VerifyScreenState extends State<VerifyScreen> {
             controller: _code,
             keyboardType: TextInputType.number,
             maxLength: 6,
+            onChanged: (_) => setState(() => _codeError = null),
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(
               labelText: l10n.code,
+              errorText: _codeError,
               prefixIcon: const Icon(Icons.pin_outlined),
               border: const OutlineInputBorder(),
             ),
@@ -97,12 +109,13 @@ class _VerifyScreenState extends State<VerifyScreen> {
           TextButton(
             onPressed: () async {
               final auth = context.read<AuthState>();
+              final messenger = ScaffoldMessenger.of(context);
               await auth.resendVerification(widget.email);
-              if (mounted) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text(l10n.resendCode)),
-                );
-              }
+              if (!context.mounted) return;
+              final msg = auth.hasError
+                  ? friendlyErrorMessage(auth.lastError!, l10n)
+                  : l10n.resendCode;
+              messenger.showSnackBar(SnackBar(content: Text(msg)));
             },
             child: Text(l10n.resendCode),
           ),

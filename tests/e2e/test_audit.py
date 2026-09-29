@@ -60,7 +60,6 @@ class TestAudit:
 
     def test_audit_pagination(self, admin_page: Page):
         admin_page.goto("/adminpanel/audit/")
-        pagination = admin_page.locator(".pagination, nav[aria-label='pagination']")
         # Just verify page loads
         assert admin_page.locator("table").is_visible()
 

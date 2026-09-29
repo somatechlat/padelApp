@@ -12,10 +12,11 @@ Based on actual codebase:
 """
 
 from pathlib import Path
+
 from docx import Document
-from docx.shared import Inches, Pt, RGBColor
-from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.enum.table import WD_TABLE_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.shared import Inches, Pt, RGBColor
 
 IMAGES = Path(__file__).parent
 OUTPUT = IMAGES.parent / "Manual_Usuario_AndesPadel.docx"
@@ -1044,4 +1045,4 @@ run.font.color.rgb = RGBColor(0x99, 0x99, 0x99)
 # ── Save ──
 doc.save(str(OUTPUT))
 print(f"Manual saved: {OUTPUT}")
-print(f"Sections: 7 chapters, 24 screenshots embedded")
+print("Sections: 7 chapters, 24 screenshots embedded")

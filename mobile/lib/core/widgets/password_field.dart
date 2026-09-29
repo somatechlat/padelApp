@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
 
@@ -15,6 +14,7 @@ class PasswordField extends StatefulWidget {
     this.textInputAction,
     this.enabled = true,
     this.prefixIcon = const Icon(Icons.lock_outline),
+    this.errorText,
   });
 
   final TextEditingController controller;
@@ -25,6 +25,7 @@ class PasswordField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final bool enabled;
   final Widget? prefixIcon;
+  final String? errorText;
 
   @override
   State<PasswordField> createState() => _PasswordFieldState();
@@ -48,6 +49,7 @@ class _PasswordFieldState extends State<PasswordField> {
       enabled: widget.enabled,
       decoration: InputDecoration(
         labelText: widget.label,
+        errorText: widget.errorText,
         prefixIcon: widget.prefixIcon,
         border: const OutlineInputBorder(),
         suffixIcon: IconButton(

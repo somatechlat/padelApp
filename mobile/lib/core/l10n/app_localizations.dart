@@ -300,6 +300,192 @@ abstract class AppLocalizations {
   /// **'Próximamente nuevas quedadas y eventos.'**
   String get eventsEmpty;
 
+  /// No description provided for @firstName.
+  ///
+  /// In es, this message translates to:
+  /// **'Nombre'**
+  String get firstName;
+
+  /// No description provided for @lastName.
+  ///
+  /// In es, this message translates to:
+  /// **'Apellido'**
+  String get lastName;
+
+  /// No description provided for @birthDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha de nacimiento'**
+  String get birthDate;
+
+  /// No description provided for @birthDateRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Selecciona tu fecha de nacimiento'**
+  String get birthDateRequired;
+
+  /// No description provided for @joinEvent.
+  ///
+  /// In es, this message translates to:
+  /// **'Me apunto'**
+  String get joinEvent;
+
+  /// No description provided for @eventJoined.
+  ///
+  /// In es, this message translates to:
+  /// **'¡Te apuntaste a la quedada!'**
+  String get eventJoined;
+
+  /// No description provided for @eventLeft.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya no asistes a esta quedada'**
+  String get eventLeft;
+
+  /// No description provided for @eventGoing.
+  ///
+  /// In es, this message translates to:
+  /// **'Ya estás apuntado'**
+  String get eventGoing;
+
+  /// No description provided for @eventFull.
+  ///
+  /// In es, this message translates to:
+  /// **'Completo'**
+  String get eventFull;
+
+  /// No description provided for @fieldRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Este campo es obligatorio'**
+  String get fieldRequired;
+
+  /// No description provided for @fieldRequiredNamed.
+  ///
+  /// In es, this message translates to:
+  /// **'El campo {field} es obligatorio'**
+  String fieldRequiredNamed(String field);
+
+  /// No description provided for @fieldTooShort.
+  ///
+  /// In es, this message translates to:
+  /// **'Mínimo 2 caracteres'**
+  String get fieldTooShort;
+
+  /// No description provided for @emailRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu email'**
+  String get emailRequired;
+
+  /// No description provided for @emailInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'Email no válido'**
+  String get emailInvalid;
+
+  /// No description provided for @passwordRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu contraseña'**
+  String get passwordRequired;
+
+  /// No description provided for @passwordTooShort.
+  ///
+  /// In es, this message translates to:
+  /// **'La contraseña debe tener al menos 8 caracteres'**
+  String get passwordTooShort;
+
+  /// No description provided for @codeRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa el código de verificación'**
+  String get codeRequired;
+
+  /// No description provided for @codeInvalid.
+  ///
+  /// In es, this message translates to:
+  /// **'El código debe tener 6 dígitos'**
+  String get codeInvalid;
+
+  /// No description provided for @skillLevel.
+  ///
+  /// In es, this message translates to:
+  /// **'Nivel de juego'**
+  String get skillLevel;
+
+  /// No description provided for @skillIniciacion.
+  ///
+  /// In es, this message translates to:
+  /// **'Iniciación'**
+  String get skillIniciacion;
+
+  /// No description provided for @skillIntermedio.
+  ///
+  /// In es, this message translates to:
+  /// **'Intermedio'**
+  String get skillIntermedio;
+
+  /// No description provided for @skillAvanzado.
+  ///
+  /// In es, this message translates to:
+  /// **'Avanzado'**
+  String get skillAvanzado;
+
+  /// No description provided for @skillCompeticion.
+  ///
+  /// In es, this message translates to:
+  /// **'Competición'**
+  String get skillCompeticion;
+
+  /// No description provided for @createMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Armar partido'**
+  String get createMatch;
+
+  /// No description provided for @openMatches.
+  ///
+  /// In es, this message translates to:
+  /// **'Partidos abiertos'**
+  String get openMatches;
+
+  /// No description provided for @joinMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Unirme'**
+  String get joinMatch;
+
+  /// No description provided for @matchJoined.
+  ///
+  /// In es, this message translates to:
+  /// **'Te uniste al partido'**
+  String get matchJoined;
+
+  /// No description provided for @matchCreated.
+  ///
+  /// In es, this message translates to:
+  /// **'Partido creado. Se avisó a tu categoría.'**
+  String get matchCreated;
+
+  /// No description provided for @matchesEmpty.
+  ///
+  /// In es, this message translates to:
+  /// **'No hay partidos abiertos. ¡Arma el primero!'**
+  String get matchesEmpty;
+
+  /// No description provided for @matchPlayers.
+  ///
+  /// In es, this message translates to:
+  /// **'Jugadores'**
+  String get matchPlayers;
+
+  /// No description provided for @matchNotes.
+  ///
+  /// In es, this message translates to:
+  /// **'Notas (opcional)'**
+  String get matchNotes;
+
   /// No description provided for @homeSubtitle.
   ///
   /// In es, this message translates to:
@@ -593,6 +779,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Cuenta temporalmente bloqueada'**
   String get accountLocked;
+
+  /// No description provided for @accountInactive.
+  ///
+  /// In es, this message translates to:
+  /// **'Cuenta no activa'**
+  String get accountInactive;
 
   /// No description provided for @emailNotVerified.
   ///

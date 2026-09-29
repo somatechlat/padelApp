@@ -30,34 +30,38 @@ class _EventsScreenState extends State<EventsScreen> {
     _load();
   }
 
-  Future<void> _load() async {
-    try {
-      final api = context.read<ApiClient>();
-      final results = await Future.wait([
-        api.get('/events/', query: {'category': 'quedada'}),
-        api.get('/tournaments/'),
-        api.get('/events/', query: {'category': 'liga'}),
-        api.get('/events/', query: {'category': 'academia'}),
-        api.get('/news/'),
-      ]);
-      List<dynamic> list(dynamic data) {
-        final l = data is Map ? data['results'] : data;
-        return (l as List<dynamic>? ?? []);
-      }
+  List<dynamic> _asList(dynamic data) {
+    final l = data is Map ? data['results'] : data;
+    return (l as List<dynamic>?) ?? const [];
+  }
 
-      if (!mounted) return;
-      setState(() {
-        _quedadas = list(results[0]);
-        _torneos = list(results[1]);
-        _ligas = list(results[2]);
-        _academia = list(results[3]);
-        _news = list(results[4]);
-        _error = null;
-      });
+  Future<List<dynamic>> _safeList(Future<dynamic> Function() load) async {
+    try {
+      return _asList(await load());
     } catch (_) {
-      if (!mounted) return;
-      setState(() => _error = '');
+      return const [];
     }
+  }
+
+  Future<void> _load() async {
+    final api = context.read<ApiClient>();
+    // Load independently — one failed endpoint must not blank the others.
+    final results = await Future.wait([
+      _safeList(() => api.get('/events/', query: {'category': 'quedada'})),
+      _safeList(() => api.get('/tournaments/')),
+      _safeList(() => api.get('/events/', query: {'category': 'liga'})),
+      _safeList(() => api.get('/events/', query: {'category': 'academia'})),
+      _safeList(() => api.get('/news/')),
+    ]);
+    if (!mounted) return;
+    setState(() {
+      _quedadas = results[0];
+      _torneos = results[1];
+      _ligas = results[2];
+      _academia = results[3];
+      _news = results[4];
+      _error = null;
+    });
   }
 
   void _showMessage(String message) {
@@ -157,10 +161,13 @@ class _EventsScreenState extends State<EventsScreen> {
       onRefresh: _load,
       child: TabBarView(
         children: [
-          _buildEventList(l10n, _quedadas!, Icons.people_outline, l10n.noQuedadas),
+          _buildEventList(
+              l10n, _quedadas!, Icons.people_outline, l10n.noQuedadas),
           _buildTournaments(l10n),
-          _buildEventList(l10n, _ligas!, Icons.leaderboard_outlined, l10n.noLigas),
-          _buildEventList(l10n, _academia!, Icons.school_outlined, l10n.noAcademia),
+          _buildEventList(
+              l10n, _ligas!, Icons.leaderboard_outlined, l10n.noLigas),
+          _buildEventList(
+              l10n, _academia!, Icons.school_outlined, l10n.noAcademia),
           _buildNews(l10n),
         ],
       ),
@@ -198,7 +205,8 @@ class _EventsScreenState extends State<EventsScreen> {
                   ),
                   if (published.isNotEmpty) ...[
                     const SizedBox(height: 4),
-                    Text(published, style: Theme.of(context).textTheme.bodySmall),
+                    Text(published,
+                        style: Theme.of(context).textTheme.bodySmall),
                   ],
                   if (body.isNotEmpty) ...[
                     const SizedBox(height: 8),
@@ -213,7 +221,8 @@ class _EventsScreenState extends State<EventsScreen> {
     );
   }
 
-  Widget _buildEventList(AppLocalizations l10n, List<dynamic> events, IconData icon, String emptyText) {
+  Widget _buildEventList(AppLocalizations l10n, List<dynamic> events,
+      IconData icon, String emptyText) {
     if (events.isEmpty) {
       return SingleChildScrollView(
         physics: const AlwaysScrollableScrollPhysics(),
@@ -228,6 +237,11 @@ class _EventsScreenState extends State<EventsScreen> {
         final when = dateShort(l10n, e['start_at'] as String?);
         final location = (e['location'] as String?) ?? '';
         final description = (e['description_localized'] as String?) ?? '';
+        final joined = e['joined'] == true;
+        final allowReg = e['allow_registration'] != false;
+        final isFull = e['is_full'] == true;
+        final attendees = (e['attendee_count'] as num?)?.toInt() ?? 0;
+        final capacity = (e['capacity'] as num?)?.toInt() ?? 0;
         return Padding(
           padding: const EdgeInsets.only(bottom: AppSpacing.sm),
           child: Card(
@@ -244,9 +258,12 @@ class _EventsScreenState extends State<EventsScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.location_on_outlined, size: 14, color: Theme.of(context).colorScheme.primary),
+                        Icon(Icons.location_on_outlined,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 4),
-                        Text(location, style: Theme.of(context).textTheme.bodySmall),
+                        Text(location,
+                            style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ],
@@ -254,15 +271,50 @@ class _EventsScreenState extends State<EventsScreen> {
                     const SizedBox(height: 4),
                     Row(
                       children: [
-                        Icon(Icons.schedule_outlined, size: 14, color: Theme.of(context).colorScheme.primary),
+                        Icon(Icons.schedule_outlined,
+                            size: 14,
+                            color: Theme.of(context).colorScheme.primary),
                         const SizedBox(width: 4),
-                        Text(when, style: Theme.of(context).textTheme.bodySmall),
+                        Text(when,
+                            style: Theme.of(context).textTheme.bodySmall),
                       ],
                     ),
                   ],
                   if (description.isNotEmpty) ...[
                     const SizedBox(height: 8),
-                    Text(description, style: Theme.of(context).textTheme.bodyMedium, maxLines: 3, overflow: TextOverflow.ellipsis),
+                    Text(description,
+                        style: Theme.of(context).textTheme.bodyMedium,
+                        maxLines: 3,
+                        overflow: TextOverflow.ellipsis),
+                  ],
+                  const SizedBox(height: 8),
+                  Text(
+                    capacity > 0
+                        ? '${l10n.matchPlayers}: $attendees/$capacity'
+                        : '${l10n.matchPlayers}: $attendees',
+                    style: Theme.of(context).textTheme.bodySmall,
+                  ),
+                  if (allowReg) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: joined
+                              ? OutlinedButton.icon(
+                                  onPressed: () => _leaveEvent(e),
+                                  icon: const Icon(Icons.check_circle_outline),
+                                  label: Text(l10n.eventGoing),
+                                )
+                              : FilledButton.icon(
+                                  onPressed:
+                                      isFull ? null : () => _joinEvent(e),
+                                  icon: const Icon(Icons.how_to_reg_outlined),
+                                  label: Text(
+                                      isFull ? l10n.eventFull : l10n.joinEvent),
+                                ),
+                        ),
+                      ],
+                    ),
                   ],
                 ],
               ),
@@ -271,6 +323,34 @@ class _EventsScreenState extends State<EventsScreen> {
         );
       },
     );
+  }
+
+  Future<void> _joinEvent(Map<String, dynamic> event) async {
+    final l10n = AppLocalizations.of(context);
+    final api = context.read<ApiClient>();
+    try {
+      await api.post('/events/${event['id']}/join/');
+      _showMessage(l10n.eventJoined);
+      await _load();
+    } on DioException catch (e) {
+      final detail =
+          e.response?.data is Map ? e.response?.data['detail'] : null;
+      _showMessage(detail is String && detail.isNotEmpty ? detail : l10n.error);
+    } catch (_) {
+      _showMessage(l10n.error);
+    }
+  }
+
+  Future<void> _leaveEvent(Map<String, dynamic> event) async {
+    final l10n = AppLocalizations.of(context);
+    final api = context.read<ApiClient>();
+    try {
+      await api.post('/events/${event['id']}/leave/');
+      _showMessage(l10n.eventLeft);
+      await _load();
+    } catch (_) {
+      _showMessage(l10n.error);
+    }
   }
 
   Widget _buildTournaments(AppLocalizations l10n) {

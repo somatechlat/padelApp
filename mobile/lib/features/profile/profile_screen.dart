@@ -37,11 +37,11 @@ class ProfileScreen extends StatelessWidget {
       ),
     );
     if (confirmed == true && context.mounted) {
-      await context.read<AuthState>().logout();
-      if (context.mounted) {
-        Navigator.of(context)
-            .pushNamedAndRemoveUntil('/login', (route) => false);
-      }
+      final auth = context.read<AuthState>();
+      final nav = Navigator.of(context);
+      await auth.logout();
+      // AuthGate also flips to LoginScreen; this clears any nested stack.
+      nav.pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 
@@ -52,17 +52,19 @@ class ProfileScreen extends StatelessWidget {
     final api = context.read<ApiClient>();
     final selected = await showDialog<String>(
       context: context,
-      builder: (context) => SimpleDialog(
-        title: Text(l10n.language),
-        children: [
-          for (final (code, name) in _languages)
-            RadioListTile<String>(
-              value: code,
-              groupValue: locale.code,
-              title: Text(name),
-              onChanged: (v) => Navigator.of(context).pop(v),
-            ),
-        ],
+      builder: (context) => RadioGroup<String>(
+        groupValue: locale.code,
+        onChanged: (v) => Navigator.of(context).pop(v),
+        child: SimpleDialog(
+          title: Text(l10n.language),
+          children: [
+            for (final (code, name) in _languages)
+              RadioListTile<String>(
+                value: code,
+                title: Text(name),
+              ),
+          ],
+        ),
       ),
     );
     if (selected == null || selected == locale.code) return;
@@ -130,9 +132,8 @@ class ProfileScreen extends StatelessWidget {
                   title: Text(l10n.language),
                   trailing: Text(
                     _languages
-                        .firstWhere((l) => l.$1 == context
-                            .read<LocaleController>()
-                            .code)
+                        .firstWhere((l) =>
+                            l.$1 == context.read<LocaleController>().code)
                         .$2,
                   ),
                   onTap: () => _pickLanguage(context),

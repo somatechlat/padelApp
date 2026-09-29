@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
+import 'package:padel_app/core/form_validation.dart';
+import 'package:padel_app/core/friendly_error.dart';
 import 'auth_state.dart';
 import 'reset_confirm_screen.dart';
 import 'widgets/auth_scaffold.dart';
@@ -15,6 +17,7 @@ class ResetScreen extends StatefulWidget {
 
 class _ResetScreenState extends State<ResetScreen> {
   final _email = TextEditingController();
+  String? _emailError;
 
   @override
   void dispose() {
@@ -24,20 +27,31 @@ class _ResetScreenState extends State<ResetScreen> {
 
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
-    final auth = context.read<AuthState>();
-    await auth.requestReset(_email.text);
-    if (!mounted) return;
-    if (!auth.hasError) {
+    final emailErr = FormValidation.email(l10n, _email.text);
+    setState(() => _emailError = emailErr);
+    if (emailErr != null) {
       ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.codeSent)));
-      Navigator.of(context).push(
-        MaterialPageRoute<void>(
-          builder: (_) => ResetConfirmScreen(
-            email: _email.text.trim().toLowerCase(),
-          ),
-        ),
-      );
+          .showSnackBar(SnackBar(content: Text(emailErr)));
+      return;
     }
+    final auth = context.read<AuthState>();
+    await auth.requestReset(_email.text.trim());
+    if (!mounted) return;
+    if (auth.hasError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyErrorMessage(auth.lastError!, l10n))),
+      );
+      return;
+    }
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(l10n.codeSent)));
+    Navigator.of(context).push(
+      MaterialPageRoute<void>(
+        builder: (_) => ResetConfirmScreen(
+          email: _email.text.trim().toLowerCase(),
+        ),
+      ),
+    );
   }
 
   @override
@@ -55,9 +69,11 @@ class _ResetScreenState extends State<ResetScreen> {
             controller: _email,
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
+            onChanged: (_) => setState(() => _emailError = null),
             onSubmitted: (_) => _submit(),
             decoration: InputDecoration(
               labelText: l10n.email,
+              errorText: _emailError,
               prefixIcon: const Icon(Icons.mail_outline),
               border: const OutlineInputBorder(),
             ),

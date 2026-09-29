@@ -19,5 +19,3 @@ urlpatterns = [
     path("banners/", views.BannersAdminView.as_view(), name="banners"),
     path("audit/", views.AuditListView.as_view(), name="audit"),
 ]
-
-

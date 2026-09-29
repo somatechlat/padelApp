@@ -2,7 +2,6 @@
   "@@locale": "pt",
   "appTitle": "Andes Pádel",
   "appTagline": "Reserve sua quadra de pádel",
-
   "login": "Entrar",
   "loginSubtitle": "Entre para reservar sua quadra",
   "email": "Email",
@@ -11,7 +10,6 @@
   "noAccount": "Não tem conta?",
   "registerLink": "Cadastre-se",
   "forgotPassword": "Esqueceu sua senha?",
-
   "register": "Criar conta",
   "registerSubtitle": "Preencha seus dados para se registrar",
   "fullName": "Nome completo",
@@ -20,22 +18,18 @@
   "registerButton": "Criar conta",
   "alreadyHaveAccount": "Já tem conta?",
   "loginLink": "Entre",
-
   "verify": "Verificar email",
   "verifySubtitle": "Digite o código que enviamos ao seu email",
   "code": "Código de verificação",
   "verifyButton": "Verificar",
   "resendCode": "Reenviar código",
-
   "resetPassword": "Recuperar senha",
   "resetSubtitle": "Digite seu email e enviaremos um código",
   "resetButton": "Enviar código",
-
   "resetConfirm": "Nova senha",
   "resetConfirmSubtitle": "Digite o código e sua nova senha",
   "confirmPassword": "Confirmar senha",
   "saveButton": "Salvar",
-
   "home": "Início",
   "homeWelcome": "Olá",
   "eventsEmpty": "Novos encontros e eventos em breve.",
@@ -43,6 +37,27 @@
   "lastName": "Sobrenome",
   "birthDate": "Data de nascimento",
   "birthDateRequired": "Selecione sua data de nascimento",
+  "joinEvent": "Eu vou",
+  "eventJoined": "Você se inscreveu!",
+  "eventLeft": "Você não vai mais",
+  "eventGoing": "Você vai",
+  "eventFull": "Completo",
+  "fieldRequired": "Este campo é obrigatório",
+  "fieldRequiredNamed": "O campo {field} é obrigatório",
+  "@fieldRequiredNamed": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldTooShort": "Mínimo 2 caracteres",
+  "emailRequired": "Digite seu email",
+  "emailInvalid": "Email inválido",
+  "passwordRequired": "Digite sua senha",
+  "passwordTooShort": "A senha deve ter pelo menos 8 caracteres",
+  "codeRequired": "Digite o código de verificação",
+  "codeInvalid": "O código deve ter 6 dígitos",
   "skillLevel": "Nível de jogo",
   "skillIniciacion": "Iniciação",
   "skillIntermedio": "Intermediário",
@@ -60,7 +75,6 @@
   "bookNow": "Reservar agora",
   "bookCourt": "Reservar quadra",
   "upcomingEvents": "Próximos eventos",
-
   "bookings": "Minhas reservas",
   "navBookings": "Reservas",
   "navEvents": "Eventos",
@@ -70,7 +84,6 @@
   "bookingStatus_pending": "Pendente",
   "bookingStatus_cancelled": "Cancelada",
   "bookingStatus_held": "Em espera",
-
   "events": "Eventos",
   "tournaments": "Torneios",
   "noEvents": "Não há eventos publicados",
@@ -90,14 +103,12 @@
   "tournamentStatus_closed": "Fechado",
   "tournamentStatus_finished": "Finalizado",
   "tournamentStatus_draft": "Rascunho",
-
   "notifications": "Notificações",
   "noNotifications": "Você não tem notificações",
   "markRead": "Marcar como lida",
   "markAllRead": "Marcar todas como lidas",
   "unread": "Não lida",
   "newBadge": "Nova",
-
   "profile": "Perfil",
   "role": "Perfil",
   "language": "Idioma",
@@ -105,11 +116,11 @@
   "logoutConfirm": "Tem certeza que deseja sair?",
   "cancel": "Cancelar",
   "confirm": "Confirmar",
-
   "error": "Ocorreu um erro",
   "networkError": "Erro de conexão. Verifique sua internet.",
   "invalidCredentials": "Credenciais inválidas",
   "accountLocked": "Conta temporariamente bloqueada",
+  "accountInactive": "Conta não ativa",
   "emailNotVerified": "Verifique seu email antes de entrar",
   "passwordMismatch": "As senhas não coincidem",
   "fillAllFields": "Preencha todos os campos",
@@ -119,7 +130,6 @@
   "codeSent": "Enviamos um código ao seu email",
   "success": "Operação bem-sucedida",
   "sessionExpired": "Sua sessão expirou. Entre novamente.",
-
   "stepCourt": "Escolha a quadra",
   "stepSchedule": "Data e hora",
   "stepSummary": "Resumo",
@@ -145,7 +155,6 @@
   "slotTaken": "Esse horário não está mais disponível. Escolha outro.",
   "minPlayers": "Jogadores",
   "confirmedAt": "Confirmada em",
-
   "notificationSettings": "Configurações de notificações",
   "save": "Salvar",
   "bookingReminder": "Lembrete de reserva",
@@ -156,24 +165,29 @@
   "channelEmail": "Email",
   "channelPush": "Notificações push",
   "channelInApp": "Notificações no app",
-
   "timeNow": "Agora",
   "timeAgoMinutes": "Há {minutes} min",
   "@timeAgoMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "timeAgoHours": "Há {hours} h",
   "@timeAgoHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "timeAgoDays": "Há {days} d",
   "@timeAgoDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "timeYesterday": "Ontem",
@@ -183,11 +197,12 @@
   "role_gerente": "Gerente",
   "role_dueno": "Dono",
   "role_superadmin": "Administrador",
-
   "homeGreeting": "Olá, {name}",
   "@homeGreeting": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "findYourCourt": "Encontre sua quadra",
@@ -210,7 +225,6 @@
   "noQuedadas": "Nenhum encontro programado",
   "noLigas": "Nenhuma liga ativa",
   "noAcademia": "Nenhuma aula disponível",
-
   "reserveYourCourt": "Reserve sua quadra",
   "reserveNow": "Reservar agora",
   "clubContact": "Contato do clube",
@@ -222,5 +236,51 @@
   "instagram": "Instagram",
   "showPassword": "Mostrar senha",
   "hidePassword": "Ocultar senha",
-  "extraInfo": "Informações adicionais"
+  "extraInfo": "Informações adicionais",
+  "accountHolder": "Titular da conta",
+  "accountNumber": "Número da conta",
+  "allowedFormats": "Formatos: JPEG, PNG",
+  "bankName": "Banco",
+  "beneficiaryCode": "Código do beneficiário",
+  "bookingModified": "Reserva modificada",
+  "camera": "Câmara",
+  "cardDescription": "Débito ou crédito via Stripe",
+  "cashDescription": "Pague no estabelecimento ao chegar",
+  "confirmTransfer": "Confirmar transferência",
+  "durationMin": "min",
+  "gallery": "Galeria",
+  "imageTooLarge": "A imagem excede 5 MB",
+  "invalidFormat": "Formato não permitido. Use JPEG ou PNG",
+  "maxFileSize": "Tamanho máximo: 5 MB",
+  "newsPublished": "Notícia publicada",
+  "noShowPenalty": "Penalidade por não comparecimento",
+  "payWithCard": "Pagar com cartão",
+  "payWithCash": "Pagamento no estabelecimento",
+  "payWithTransfer": "Transferência bancária",
+  "paymentMethodSubtitle": "Escolha como deseja pagar",
+  "paymentProcessing": "Processando pagamento...",
+  "proofPending": "Aguardando confirmação do comprovante",
+  "proofUploadError": "Erro ao enviar o comprovante",
+  "proofUploadSuccess": "Comprovante enviado com sucesso",
+  "proofUploaded": "Comprovante enviado",
+  "rejectTransfer": "Rejeitar transferência",
+  "rejectionReason": "Motivo da rejeição",
+  "send": "Enviar comprovante",
+  "tournamentRegistered": "Inscrição registrada",
+  "transferAmount": "Valor a transferir",
+  "transferConfirmed": "Transferência confirmada",
+  "transferDescription": "Faça uma transferência e envie seu comprovante",
+  "transferInstructions": "Dados para transferência",
+  "transferPending": "Transferência pendente de verificação",
+  "transferRejected": "Transferência rejeitada",
+  "transferRejectedReason": "Motivo: {reason}",
+  "@transferRejectedReason": {
+    "placeholders": {
+      "reason": {
+        "type": "String"
+      }
+    }
+  },
+  "uploadProof": "Enviar comprovante",
+  "uploadProofHint": "Tire uma foto ou selecione da galeria"
 }

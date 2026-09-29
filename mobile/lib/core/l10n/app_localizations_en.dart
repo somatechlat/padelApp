@@ -108,6 +108,101 @@ class AppLocalizationsEn extends AppLocalizations {
   String get eventsEmpty => 'New meetups and events coming soon.';
 
   @override
+  String get firstName => 'First name';
+
+  @override
+  String get lastName => 'Last name';
+
+  @override
+  String get birthDate => 'Date of birth';
+
+  @override
+  String get birthDateRequired => 'Select your date of birth';
+
+  @override
+  String get joinEvent => 'I\'m going';
+
+  @override
+  String get eventJoined => 'You\'re on the list!';
+
+  @override
+  String get eventLeft => 'You\'re no longer attending';
+
+  @override
+  String get eventGoing => 'You\'re going';
+
+  @override
+  String get eventFull => 'Full';
+
+  @override
+  String get fieldRequired => 'This field is required';
+
+  @override
+  String fieldRequiredNamed(String field) {
+    return 'The field $field is required';
+  }
+
+  @override
+  String get fieldTooShort => 'Minimum 2 characters';
+
+  @override
+  String get emailRequired => 'Enter your email';
+
+  @override
+  String get emailInvalid => 'Invalid email';
+
+  @override
+  String get passwordRequired => 'Enter your password';
+
+  @override
+  String get passwordTooShort => 'Password must be at least 8 characters';
+
+  @override
+  String get codeRequired => 'Enter the verification code';
+
+  @override
+  String get codeInvalid => 'Code must be 6 digits';
+
+  @override
+  String get skillLevel => 'Skill level';
+
+  @override
+  String get skillIniciacion => 'Beginner';
+
+  @override
+  String get skillIntermedio => 'Intermediate';
+
+  @override
+  String get skillAvanzado => 'Advanced';
+
+  @override
+  String get skillCompeticion => 'Competition';
+
+  @override
+  String get createMatch => 'Create match';
+
+  @override
+  String get openMatches => 'Open matches';
+
+  @override
+  String get joinMatch => 'Join';
+
+  @override
+  String get matchJoined => 'You joined the match';
+
+  @override
+  String get matchCreated => 'Match created. Your category was notified.';
+
+  @override
+  String get matchesEmpty => 'No open matches. Create the first one!';
+
+  @override
+  String get matchPlayers => 'Players';
+
+  @override
+  String get matchNotes => 'Notes (optional)';
+
+  @override
   String get homeSubtitle => 'Find your court and book in seconds';
 
   @override
@@ -255,6 +350,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get accountLocked => 'Account temporarily blocked';
+
+  @override
+  String get accountInactive => 'Account not active';
 
   @override
   String get emailNotVerified => 'Verify your email before signing in';

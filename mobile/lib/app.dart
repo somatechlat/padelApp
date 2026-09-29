@@ -43,7 +43,8 @@ class AndesPadelApp extends StatelessWidget {
         Provider<ApiClient>.value(value: _api),
         Provider<PushNotificationService>.value(value: _pushService),
         ChangeNotifierProvider<AuthState>.value(value: _auth),
-        ChangeNotifierProvider<LocaleController>.value(value: _localeController),
+        ChangeNotifierProvider<LocaleController>.value(
+            value: _localeController),
         ChangeNotifierProvider<UnreadStore>.value(value: _unread),
       ],
       child: Consumer<LocaleController>(
@@ -51,10 +52,8 @@ class AndesPadelApp extends StatelessWidget {
           return MaterialApp(
             debugShowCheckedModeBanner: false,
             navigatorKey: _navigatorKey,
-            onGenerateTitle: (context) =>
-                AppLocalizations.of(context).appTitle,
-            localizationsDelegates:
-                AppLocalizations.localizationsDelegates,
+            onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
+            localizationsDelegates: AppLocalizations.localizationsDelegates,
             supportedLocales: AppLocalizations.supportedLocales,
             // ALWAYS the in-app choice (Spanish by default). Never the device
             // locale — a Portuguese phone must not translate the UI.

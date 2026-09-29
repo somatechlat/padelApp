@@ -7,7 +7,7 @@ from django.utils import timezone
 from apps.bookings.models import Booking
 from apps.bookings.services import BookingService
 from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
-from apps.courts.models import Court, CourtSchedule, Venue
+from apps.courts.models import Court, CourtSchedule
 from apps.events.models import Event, NewsPost, Tournament
 from apps.notifications.models import Notification
 

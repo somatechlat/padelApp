@@ -7,7 +7,6 @@ pytestmark = pytest.mark.django_db
 
 @pytest.fixture
 def venue():
-    from apps.courts.models import Venue
 
     return Venue.objects.create(name="Andes Padel", timezone="America/Guayaquil", currency="USD")
 

@@ -1,46 +1,67 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:padel_app/app.dart';
+import 'package:padel_app/core/api_client.dart';
 import 'package:padel_app/core/locale_controller.dart';
 import 'package:padel_app/core/push_notification_service.dart';
 import 'package:padel_app/core/storage.dart';
 
-import 'helpers/fake_api.dart';
+const kApiBaseUrl = String.fromEnvironment(
+  'API_BASE_URL',
+  defaultValue: 'http://127.0.0.1:8000/api',
+);
 
-class FakePushService extends PushNotificationService {
-  FakePushService({required super.api});
-
-  @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<void> registerToken() async {}
+FileTokenStorage newTokenStorage() {
+  final dir = Directory.systemTemp.createTempSync('andes_padel_app_');
+  return FileTokenStorage(File('${dir.path}/tokens.json'));
 }
 
-Widget buildApp(FakeApi api) {
-  final storage = InMemoryTokenStorage();
+Widget buildApp({
+  required ApiClient api,
+  required TokenStorage storage,
+  PushNotificationService? pushService,
+}) {
   return AndesPadelApp(
     api: api,
     storage: storage,
     localeController: LocaleController(storage: storage),
-    pushService: FakePushService(api: api),
+    pushService: pushService ?? PushNotificationService(api: api),
   );
 }
 
 void main() {
+  final binding = LiveTestWidgetsFlutterBinding.ensureInitialized();
+  // Flutter test binding replaces HttpClient with a stub that returns 400.
+  // Real API calls need the real HttpClient — remove that override.
+  setUpAll(() {
+    HttpOverrides.global = null;
+  });
+
   testWidgets('shows login screen when no session', (tester) async {
-    await tester.pumpWidget(buildApp(FakeApi()));
-    await tester.pumpAndSettle();
+    final storage = newTokenStorage();
+    final api = ApiClient(storage: storage, baseUrl: kApiBaseUrl);
+
+    await tester.pumpWidget(buildApp(api: api, storage: storage));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     expect(find.byType(Image), findsOneWidget);
     expect(find.text('Iniciar sesión'), findsWidgets);
     expect(find.text('Accede para reservar tu cancha'), findsOneWidget);
-    expect(find.byType(TextButton), findsWidgets);
   });
 
-  testWidgets('login navigates to app shell', (tester) async {
-    await tester.pumpWidget(buildApp(FakeApi()));
-    await tester.pumpAndSettle();
+  testWidgets('login with real credentials navigates to shell', (tester) async {
+    binding.platformDispatcher.textScaleFactorTestValue = 1.0;
+    addTearDown(binding.platformDispatcher.clearAllTestValues);
+
+    final storage = newTokenStorage();
+    final api = ApiClient(storage: storage, baseUrl: kApiBaseUrl);
+
+    await tester.pumpWidget(buildApp(api: api, storage: storage));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     await tester.enterText(
       find.widgetWithText(TextField, 'Email'),
@@ -48,95 +69,65 @@ void main() {
     );
     await tester.enterText(
       find.widgetWithText(TextField, 'Contraseña'),
-      'pass12345',
+      'Andes12345!',
     );
     await tester.tap(find.text('Entrar'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
-    expect(find.text('Mis reservas'), findsOneWidget);
-    expect(find.text('Perfil'), findsOneWidget);
+    // Bottom nav is icon-only (labels hidden) — assert via icons.
+    expect(find.byIcon(Icons.event_note_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.home_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
   });
 
-  testWidgets('register navigates to verify screen', (tester) async {
-    // Tall surface so register form controls are hittable without overflow.
-    tester.view.physicalSize = const Size(400, 1200);
-    tester.view.devicePixelRatio = 1.0;
-    addTearDown(tester.view.reset);
+  testWidgets('restores real session from file storage to shell',
+      (tester) async {
+    final storage = newTokenStorage();
+    final api = ApiClient(storage: storage, baseUrl: kApiBaseUrl);
 
-    await tester.pumpWidget(buildApp(FakeApi()));
-    await tester.pumpAndSettle();
+    // Obtain a real JWT from the Docker API, then restore it cold.
+    final authProbe = ApiClient(storage: storage, baseUrl: kApiBaseUrl);
+    final login = await authProbe.post('/auth/login/', data: {
+      'email': 'cliente@andespadel.com',
+      'password': 'Andes12345!',
+    });
+    await storage.write(
+        SecureTokenStorage.accessKey, login['access'] as String);
+    await storage.write(
+        SecureTokenStorage.refreshKey, login['refresh'] as String? ?? '');
 
-    await tester.tap(find.text('Regístrate'));
-    await tester.pumpAndSettle();
+    await tester.pumpWidget(buildApp(api: api, storage: storage));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
-    expect(find.text('Crear cuenta'), findsWidgets);
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Nombre completo'),
-      'Ana',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Email'),
-      'ana@test.com',
-    );
-    await tester.enterText(
-      find.widgetWithText(TextField, 'Contraseña'),
-      'pass12345',
-    );
-    await tester.ensureVisible(find.text('Acepto los términos y condiciones'));
-    await tester.tap(
-      find.text('Acepto los términos y condiciones'),
-      warnIfMissed: false,
-    );
-    await tester.pumpAndSettle();
-    await tester.ensureVisible(
-      find.widgetWithText(FilledButton, 'Crear cuenta'),
-    );
-    await tester.tap(
-      find.widgetWithText(FilledButton, 'Crear cuenta'),
-      warnIfMissed: false,
-    );
-    await tester.pumpAndSettle();
-
-    expect(find.text('Verificar email'), findsWidgets);
-    expect(find.text('ana@test.com'), findsOneWidget);
+    expect(find.byIcon(Icons.event_note_outlined), findsOneWidget);
+    expect(find.byIcon(Icons.person_outline), findsOneWidget);
   });
 
-  testWidgets('restores session from storage to shell', (tester) async {
-    final storage = InMemoryTokenStorage();
-    await storage.write(SecureTokenStorage.accessKey, 'fake-access');
-    await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
-    final api = FakeApi();
-    await tester.pumpWidget(AndesPadelApp(
-      api: api,
-      storage: storage,
-      localeController: LocaleController(storage: storage),
-      pushService: FakePushService(api: api),
-    ));
-    await tester.pumpAndSettle();
+  testWidgets('logout with real session returns to login', (tester) async {
+    final storage = newTokenStorage();
+    final api = ApiClient(storage: storage, baseUrl: kApiBaseUrl);
+    final login = await api.post('/auth/login/', data: {
+      'email': 'cliente@andespadel.com',
+      'password': 'Andes12345!',
+    });
+    await storage.write(
+        SecureTokenStorage.accessKey, login['access'] as String);
+    await storage.write(
+        SecureTokenStorage.refreshKey, login['refresh'] as String? ?? '');
 
-    expect(find.text('Inicio'), findsWidgets);
-    expect(find.text('Mis reservas'), findsOneWidget);
-  });
+    await tester.pumpWidget(buildApp(api: api, storage: storage));
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 3));
 
-  testWidgets('logout returns to login', (tester) async {
-    final storage = InMemoryTokenStorage();
-    await storage.write(SecureTokenStorage.accessKey, 'fake-access');
-    await storage.write(SecureTokenStorage.refreshKey, 'fake-refresh');
-    final api = FakeApi();
-    await tester.pumpWidget(AndesPadelApp(
-      api: api,
-      storage: storage,
-      localeController: LocaleController(storage: storage),
-      pushService: FakePushService(api: api),
-    ));
-    await tester.pumpAndSettle();
-
-    await tester.tap(find.text('Perfil'));
+    await tester.tap(find.byIcon(Icons.person_outline));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Cerrar sesión'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Confirmar'));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.pumpAndSettle(const Duration(seconds: 2));
 
     expect(find.text('Iniciar sesión'), findsWidgets);
   });

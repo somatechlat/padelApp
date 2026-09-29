@@ -3,7 +3,7 @@
 import os
 
 import pytest
-from playwright.sync_api import sync_playwright, Page, BrowserContext
+from playwright.sync_api import Page, sync_playwright
 
 BASE_URL = os.environ.get("E2E_BASE_URL", "https://andespadel.yachaq.io")
 

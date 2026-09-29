@@ -18,9 +18,9 @@ class TestDashboard:
         admin_page.goto("/adminpanel/dashboard/")
         cards = admin_page.locator(".card-label")
         labels = [cards.nth(i).inner_text() for i in range(cards.count())]
-        assert any("reserva" in l.lower() for l in labels)
-        assert any("ocupaci" in l.lower() for l in labels)
-        assert any("ingreso" in l.lower() for l in labels)
+        assert any("reserva" in label.lower() for label in labels)
+        assert any("ocupaci" in label.lower() for label in labels)
+        assert any("ingreso" in label.lower() for label in labels)
 
     def test_dashboard_shows_bookings_table(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")

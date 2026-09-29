@@ -29,6 +29,9 @@ class Event(models.Model):
     location = models.CharField(max_length=200, blank=True)
     category = models.CharField(max_length=10, choices=Category.choices, default=Category.QUEDADA)
     status = models.CharField(max_length=10, choices=Status.choices, default=Status.DRAFT)
+    # Quedadas RSVP: 0 = unlimited. Non-zero caps "Me apunto".
+    capacity = models.PositiveIntegerField(default=0)
+    allow_registration = models.BooleanField(default=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="events_created"
     )
@@ -43,6 +46,14 @@ class Event(models.Model):
         ordering = ("-created_at",)
 
     @property
+    def attendee_count(self):
+        return self.registrations.filter(status=EventRegistration.Status.GOING).count()
+
+    @property
+    def is_full(self):
+        return self.capacity > 0 and self.attendee_count >= self.capacity
+
+    @property
     def title_localized(self):
         return self.title_es or self.title
 
@@ -52,6 +63,31 @@ class Event(models.Model):
 
     def __str__(self):
         return self.title_localized
+
+
+class EventRegistration(models.Model):
+    """RSVP for Quedadas / events — admin-visible 'Me apunto' data."""
+
+    class Status(models.TextChoices):
+        GOING = "going", "Va a asistir"
+        CANCELLED = "cancelled", "No asiste"
+
+    event = models.ForeignKey(Event, on_delete=models.CASCADE, related_name="registrations")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="event_registrations"
+    )
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.GOING)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "inscripcion a evento"
+        verbose_name_plural = "inscripciones a eventos"
+        constraints = [
+            models.UniqueConstraint(fields=("event", "user"), name="uniq_event_user")
+        ]
+
+    def __str__(self):
+        return f"{self.user.email} -> {self.event} [{self.status}]"
 
 
 class Tournament(models.Model):
@@ -280,8 +316,9 @@ class NewsPost(models.Model):
         self.status = self.Status.PUBLISHED
         self.published_at = timezone.now()
         self.save(update_fields=["status", "published_at"])
-        from apps.notifications.tasks import notify_task
         from django.contrib.auth import get_user_model
+
+        from apps.notifications.tasks import notify_task
 
         for user in get_user_model().objects.filter(status="active").iterator():
             notify_task.delay(

@@ -460,7 +460,10 @@
     <div class="header-user">
       <span class="role-pill">{{ request.user.get_role_display|default:request.user.role }}</span>
       <span style="font-weight: 600; font-size: 14px;">{{ request.user.email }}</span>
-      <a href="{% url 'adminpanel:logout' %}" class="btn-logout">Salir</a>
+      <form method="post" action="{% url 'adminpanel:logout' %}" style="display:inline;">
+        {% csrf_token %}
+        <button type="submit" class="btn-logout">Salir</button>
+      </form>
     </div>
   </header>
 

@@ -11,6 +11,7 @@ from rest_framework.throttling import SimpleRateThrottle
 from rest_framework.views import APIView
 
 from apps.notifications.models import DeviceToken
+from apps.users.models import SkillLevel
 from apps.users.serializers import (
     DeviceTokenSerializer,
     LoginSerializer,
@@ -22,7 +23,6 @@ from apps.users.serializers import (
     UserSerializer,
     VerifySerializer,
 )
-from apps.users.models import SkillLevel
 from apps.verification.models import VerificationCode, VerificationCodeService
 
 User = get_user_model()

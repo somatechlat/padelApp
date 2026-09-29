@@ -83,9 +83,9 @@ class TestRevenueReports:
 class TestOperationalReports:
     def test_occupancy_percentage(self, venue, court, user):
         today = timezone.localdate()
-        from apps.scheduling.models import TimeSlot
-
         from datetime import timedelta
+
+        from apps.scheduling.models import TimeSlot
         for t in ("10:00", "10:30", "11:00", "11:30"):
             start = timezone.datetime.strptime(t, "%H:%M")
             end = start + timedelta(minutes=30)

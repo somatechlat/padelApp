@@ -1,0 +1,87 @@
+# PROD overlay — project andespadel-prod, host ports 34000+ (matches server)
+# Usage (server /opt/padelapp):
+#   docker compose -p andespadel-prod -f docker-compose.yml -f docker-compose.prod.yml up -d
+#
+# NEVER touch loyallia-* or ports 33900-33914. See docs/DEPLOYMENTS.md and R18.
+
+name: andespadel-prod
+
+services:
+  db:
+    container_name: andespadel-prod-db
+    environment:
+      POSTGRES_DB: padel_prod
+      POSTGRES_USER: padel
+      # Override with real password via docker/backend/secrets.py / env on server
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-padel_prod_change_me}
+    ports:
+      - "34000:5432"
+
+  redis:
+    container_name: andespadel-prod-redis
+    ports:
+      - "34001:6379"
+
+  backend:
+    container_name: andespadel-prod-backend
+    image: ${BACKEND_IMAGE:-andespadel-backend:prod}
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn padel.wsgi:application --bind 0.0.0.0:8000 --workers 3"
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod
+    ports:
+      - "34002:8000"
+    volumes:
+      - ./docker/backend:/app/runsecrets:ro
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+
+  worker:
+    container_name: andespadel-prod-worker
+    image: ${BACKEND_IMAGE:-andespadel-backend:prod}
+    command: celery -A padel worker -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod
+    volumes:
+      - ./docker/backend:/app/runsecrets:ro
+
+  beat:
+    container_name: andespadel-prod-beat
+    image: ${BACKEND_IMAGE:-andespadel-backend:prod}
+    command: celery -A padel beat -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod
+    volumes:
+      - ./docker/backend:/app/runsecrets:ro
+
+  nginx:
+    container_name: andespadel-prod-nginx
+    ports:
+      - "34003:80"
+
+  flutter:
+    container_name: andespadel-prod-flutter
+    environment:
+      API_BASE_URL: https://andespadel.yachaq.io/api
+
+networks:
+  padel-net:
+    name: andespadel-prod-net
+
+volumes:
+  db_data:
+    name: andespadel-prod_db_data
+  media_data:
+    name: andespadel-prod_media_data
+  static_data:
+    name: andespadel-prod_static_data
+  flutter_home:
+    name: andespadel-prod_flutter_home
+  gradle_home:
+    name: andespadel-prod_gradle_home
+  android_sdk:
+    name: andespadel-prod_android_sdk

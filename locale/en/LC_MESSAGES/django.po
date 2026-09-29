@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-08-13 13:12+0000\n"
+"POT-Creation-Date: 2026-09-29 07:20-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -35,41 +35,101 @@ msgstr[1] ""
 msgid "La hora ya paso"
 msgstr "The time has passed"
 
-#: apps/bookings/services.py:36
-msgid "Horario no disponible"
-msgstr "Schedule not available"
-
-#: apps/bookings/services.py:43
-msgid "La cancha no esta disponible en ese horario"
-msgstr "Court not available at that time"
-
-#: apps/bookings/services.py:73
+#: apps/bookings/services.py:46
 msgid "Limite de reservas temporales superado"
 msgstr "Temporary hold limit reached"
 
-#: apps/bookings/services.py:84
+#: apps/bookings/services.py:51
+msgid "Horario no disponible"
+msgstr "Schedule not available"
+
+#: apps/bookings/services.py:58 apps/bookings/services.py:229
+msgid "La cancha no esta disponible en ese horario"
+msgstr "Court not available at that time"
+
+#: apps/bookings/services.py:108
 msgid "Las franjas ya no estan disponibles"
 msgstr "Slots are no longer available"
 
-#: apps/events/services.py:11
+#: apps/bookings/services.py:221
+#, fuzzy
+#| msgid "Horario no disponible"
+msgid "Horario no disponible para reprogramar"
+msgstr "Schedule not available"
+
+#: apps/bookings/views.py:104 apps/courts/views.py:111
+msgid "El parametro 'date' es obligatorio"
+msgstr "The 'date' parameter is required"
+
+#: apps/bookings/views.py:109
+msgid "Parametros invalidos"
+msgstr "Invalid parameters"
+
+#: apps/bookings/views.py:111
+#, fuzzy
+#| msgid "Codigo invalido"
+msgid "Duracion invalida"
+msgstr "Invalid code"
+
+#: apps/courts/models.py:118
+msgid "La imagen del banner es obligatoria."
+msgstr "The banner image is required."
+
+#: apps/courts/views.py:117
+msgid "Formato de fecha invalido. Use YYYY-MM-DD."
+msgstr "Invalid date format. Use YYYY-MM-DD."
+
+#: apps/events/services.py:12
 msgid "El torneo no acepta inscripciones"
 msgstr "Tournament is not accepting registrations"
 
-#: apps/events/services.py:16
+#: apps/events/services.py:15
 msgid "Inscripciones cerradas"
 msgstr "Registrations are closed"
 
-#: apps/events/services.py:23
+#: apps/events/services.py:22
 msgid "Ya estas inscrito en este torneo"
 msgstr "You are already registered in this tournament"
 
-#: apps/events/services.py:32
+#: apps/events/services.py:31
 msgid "Torneo lleno"
 msgstr "Tournament is full"
 
-#: apps/events/views.py:92
+#: apps/events/views.py:62
+#, fuzzy
+#| msgid "El torneo no acepta inscripciones"
+msgid "Este evento no acepta inscripciones"
+msgstr "Tournament is not accepting registrations"
+
+#: apps/events/views.py:67
+msgid "El evento no esta publicado"
+msgstr ""
+
+#: apps/events/views.py:72
+msgid "El evento esta completo"
+msgstr ""
+
+#: apps/events/views.py:145
 msgid "Inscripcion no encontrada"
 msgstr "Registration not found"
+
+#: apps/events/views.py:187
+#, fuzzy
+#| msgid "El email ya esta registrado"
+msgid "El partido ya no esta abierto"
+msgstr "Email already registered"
+
+#: apps/events/views.py:194
+#, fuzzy
+#| msgid "El email ya esta registrado"
+msgid "El partido ya esta completo"
+msgstr "Email already registered"
+
+#: apps/events/views.py:202
+#, fuzzy
+#| msgid "Ya estas inscrito en este torneo"
+msgid "Ya estas en este partido"
+msgstr "You are already registered in this tournament"
 
 #: apps/gdpr/views.py:29
 msgid "Consentimiento registrado"
@@ -79,146 +139,165 @@ msgstr "Consent recorded"
 msgid "Tus datos fueron anonimizados (derecho al olvido)"
 msgstr "Your data has been anonymized (right to be forgotten)"
 
-#: apps/users/serializers.py:19
+#: apps/payments/views.py:34
+#, python-brace-format
+msgid "Metodo de pago invalido. Opciones: {methods}"
+msgstr "Invalid payment method. Options: {methods}"
+
+#: apps/payments/views.py:53
+msgid "No se pudo iniciar el pago"
+msgstr "Payment could not be started"
+
+#: apps/payments/views.py:71
+msgid "Adjunte el comprobante de transferencia"
+msgstr "Attach the transfer receipt"
+
+#: apps/payments/views.py:76
+msgid "Formato no permitido. Use JPEG o PNG"
+msgstr "Format not allowed. Use JPEG or PNG"
+
+#: apps/payments/views.py:81
+msgid "El archivo excede 5 MB"
+msgstr "File exceeds 5 MB"
+
+#: apps/payments/views.py:118
+msgid "El motivo de rechazo es obligatorio"
+msgstr "A rejection reason is required"
+
+#: apps/users/serializers.py:37
 msgid "El email ya esta registrado"
 msgstr "Email already registered"
 
-#: apps/users/serializers.py:28
+#: apps/users/serializers.py:46
 msgid "Debes aceptar los terminos"
 msgstr "You must accept the terms"
 
-#: apps/users/serializers.py:54 apps/users/views.py:146
+#: apps/users/serializers.py:78 apps/users/views.py:199
 msgid "Codigo invalido"
 msgstr "Invalid code"
 
-#: apps/users/serializers.py:72 apps/users/serializers.py:81
+#: apps/users/serializers.py:96 apps/users/serializers.py:105
 msgid "Cuenta temporalmente bloqueada por intentos fallidos"
 msgstr "Account temporarily locked due to failed attempts"
 
-#: apps/users/serializers.py:84
-msgid "Credenciales invalidas"
+#: apps/users/serializers.py:109
+msgid "Credenciales inválidas"
 msgstr "Invalid credentials"
 
-#: apps/users/serializers.py:87
+#: apps/users/serializers.py:113
 msgid "Verifica tu email antes de iniciar sesion"
 msgstr "Verify your email before signing in"
 
-#: apps/users/serializers.py:90
+#: apps/users/serializers.py:118
 msgid "Cuenta no activa"
 msgstr "Account not active"
 
-#: apps/users/serializers.py:136
+#: apps/users/serializers.py:175
 msgid "Contrasena actual incorrecta"
 msgstr "Current password is incorrect"
 
-#: apps/users/views.py:55
-msgid "Revisa tu email para verificar la cuenta"
-msgstr "Check your email to verify your account"
-
-#: apps/users/views.py:72 apps/users/views.py:152
-msgid "Codigo invalido o expirado"
-msgstr "Invalid or expired code"
-
-#: apps/users/views.py:76
-msgid "Email verificado"
-msgstr "Email verified"
-
-#: apps/users/views.py:124 apps/users/views.py:133
-msgid "Si el email existe, recibira un codigo"
-msgstr "If the email exists, a code will be sent"
-
-#: apps/users/views.py:157
-msgid "Contrasena actualizada"
-msgstr "Password updated"
-
-#: apps/users/views.py:173
-msgid "Contrasena cambiada"
-msgstr "Password changed"
-
-#: padel/settings/base.py:117
-msgid "Espanol"
-msgstr ""
-
-#: padel/settings/base.py:118
-msgid "English"
-msgstr ""
-
-#: padel/settings/base.py:119
-msgid "Portugues"
-msgstr ""
-
-#: padel/settings/base.py:120
-msgid "Catalan"
-msgstr ""
-
-#: apps/notifications/services.py
-msgid "Booking confirmed"
-msgstr "Booking confirmed"
-
-#: apps/notifications/services.py
-msgid "Your booking for {court} on {date} at {time} is confirmed."
-msgstr "Your booking for {court} on {date} at {time} is confirmed."
-
-#: apps/notifications/services.py
-msgid "Booking cancelled"
-msgstr "Booking cancelled"
-
-#: apps/notifications/services.py
-msgid "Your booking for {court} on {date} at {time} was cancelled."
-msgstr "Your booking for {court} on {date} at {time} was cancelled."
-
-#: apps/notifications/services.py
-msgid "Booking reminder"
-msgstr "Booking reminder"
-
-#: apps/notifications/services.py
-msgid "Reminder: {court} tomorrow at {time}."
-msgstr "Reminder: {court} tomorrow at {time}."
-
-#: apps/notifications/services.py
-msgid "Payment received"
-msgstr "Payment received"
-
-#: apps/notifications/services.py
-msgid "We received your payment of {amount}."
-msgstr "We received your payment of {amount}."
-
-#: apps/notifications/services.py
-msgid "Payment refunded"
-msgstr "Payment refunded"
-
-#: apps/notifications/services.py
-msgid "A refund of {amount} was processed."
-msgstr "A refund of {amount} was processed."
-
-#: apps/notifications/services.py
-msgid "Transfer confirmed"
-msgstr "Transfer confirmed"
-
-#: apps/notifications/services.py
-msgid "Your bank transfer of {amount} was confirmed."
-msgstr "Your bank transfer of {amount} was confirmed."
-
-#: apps/notifications/services.py
-msgid "Tournament reminder"
-msgstr "Tournament reminder"
-
-#: apps/notifications/services.py
-msgid "The tournament {tournament} starts tomorrow."
-msgstr "The tournament {tournament} starts tomorrow."
-
-#: apps/notifications/services.py
-msgid "Tournament registration confirmed"
-msgstr "Tournament registration confirmed"
-
-#: apps/notifications/services.py
-msgid "You are registered for {tournament}."
-msgstr "You are registered for {tournament}."
-
-#: apps/users/views.py
+#: apps/users/views.py:80
 msgid "Verification code - Andes Padel"
 msgstr "Verification code - Andes Padel"
 
-#: apps/users/views.py
+#: apps/users/views.py:81
+#, python-brace-format
 msgid "Your verification code is: {code}"
 msgstr "Your verification code is: {code}"
+
+#: apps/users/views.py:96
+msgid "Revisa tu email para verificar la cuenta"
+msgstr "Check your email to verify your account"
+
+#: apps/users/views.py:113 apps/users/views.py:205
+msgid "Codigo invalido o expirado"
+msgstr "Invalid or expired code"
+
+#: apps/users/views.py:117
+msgid "Email verificado"
+msgstr "Email verified"
+
+#: apps/users/views.py:168 apps/users/views.py:186
+msgid "Si el email existe, recibira un codigo"
+msgstr "If the email exists, a code will be sent"
+
+#: apps/users/views.py:171
+msgid "Restablecer contrasena - Andes Padel"
+msgstr ""
+
+#: apps/users/views.py:172
+#, python-brace-format
+msgid "Tu codigo de restablecimiento es: {code}"
+msgstr ""
+
+#: apps/users/views.py:210
+msgid "Contrasena actualizada"
+msgstr "Password updated"
+
+#: apps/users/views.py:226
+msgid "Contrasena cambiada"
+msgstr "Password changed"
+
+#: padel/settings/base.py:118
+msgid "Espanol"
+msgstr ""
+
+#: padel/settings/base.py:119
+msgid "English"
+msgstr ""
+
+#: padel/settings/base.py:120
+msgid "Portugues"
+msgstr ""
+
+#: padel/settings/base.py:121
+msgid "Catalan"
+msgstr ""
+
+#~ msgid "Booking confirmed"
+#~ msgstr "Booking confirmed"
+
+#~ msgid "Your booking for {court} on {date} at {time} is confirmed."
+#~ msgstr "Your booking for {court} on {date} at {time} is confirmed."
+
+#~ msgid "Booking cancelled"
+#~ msgstr "Booking cancelled"
+
+#~ msgid "Your booking for {court} on {date} at {time} was cancelled."
+#~ msgstr "Your booking for {court} on {date} at {time} was cancelled."
+
+#~ msgid "Booking reminder"
+#~ msgstr "Booking reminder"
+
+#~ msgid "Reminder: {court} tomorrow at {time}."
+#~ msgstr "Reminder: {court} tomorrow at {time}."
+
+#~ msgid "Payment received"
+#~ msgstr "Payment received"
+
+#~ msgid "We received your payment of {amount}."
+#~ msgstr "We received your payment of {amount}."
+
+#~ msgid "Payment refunded"
+#~ msgstr "Payment refunded"
+
+#~ msgid "A refund of {amount} was processed."
+#~ msgstr "A refund of {amount} was processed."
+
+#~ msgid "Transfer confirmed"
+#~ msgstr "Transfer confirmed"
+
+#~ msgid "Your bank transfer of {amount} was confirmed."
+#~ msgstr "Your bank transfer of {amount} was confirmed."
+
+#~ msgid "Tournament reminder"
+#~ msgstr "Tournament reminder"
+
+#~ msgid "The tournament {tournament} starts tomorrow."
+#~ msgstr "The tournament {tournament} starts tomorrow."
+
+#~ msgid "Tournament registration confirmed"
+#~ msgstr "Tournament registration confirmed"
+
+#~ msgid "You are registered for {tournament}."
+#~ msgstr "You are registered for {tournament}."

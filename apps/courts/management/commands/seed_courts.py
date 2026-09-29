@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
-from apps.courts.models import Court, CourtSchedule, Venue
+from apps.courts.models import Court, CourtSchedule
 
 
 class Command(BaseCommand):

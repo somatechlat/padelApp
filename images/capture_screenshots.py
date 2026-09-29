@@ -5,6 +5,7 @@ import json
 import time
 import urllib.request
 from pathlib import Path
+
 from playwright.sync_api import sync_playwright
 
 BASE = "https://andespadel.yachaq.io"
@@ -109,7 +110,7 @@ def main():
             # Try screenshots of whatever loaded
             try:
                 page.screenshot(path=str(OUT / "16_custom_admin_dashboard.png"), full_page=True)
-                print(f"    -> 16_custom_admin_dashboard.png (partial)")
+                print("    -> 16_custom_admin_dashboard.png (partial)")
             except Exception:
                 pass
 

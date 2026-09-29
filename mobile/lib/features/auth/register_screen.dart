@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'package:padel_app/core/friendly_error.dart';
+import 'package:padel_app/core/form_validation.dart';
 import 'package:padel_app/core/widgets/password_field.dart';
 import '../../core/api_client.dart';
 import 'auth_state.dart';
@@ -25,6 +26,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   int? _skillLevelId;
   List<Map<String, dynamic>> _skillLevels = [];
   bool _accepted = false;
+  String? _firstNameError;
+  String? _lastNameError;
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void initState() {
@@ -74,16 +79,41 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
+  void _toast(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
     final l10n = AppLocalizations.of(context);
-    if (!_accepted) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.acceptTermsRequired)));
+    final firstErr =
+        FormValidation.name(l10n, _firstName.text, label: l10n.firstName);
+    final lastErr =
+        FormValidation.name(l10n, _lastName.text, label: l10n.lastName);
+    final emailErr = FormValidation.email(l10n, _email.text);
+    final passErr = FormValidation.password(l10n, _password.text);
+    setState(() {
+      _firstNameError = firstErr;
+      _lastNameError = lastErr;
+      _emailError = emailErr;
+      _passwordError = passErr;
+    });
+    final firstBad = FormValidation.first([
+      () => firstErr,
+      () => lastErr,
+      () => emailErr,
+      () => passErr,
+    ]);
+    if (firstBad != null) {
+      _toast(firstBad);
       return;
     }
     if (_birthDate == null) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(l10n.birthDateRequired)));
+      _toast(l10n.birthDateRequired);
+      return;
+    }
+    if (!_accepted) {
+      _toast(l10n.acceptTermsRequired);
       return;
     }
     final d = _birthDate!;
@@ -99,13 +129,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
       skillLevelId: _skillLevelId,
     );
     if (!mounted) return;
-    if (!auth.hasError) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute<void>(
-          builder: (_) => VerifyScreen(email: _email.text.trim().toLowerCase()),
-        ),
-      );
+    if (auth.hasError) {
+      _toast(friendlyErrorMessage(auth.lastError!, l10n));
+      return;
     }
+    _toast(l10n.codeSent);
+    Navigator.of(context).pushReplacement(
+      MaterialPageRoute<void>(
+        builder: (_) => VerifyScreen(email: _email.text.trim().toLowerCase()),
+      ),
+    );
   }
 
   @override
@@ -123,8 +156,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _firstName,
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.words,
+            onChanged: (_) => setState(() => _firstNameError = null),
             decoration: InputDecoration(
               labelText: l10n.firstName,
+              errorText: _firstNameError,
               prefixIcon: const Icon(Icons.person_outline),
               border: const OutlineInputBorder(),
             ),
@@ -134,8 +169,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             controller: _lastName,
             textInputAction: TextInputAction.next,
             textCapitalization: TextCapitalization.words,
+            onChanged: (_) => setState(() => _lastNameError = null),
             decoration: InputDecoration(
               labelText: l10n.lastName,
+              errorText: _lastNameError,
               prefixIcon: const Icon(Icons.person_outline),
               border: const OutlineInputBorder(),
             ),
@@ -146,8 +183,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
             keyboardType: TextInputType.emailAddress,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.email],
+            onChanged: (_) => setState(() => _emailError = null),
             decoration: InputDecoration(
               labelText: l10n.email,
+              errorText: _emailError,
               prefixIcon: const Icon(Icons.mail_outline),
               border: const OutlineInputBorder(),
             ),
@@ -156,6 +195,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
           PasswordField(
             controller: _password,
             label: l10n.password,
+            errorText: _passwordError,
+            onChanged: (_) => setState(() => _passwordError = null),
             textInputAction: TextInputAction.next,
             onSubmitted: (_) => _pickBirthDate(),
           ),
@@ -181,7 +222,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
           const SizedBox(height: 16),
           // Nivel de juego — combo box, options editable in admin
           DropdownButtonFormField<int>(
-            value: _skillLevelId,
+            initialValue: _skillLevelId,
             isExpanded: true,
             decoration: InputDecoration(
               labelText: l10n.skillLevel,

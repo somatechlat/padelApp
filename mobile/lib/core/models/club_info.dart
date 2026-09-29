@@ -103,7 +103,8 @@ class ClubInfo {
 
   String get resolvedInstagramUrl {
     if (instagramUrl.isEmpty) return '';
-    if (instagramUrl.startsWith('http://') || instagramUrl.startsWith('https://')) {
+    if (instagramUrl.startsWith('http://') ||
+        instagramUrl.startsWith('https://')) {
       return instagramUrl;
     }
     final handle = instagramUrl.replaceFirst(RegExp(r'^@'), '');

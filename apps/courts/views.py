@@ -1,6 +1,7 @@
 from django.db.models import Q
 from django.shortcuts import get_object_or_404
 from django.utils import timezone
+from django.utils.translation import gettext as _
 from rest_framework import generics, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -107,13 +108,13 @@ class CourtViewSet(viewsets.ModelViewSet):
         court = get_object_or_404(Court, pk=pk)
         date_str = request.query_params.get("date")
         if not date_str:
-            return Response({"detail": "El parametro 'date' es obligatorio"}, status=400)
+            return Response({"detail": _("El parametro 'date' es obligatorio")}, status=400)
         from datetime import date as date_type
 
         try:
             day = date_type.fromisoformat(date_str)
         except (ValueError, TypeError):
-            return Response({"detail": "Formato de fecha invalido. Use YYYY-MM-DD."}, status=400)
+            return Response({"detail": _("Formato de fecha invalido. Use YYYY-MM-DD.")}, status=400)
         SlotService.generate_day(court, day)
         slots = SlotService.available_slots(court, day)
         return Response(TimeSlotSerializer(slots, many=True).data)

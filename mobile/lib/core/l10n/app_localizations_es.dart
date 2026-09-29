@@ -108,6 +108,102 @@ class AppLocalizationsEs extends AppLocalizations {
   String get eventsEmpty => 'Próximamente nuevas quedadas y eventos.';
 
   @override
+  String get firstName => 'Nombre';
+
+  @override
+  String get lastName => 'Apellido';
+
+  @override
+  String get birthDate => 'Fecha de nacimiento';
+
+  @override
+  String get birthDateRequired => 'Selecciona tu fecha de nacimiento';
+
+  @override
+  String get joinEvent => 'Me apunto';
+
+  @override
+  String get eventJoined => '¡Te apuntaste a la quedada!';
+
+  @override
+  String get eventLeft => 'Ya no asistes a esta quedada';
+
+  @override
+  String get eventGoing => 'Ya estás apuntado';
+
+  @override
+  String get eventFull => 'Completo';
+
+  @override
+  String get fieldRequired => 'Este campo es obligatorio';
+
+  @override
+  String fieldRequiredNamed(String field) {
+    return 'El campo $field es obligatorio';
+  }
+
+  @override
+  String get fieldTooShort => 'Mínimo 2 caracteres';
+
+  @override
+  String get emailRequired => 'Ingresa tu email';
+
+  @override
+  String get emailInvalid => 'Email no válido';
+
+  @override
+  String get passwordRequired => 'Ingresa tu contraseña';
+
+  @override
+  String get passwordTooShort =>
+      'La contraseña debe tener al menos 8 caracteres';
+
+  @override
+  String get codeRequired => 'Ingresa el código de verificación';
+
+  @override
+  String get codeInvalid => 'El código debe tener 6 dígitos';
+
+  @override
+  String get skillLevel => 'Nivel de juego';
+
+  @override
+  String get skillIniciacion => 'Iniciación';
+
+  @override
+  String get skillIntermedio => 'Intermedio';
+
+  @override
+  String get skillAvanzado => 'Avanzado';
+
+  @override
+  String get skillCompeticion => 'Competición';
+
+  @override
+  String get createMatch => 'Armar partido';
+
+  @override
+  String get openMatches => 'Partidos abiertos';
+
+  @override
+  String get joinMatch => 'Unirme';
+
+  @override
+  String get matchJoined => 'Te uniste al partido';
+
+  @override
+  String get matchCreated => 'Partido creado. Se avisó a tu categoría.';
+
+  @override
+  String get matchesEmpty => 'No hay partidos abiertos. ¡Arma el primero!';
+
+  @override
+  String get matchPlayers => 'Jugadores';
+
+  @override
+  String get matchNotes => 'Notas (opcional)';
+
+  @override
   String get homeSubtitle => 'Encuentra tu cancha y reserva en segundos';
 
   @override
@@ -254,6 +350,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get accountLocked => 'Cuenta temporalmente bloqueada';
+
+  @override
+  String get accountInactive => 'Cuenta no activa';
 
   @override
   String get emailNotVerified => 'Verifica tu email antes de iniciar sesión';

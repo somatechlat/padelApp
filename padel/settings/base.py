@@ -123,14 +123,16 @@ LANGUAGES = [
 LOCALE_PATHS = [BASE_DIR / "locale"]
 USE_I18N = True
 USE_TZ = True
-TIME_ZONE = "UTC"  # storage in UTC (constraint C9); presentation via venue tz
+# Club is in Quito (America/Guayaquil, UTC-5). Wall-clock TimeFields (bookings,
+# schedules) and "is this slot in the past?" checks must use this zone — not UTC.
+TIME_ZONE = "America/Guayaquil"
 
 # --- Celery / Redis (JWT blacklist + broker) --------------------------------
 CELERY_BROKER_URL = secrets.REDIS_URL
 CELERY_RESULT_BACKEND = secrets.REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
-CELERY_TIMEZONE = "UTC"
+CELERY_TIMEZONE = "America/Guayaquil"
 CELERY_BEAT_SCHEDULE = {
     "tournament-reminder-daily": {
         "task": "apps.events.tasks.tournament_reminder_task",
@@ -211,5 +213,3 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
 LOGIN_URL = "/adminpanel/login/"
 LOGIN_REDIRECT_URL = "/adminpanel/"
-
-

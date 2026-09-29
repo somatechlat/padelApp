@@ -48,9 +48,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _loadEvents() async {
     try {
       final data = await context.read<ApiClient>().get(
-            '/events/',
-            query: {'category': 'quedada'},
-          );
+        '/events/',
+        query: {'category': 'quedada'},
+      );
       final list = data is Map ? data['results'] : data;
       if (!mounted) return;
       setState(() => _events = (list as List<dynamic>?) ?? const []);
@@ -64,9 +64,9 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final lang = context.read<LocaleController>().code;
       final data = await context.read<ApiClient>().get(
-            '/banners/',
-            query: {'lang': lang},
-          );
+        '/banners/',
+        query: {'lang': lang},
+      );
       if (!mounted) return;
       setState(() => _banners = BannerItem.listFrom(data));
     } catch (_) {
@@ -185,8 +185,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   child: _buildReserveButton(l10n),
                 ),
               ),
-              const SliverToBoxAdapter(
-                  child: SizedBox(height: AppSpacing.xl)),
+              const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xl)),
             ],
           ),
         ),
@@ -229,8 +228,8 @@ class _HomeScreenState extends State<HomeScreen> {
         userName.isNotEmpty ? l10n.homeGreeting(userName) : l10n.homeWelcome;
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.lg, vertical: 20),
+      padding:
+          const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: 20),
       decoration: BoxDecoration(
         color: AppColors.brand,
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
@@ -328,8 +327,7 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: const EdgeInsets.all(AppSpacing.md),
                   decoration: BoxDecoration(
                     color: scheme.surface,
-                    borderRadius:
-                        BorderRadius.circular(AppSpacing.radiusCard),
+                    borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
                     border: Border.all(color: scheme.outline),
                   ),
                   child: Column(
@@ -388,7 +386,9 @@ class _HomeScreenState extends State<HomeScreen> {
         child: Column(
           children: [
             Icon(
-              _clubLoadFailed ? Icons.wifi_off_outlined : Icons.storefront_outlined,
+              _clubLoadFailed
+                  ? Icons.wifi_off_outlined
+                  : Icons.storefront_outlined,
               size: 40,
               color: scheme.onSurface.withValues(alpha: 0.35),
             ),
@@ -747,7 +747,8 @@ class ClubInfoCard extends StatelessWidget {
                         textStyle: const TextStyle(
                             fontSize: 16, fontWeight: FontWeight.w700),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(AppSpacing.radius),
+                          borderRadius:
+                              BorderRadius.circular(AppSpacing.radius),
                         ),
                       ),
                       icon: const Icon(Icons.chat_bubble_outline, size: 22),

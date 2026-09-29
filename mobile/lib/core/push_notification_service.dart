@@ -17,7 +17,8 @@ import '../firebase_options.dart';
 /// - Display incoming push notifications when the app is in foreground
 /// - Handle notification tap navigation
 class PushNotificationService {
-  PushNotificationService({required ApiClient api, GlobalKey<NavigatorState>? navigatorKey})
+  PushNotificationService(
+      {required ApiClient api, GlobalKey<NavigatorState>? navigatorKey})
       : _api = api,
         _navigatorKey = navigatorKey;
 
@@ -86,8 +87,7 @@ class PushNotificationService {
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
     // Check if app was opened from a notification
-    final initialMessage =
-        await FirebaseMessaging.instance.getInitialMessage();
+    final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage);
     }

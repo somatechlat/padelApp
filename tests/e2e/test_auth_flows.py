@@ -7,9 +7,10 @@ These test the full flows that a mobile app user would experience:
   - Change password -> Old tokens revoked
 """
 
+import time
+
 import pytest
 import requests
-import time
 
 pytestmark = pytest.mark.e2e
 

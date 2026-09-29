@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
 import 'package:padel_app/core/friendly_error.dart';
+import 'package:padel_app/core/form_validation.dart';
 import 'package:padel_app/core/widgets/password_field.dart';
 import '../../core/push_notification_service.dart';
 import 'auth_state.dart';
@@ -20,6 +21,8 @@ class LoginScreen extends StatefulWidget {
 class _LoginScreenState extends State<LoginScreen> {
   final _email = TextEditingController();
   final _password = TextEditingController();
+  String? _emailError;
+  String? _passwordError;
 
   @override
   void dispose() {
@@ -28,16 +31,54 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+  void _toast(String message) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+
   Future<void> _submit() async {
+    final l10n = AppLocalizations.of(context);
+    final emailErr = FormValidation.email(l10n, _email.text);
+    final passErr = FormValidation.password(l10n, _password.text);
+    setState(() {
+      _emailError = emailErr;
+      _passwordError = passErr;
+    });
+    if (emailErr != null || passErr != null) {
+      _toast(emailErr ?? passErr!);
+      return;
+    }
     final auth = context.read<AuthState>();
-    await auth.login(_email.text, _password.text);
-    if (mounted && auth.authenticated) {
-      // Register FCM push notification token after login
+    final pushService = context.read<PushNotificationService>();
+    final nav = Navigator.of(context);
+    await auth.login(_email.text.trim(), _password.text);
+    if (!mounted) return;
+    if (auth.authenticated) {
       try {
-        final pushService = context.read<PushNotificationService>();
         await pushService.registerToken();
       } catch (_) {}
-      Navigator.of(context).pushNamedAndRemoveUntil('/shell', (route) => false);
+      nav.pushNamedAndRemoveUntil('/shell', (route) => false);
+      return;
+    }
+    // Wrong password / locked / unverified — always a specific message.
+    if (auth.lastError != null) {
+      final msg = friendlyErrorMessage(auth.lastError!, l10n);
+      // Highlight the field that is wrong when we know.
+      final lower = msg.toLowerCase();
+      setState(() {
+        if (lower.contains('credencial') ||
+            lower.contains('contrase') ||
+            lower.contains('password')) {
+          _passwordError = msg;
+          _emailError = null;
+        } else if (lower.contains('email') && !lower.contains('verifica')) {
+          _emailError = msg;
+          _passwordError = null;
+        } else {
+          _passwordError = msg;
+        }
+      });
+      _toast(msg);
     }
   }
 
@@ -55,8 +96,10 @@ class _LoginScreenState extends State<LoginScreen> {
             keyboardType: TextInputType.emailAddress,
             autofillHints: const [AutofillHints.email],
             textInputAction: TextInputAction.next,
+            onChanged: (_) => setState(() => _emailError = null),
             decoration: InputDecoration(
               labelText: l10n.email,
+              errorText: _emailError,
               prefixIcon: const Icon(Icons.mail_outline),
               border: const OutlineInputBorder(),
             ),
@@ -65,6 +108,8 @@ class _LoginScreenState extends State<LoginScreen> {
           PasswordField(
             controller: _password,
             label: l10n.password,
+            errorText: _passwordError,
+            onChanged: (_) => setState(() => _passwordError = null),
             onSubmitted: (_) => _submit(),
           ),
           const SizedBox(height: 12),

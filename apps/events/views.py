@@ -28,12 +28,10 @@ class EventViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "put", "patch", "delete"]
 
     def get_queryset(self):
-        qs = Event.objects.all()
+        qs = Event.objects.prefetch_related("registrations")
         if not self.request.user or not self.request.user.is_authenticated:
             return qs.none()
-        if self.request.user.role in ("recepcionista", "gerente", "dueno", "superadmin"):
-            pass
-        else:
+        if self.request.user.role not in ("recepcionista", "gerente", "dueno", "superadmin"):
             qs = Event.published.all()
         category = self.request.query_params.get("category")
         if category:
@@ -45,8 +43,65 @@ class EventViewSet(viewsets.ModelViewSet):
             return (IsStaffRole(),)
         return (IsAuthenticated(),)
 
+    def get_serializer_context(self):
+        ctx = super().get_serializer_context()
+        ctx["request"] = self.request
+        return ctx
+
     def perform_create(self, serializer):
         serializer.save(created_by=self.request.user)
+
+    @action(detail=True, methods=["post"])
+    def join(self, request, pk=None):
+        """RSVP 'Me apunto' — EventRegistration row, visible in admin."""
+        from apps.events.models import EventRegistration
+
+        event = self.get_object()
+        if not event.allow_registration:
+            return Response(
+                {"detail": _("Este evento no acepta inscripciones")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if event.status != Event.Status.PUBLISHED:
+            return Response(
+                {"detail": _("El evento no esta publicado")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if event.is_full:
+            return Response(
+                {"detail": _("El evento esta completo")},
+                status=status.HTTP_409_CONFLICT,
+            )
+        reg, created = EventRegistration.objects.get_or_create(
+            event=event,
+            user=request.user,
+            defaults={"status": EventRegistration.Status.GOING},
+        )
+        if not created and reg.status != EventRegistration.Status.GOING:
+            reg.status = EventRegistration.Status.GOING
+            reg.save(update_fields=["status"])
+        if created:
+            from apps.notifications.tasks import notify_task
+
+            notify_task.delay(
+                request.user.id,
+                "event_registered",
+                "",
+                "",
+                {"title": event.title_localized, "event_id": event.id},
+            )
+        return Response(self.get_serializer(event).data)
+
+    @action(detail=True, methods=["post"])
+    def leave(self, request, pk=None):
+        """Cancel RSVP 'No voy'."""
+        from apps.events.models import EventRegistration
+
+        event = self.get_object()
+        EventRegistration.objects.filter(event=event, user=request.user).update(
+            status=EventRegistration.Status.CANCELLED
+        )
+        return Response(self.get_serializer(event).data)
 
 
 class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
@@ -139,7 +194,7 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
                 {"detail": _("El partido ya esta completo")},
                 status=status.HTTP_409_CONFLICT,
             )
-        _, created = OpenMatchPlayer.objects.get_or_create(
+        _player, created = OpenMatchPlayer.objects.get_or_create(
             match=match, user=request.user
         )
         if not created:

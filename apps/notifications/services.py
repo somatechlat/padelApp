@@ -29,6 +29,7 @@ TRANSACTIONAL_EVENTS = {
     "tournament_registered",
     "news_published",
     "event_published",
+    "event_registered",
     "admin_booking_created",
     "admin_cash_booking",
     "open_match_created",
@@ -102,6 +103,10 @@ MESSAGE_TEMPLATES = {
     "event_published": (
         "New event",
         "{title}",
+    ),
+    "event_registered": (
+        "Inscripcion confirmada",
+        "Te apuntaste a: {title}",
     ),
     "admin_booking_created": (
         "Nueva reserva",

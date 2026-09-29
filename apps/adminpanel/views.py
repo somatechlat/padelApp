@@ -1,34 +1,37 @@
-from datetime import time as dt_time, timedelta
-from decimal import Decimal
 import csv
+from datetime import time as dt_time
+from datetime import timedelta
+from decimal import Decimal
+
 from django.contrib import messages
-from django.contrib.auth import get_user_model
+from django.contrib.auth import authenticate, get_user_model
+from django.contrib.auth import login as auth_login
+from django.contrib.auth import logout as auth_logout
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.db.models import Sum, Q, Count
-from django.http import HttpResponse, HttpResponseRedirect
+from django.db.models import Count, Q, Sum
+from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.urls import reverse
 from django.utils import timezone
+from django.utils.http import url_has_allowed_host_and_scheme
 from django.views import View
 from django.views.generic import ListView, TemplateView
 
 from apps.adminpanel.admin_base import STAFF_ROLES
-from apps.bookings.models import Booking, BookingSlot
+from apps.bookings.models import Booking
 from apps.courts.models import Court, PromoBanner, Venue
-from apps.events.models import Event, Tournament, NewsPost
+from apps.events.models import Event, NewsPost, Tournament
 from apps.payments.models import Payment
+from apps.payments.services import PaymentService
 from apps.policies.models import CancellationPolicy
 from apps.pricing.models import PriceRule
 from apps.pricing.services import TariffService
 from apps.scheduling.models import MaintenanceWindow, TimeSlot
 from apps.security.models import AuditLog
-from apps.payments.services import PaymentService
 from apps.security.services import log_event
 
 User = get_user_model()
 
-
-from django.contrib.auth import authenticate, login as auth_login, logout as auth_logout
 
 class StaffRequiredMixin(LoginRequiredMixin):
     login_url = "/adminpanel/login/"
@@ -64,7 +67,11 @@ class AdminLoginView(TemplateView):
             cache.delete(cache_key)
             if getattr(user, "role", None) in STAFF_ROLES or user.is_staff:
                 auth_login(request, user)
-                next_url = request.GET.get("next") or reverse("adminpanel:dashboard")
+                next_url = request.GET.get("next") or ""
+                if not url_has_allowed_host_and_scheme(
+                    url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                ):
+                    next_url = reverse("adminpanel:dashboard")
                 log_event(user, "admin.login", "User", user.id)
                 messages.success(request, f"Bienvenido al panel, {user.email}.")
                 return redirect(next_url)
@@ -78,14 +85,12 @@ class AdminLoginView(TemplateView):
 
 
 class AdminLogoutView(View):
-    def get(self, request, *args, **kwargs):
+    """Logout is POST-only so a cross-site `<img>`/link cannot log a staff user out."""
+
+    def post(self, request, *args, **kwargs):
         auth_logout(request)
         messages.info(request, "Has cerrado sesion del panel de control.")
         return redirect("adminpanel:login")
-
-    def post(self, request, *args, **kwargs):
-        return self.get(request, *args, **kwargs)
-
 
 
 class DashboardView(StaffRequiredMixin, TemplateView):
@@ -265,9 +270,13 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
-        ctx["courts"] = Court.objects.all().order_by("name")
+        ctx["courts"] = Court.objects.prefetch_related("schedules").order_by("name")
         ctx["maintenances"] = MaintenanceWindow.objects.select_related("court").order_by("-start")[:20]
         ctx["venues"] = Venue.objects.all()
+        ctx["weekdays"] = [
+            (0, "Lunes"), (1, "Martes"), (2, "Miercoles"), (3, "Jueves"),
+            (4, "Viernes"), (5, "Sabado"), (6, "Domingo"),
+        ]
         return ctx
 
     def post(self, request, *args, **kwargs):
@@ -297,6 +306,19 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
             if request.FILES.get("image"):
                 court.image = request.FILES["image"]
             court.save()
+            # Default bookable schedule so the court is usable immediately.
+            from apps.courts.models import CourtSchedule
+
+            for weekday in range(7):
+                CourtSchedule.objects.get_or_create(
+                    court=court,
+                    weekday=weekday,
+                    defaults={
+                        "open_time": timezone.datetime.strptime("08:00", "%H:%M").time(),
+                        "close_time": timezone.datetime.strptime("22:00", "%H:%M").time(),
+                        "is_active": True,
+                    },
+                )
             messages.success(request, f"Cancha '{court.name}' creada exitosamente.")
             log_event(request.user, "admin.court_create", "Court", court.id)
         elif action == "edit_court":
@@ -317,6 +339,53 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
             court.save()
             messages.success(request, f"Cancha '{court.name}' actualizada.")
             log_event(request.user, "admin.court_edit", "Court", court.id)
+        elif action == "save_schedule":
+            court_id = request.POST.get("court_id")
+            court = get_object_or_404(Court, id=court_id)
+            from apps.courts.models import CourtSchedule
+
+            for weekday in range(7):
+                open_str = (request.POST.get(f"open_{weekday}") or "").strip()
+                close_str = (request.POST.get(f"close_{weekday}") or "").strip()
+                active = request.POST.get(f"active_{weekday}") == "on"
+                existing = CourtSchedule.objects.filter(court=court, weekday=weekday).first()
+                if not open_str or not close_str or not active:
+                    if existing:
+                        existing.delete()
+                    continue
+                try:
+                    open_time = timezone.datetime.strptime(open_str, "%H:%M").time()
+                    close_time = timezone.datetime.strptime(close_str, "%H:%M").time()
+                except ValueError:
+                    messages.error(request, f"Horario invalido el dia {weekday}. Use HH:MM.")
+                    return redirect("adminpanel:courts")
+                if close_time <= open_time:
+                    messages.error(request, f"La hora de cierre debe ser posterior a la de apertura (dia {weekday}).")
+                    return redirect("adminpanel:courts")
+                CourtSchedule.objects.update_or_create(
+                    court=court,
+                    weekday=weekday,
+                    defaults={"open_time": open_time, "close_time": close_time, "is_active": True},
+                )
+            messages.success(request, f"Horario de {court.name} actualizado.")
+            log_event(request.user, "admin.court_schedule", "Court", court.id)
+        elif action == "apply_default_schedule":
+            court_id = request.POST.get("court_id")
+            court = get_object_or_404(Court, id=court_id)
+            from apps.courts.models import CourtSchedule
+
+            for weekday in range(7):
+                CourtSchedule.objects.update_or_create(
+                    court=court,
+                    weekday=weekday,
+                    defaults={
+                        "open_time": timezone.datetime.strptime("08:00", "%H:%M").time(),
+                        "close_time": timezone.datetime.strptime("22:00", "%H:%M").time(),
+                        "is_active": True,
+                    },
+                )
+            messages.success(request, f"Horario 08:00–22:00 aplicado a {court.name} (lun–dom).")
+            log_event(request.user, "admin.court_schedule_default", "Court", court.id)
         elif action == "delete_court":
             court_id = request.POST.get("court_id")
             court = get_object_or_404(Court, id=court_id)
@@ -441,7 +510,14 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         from apps.events.models import TournamentRegistration
         ctx["tournaments"] = Tournament.objects.all().order_by("-start_date")
-        ctx["events"] = Event.objects.all().order_by("-start_at")
+        ctx["events"] = Event.objects.prefetch_related("registrations").order_by("-start_at")
+        from apps.events.models import EventRegistration
+
+        ctx["event_registrations"] = (
+            EventRegistration.objects.select_related("event", "user")
+            .filter(status=EventRegistration.Status.GOING)
+            .order_by("-created_at")[:50]
+        )
         ctx["news"] = NewsPost.objects.all().order_by("-published_at")
         ctx["registrations"] = TournamentRegistration.objects.select_related("tournament", "user").order_by("-created_at")[:50]
         return ctx
@@ -449,18 +525,25 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
     def post(self, request, *args, **kwargs):
         action = request.POST.get("action")
         if action == "create_event":
-            title = request.POST.get("title", "")
+            title = request.POST.get("title", "").strip()
             description = request.POST.get("description", "")
             location = request.POST.get("location", "")
             category = request.POST.get("category", "quedada")
             start_at = request.POST.get("start_at", "")
             end_at = request.POST.get("end_at", "")
+            if not title:
+                messages.error(request, "El titulo es obligatorio.")
+                return redirect("adminpanel:events")
             try:
                 start_dt = timezone.datetime.fromisoformat(start_at)
                 end_dt = timezone.datetime.fromisoformat(end_at)
             except (ValueError, TypeError):
                 messages.error(request, "Fecha u hora invalida.")
                 return redirect("adminpanel:events")
+            try:
+                capacity = int(request.POST.get("capacity", 0) or 0)
+            except (ValueError, TypeError):
+                capacity = 0
             e = Event.objects.create(
                 title=title,
                 title_es=title,
@@ -470,6 +553,8 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
                 start_at=start_dt,
                 end_at=end_dt,
                 status="published",
+                capacity=capacity,
+                allow_registration=request.POST.get("allow_registration") == "on",
                 created_by=request.user,
             )
             messages.success(request, f"Evento '{e.title}' creado exitosamente.")
@@ -481,6 +566,11 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             e.description_es = request.POST.get("description", e.description_es)
             e.location = request.POST.get("location", e.location)
             e.category = request.POST.get("category", e.category)
+            e.allow_registration = request.POST.get("allow_registration") == "on"
+            try:
+                e.capacity = int(request.POST.get("capacity", e.capacity) or 0)
+            except (ValueError, TypeError):
+                pass
             start_at = request.POST.get("start_at", "")
             end_at = request.POST.get("end_at", "")
             if start_at:
@@ -606,7 +696,7 @@ class ReportsAdminView(StaffRequiredMixin, TemplateView):
         ctx = super().get_context_data(**kwargs)
         today = timezone.localdate()
         start_month = today.replace(day=1)
-        
+
         ctx["month_revenue"] = Payment.objects.filter(
             status__in=("captured", "confirmed"),
             created_at__date__gte=start_month
@@ -958,4 +1048,3 @@ class AuditListView(StaffRequiredMixin, ListView):
             AuditLog.objects.order_by("entity").values_list("entity", flat=True).distinct()[:50]
         )
         return ctx
-

@@ -27,7 +27,6 @@ class TestCalendar:
 
     def test_calendar_date_navigation(self, admin_page: Page):
         admin_page.goto("/adminpanel/calendar/")
-        prev_btn = admin_page.locator('a:has-text("Anterior"), a:has-text("<<")')
         next_btn = admin_page.locator('a:has-text("Siguiente"), a:has-text(">>")')
         if next_btn.is_visible():
             next_btn.click()

@@ -1,67 +1,116 @@
 SHELL := /bin/bash
 
-.PHONY: up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios
+.PHONY: up-dev up-test up-prod down-dev down-test down-prod \
+	test-dev test-test lint-dev fltest-dev flcheck seeddemo-dev seeddemo-test \
+	up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios
 
-up:
-	docker compose up -d
+# ─── Three environments (see docs/DEPLOYMENTS.md) ───────────────────────────
+# dev  → project andespadel      ports 28000+
+# test → project andespadel-test ports 29000+
+# prod → project andespadel-prod ports 34000+
 
-down:
-	docker compose down
+COMPOSE_DEV  := docker compose -p andespadel      -f docker-compose.yml -f docker-compose.dev.yml
+COMPOSE_TEST := docker compose -p andespadel-test -f docker-compose.yml -f docker-compose.test.yml
+COMPOSE_PROD := docker compose -p andespadel-prod -f docker-compose.yml -f docker-compose.prod.yml
+
+API_DEV  := http://127.0.0.1:28002/api
+API_TEST := http://127.0.0.1:29002/api
+API_PROD := https://andespadel.yachaq.io/api
+
+up-dev:
+	$(COMPOSE_DEV) up -d
+
+up-test:
+	$(COMPOSE_TEST) up -d
+
+up-prod:
+	$(COMPOSE_PROD) up -d
+
+down-dev:
+	$(COMPOSE_DEV) down
+
+down-test:
+	$(COMPOSE_TEST) down
+
+down-prod:
+	$(COMPOSE_PROD) down
+
+test-dev:
+	$(COMPOSE_DEV) exec -T backend pytest apps -q
+
+test-test:
+	$(COMPOSE_TEST) exec -T backend pytest apps -q
+
+seeddemo-dev:
+	$(COMPOSE_DEV) exec -T backend python manage.py seed_demo
+
+seeddemo-test:
+	$(COMPOSE_TEST) exec -T backend python manage.py seed_demo
+
+fltest-dev:
+	cd mobile && flutter test --no-version-check --suppress-analytics \
+		--dart-define=API_BASE_URL=$(API_DEV)
+
+fltest-test:
+	cd mobile && flutter test --no-version-check --suppress-analytics \
+		--dart-define=API_BASE_URL=$(API_TEST)
+
+# ─── Back-compat aliases (default = dev) ────────────────────────────────────
+up: up-dev
+down: down-dev
+test: test-dev
+seeddemo: seeddemo-dev
+fltest: fltest-dev
 
 logs:
-	docker compose logs -f
+	$(COMPOSE_DEV) logs -f
 
 build:
-	docker compose build
+	$(COMPOSE_DEV) build backend
 
 migrate:
-	docker compose exec backend python manage.py migrate
+	$(COMPOSE_DEV) exec backend python manage.py migrate
 
 seed:
-	docker compose exec backend python manage.py seed_courts
-
-seeddemo:
-	docker compose exec backend python manage.py seed_demo
+	$(COMPOSE_DEV) exec backend python manage.py seed_courts
 
 makemigrations:
-	docker compose exec backend python manage.py makemigrations
-
-test:
-	docker compose run --rm backend pytest
+	$(COMPOSE_DEV) exec backend python manage.py makemigrations
 
 lint:
-	docker compose run --rm backend sh -c "ruff check . && flake8 && bandit -r apps"
+	$(COMPOSE_DEV) exec -T backend sh -c "ruff check . && flake8 && bandit -r apps"
 
 flcheck:
-	docker compose run --rm flutter flutter analyze
-
-fltest:
-	docker compose run --rm flutter flutter test
+	cd mobile && flutter analyze --no-version-check
 
 flbuild:
-	docker compose run --rm flutter flutter build apk --debug
+	cd mobile && flutter build apk --debug --no-version-check \
+		--dart-define=API_BASE_URL=$(API_DEV)
 
-# Hot reload: DEVICE=<adb-id> make flrun  (phone must be reachable via adb, e.g. wireless debugging)
 flrun:
-	docker compose run --rm -i flutter flutter run -d $(DEVICE)
+	cd mobile && flutter run --no-version-check \
+		--dart-define=API_BASE_URL=$(API_DEV)
 
-# Build and copy the debug APK to the project root for easy install
 flapk: flbuild
 	cp mobile/build/app/outputs/flutter-apk/app-debug.apk ./padelapp-debug.apk
 	@echo "APK ready: ./padelapp-debug.apk"
 
-# Build iOS release IPA + upload to TestFlight in one shot.
-# Bumps build number automatically. SPM packages are cached after the first ever run.
-# Usage: ASC_USER='info@loyallia.com' ASC_PASSWORD='xxxx-xxxx-xxxx-xxxx' make ship-ios
+# iOS simulator against DEV API
+ios-sim-dev:
+	cd mobile && flutter run -d "iPhone 17 Pro" --no-version-check \
+		--dart-define=API_BASE_URL=$(API_DEV)
+
+# Build iOS release IPA + upload to TestFlight
+# Usage: ASC_USER=... ASC_PASSWORD=... make ship-ios
 ship-ios:
 	chmod +x mobile/tool/release_ipa.sh
 	./mobile/tool/release_ipa.sh
 
 shell:
-	docker compose exec backend python manage.py shell
+	$(COMPOSE_DEV) exec backend python manage.py shell
 
 bash:
-	docker compose exec backend bash
+	$(COMPOSE_DEV) exec backend bash
 
 psql:
-	docker compose exec db psql -U padel -d padel
+	$(COMPOSE_DEV) exec db psql -U padel -d padel

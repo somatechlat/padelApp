@@ -246,14 +246,10 @@ abstract final class AppTheme {
       listTileTheme: ListTileThemeData(iconColor: muted),
       switchTheme: SwitchThemeData(
         thumbColor: WidgetStateProperty.resolveWith((states) {
-          return states.contains(WidgetState.selected)
-              ? Colors.white
-              : muted;
+          return states.contains(WidgetState.selected) ? Colors.white : muted;
         }),
         trackColor: WidgetStateProperty.resolveWith((states) {
-          return states.contains(WidgetState.selected)
-              ? brandBg
-              : outline;
+          return states.contains(WidgetState.selected) ? brandBg : outline;
         }),
       ),
       textTheme: TextTheme(

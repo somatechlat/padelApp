@@ -1,6 +1,7 @@
 from django.conf import settings
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404
+from django.utils.translation import gettext as _
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from rest_framework import status
@@ -30,7 +31,7 @@ class BookingPaymentView(APIView):
         valid_methods = {c[0] for c in Payment.Method.choices}
         if method not in valid_methods:
             return Response(
-                {"detail": f"Metodo de pago invalido. Opciones: {', '.join(valid_methods)}"},
+                {"detail": _("Metodo de pago invalido. Opciones: {methods}").format(methods=", ".join(valid_methods))},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if method == "cash":
@@ -49,7 +50,7 @@ class BookingPaymentView(APIView):
                 payment = PaymentService.create_intent(booking)
             except Exception:
                 return Response(
-                    {"detail": "No se pudo iniciar el pago"}, status=status.HTTP_400_BAD_REQUEST
+                    {"detail": _("No se pudo iniciar el pago")}, status=status.HTTP_400_BAD_REQUEST
                 )
         return Response(PaymentSerializer(payment).data, status=status.HTTP_201_CREATED)
 
@@ -67,17 +68,17 @@ class PaymentProofUploadView(APIView):
         proof = request.FILES.get("proof_image")
         if not proof:
             return Response(
-                {"detail": "Adjunte el comprobante de transferencia"},
+                {"detail": _("Adjunte el comprobante de transferencia")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if proof.content_type not in ALLOWED_IMAGE_TYPES:
             return Response(
-                {"detail": "Formato no permitido. Use JPEG o PNG"},
+                {"detail": _("Formato no permitido. Use JPEG o PNG")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if proof.size > MAX_UPLOAD_SIZE:
             return Response(
-                {"detail": "El archivo excede 5 MB"},
+                {"detail": _("El archivo excede 5 MB")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         payment.proof_image = proof
@@ -114,7 +115,7 @@ class PaymentRejectTransferView(APIView):
         reason = request.data.get("reason", "").strip()
         if not reason:
             return Response(
-                {"detail": "El motivo de rechazo es obligatorio"},
+                {"detail": _("El motivo de rechazo es obligatorio")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
         PaymentService.reject_transfer(payment, reason)
@@ -137,7 +138,6 @@ class PaymentRefundView(APIView):
 def stripe_webhook(request):
     """Handle Stripe webhooks for payment_intent.payment_failed events."""
     import stripe
-    from runsecrets import secrets as app_secrets
 
     payload = request.body
     sig_header = request.META.get("HTTP_STRIPE_SIGNATURE", "")

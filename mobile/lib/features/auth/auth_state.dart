@@ -1,16 +1,12 @@
 import 'package:flutter/foundation.dart';
 
 import '../../core/api_client.dart';
+import '../../core/friendly_error.dart';
 import '../../core/storage.dart';
 
 /// Thrown when the API rejects a request with a message the UI may show.
 /// Anything else is mapped through [friendlyErrorMessage] before display.
-class AppAuthException implements Exception {
-  AppAuthException(this.message);
-  final String message;
-  @override
-  String toString() => message;
-}
+export '../../core/friendly_error.dart' show AppAuthException;
 
 class AuthState extends ChangeNotifier {
   AuthState({required ApiClient api, required TokenStorage storage})
@@ -186,11 +182,15 @@ class AuthState extends ChangeNotifier {
 
   Future<void> logout() async {
     final refresh = await _storage.read(SecureTokenStorage.refreshKey);
-    if (_storage is SecureTokenStorage && refresh != null) {
-      await _api.logout(refresh);
-    } else {
-      await _storage.clearTokens();
+    if (refresh != null && refresh.isNotEmpty) {
+      try {
+        await _api.logout(refresh);
+      } catch (_) {
+        // Network/server errors must never block local logout.
+      }
     }
+    // ALWAYS clear local tokens — never depend on storage subclass type.
+    await _storage.clearTokens();
     _user = null;
     _authenticated = false;
     notifyListeners();

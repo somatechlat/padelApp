@@ -21,8 +21,12 @@ class ApiClient {
         _languageCode = languageCode,
         _dio = dio ?? Dio() {
     _dio.options.baseUrl = baseUrl ??
-        const String.fromEnvironment('API_BASE_URL',
-            defaultValue: 'https://andespadel.yachaq.io/api');
+        const String.fromEnvironment(
+          'API_BASE_URL',
+          // Debug/simulator defaults to the local andespadel Docker cluster.
+          // Release builds must pass --dart-define=API_BASE_URL=...
+          defaultValue: 'http://127.0.0.1:28002/api',
+        );
     _dio.options.headers['Accept'] = 'application/json';
     // 10s was too tight: iOS stalls on this host's happy-eyeballs/IPv6 path
     // and mobile networks routinely need longer for the TLS handshake.

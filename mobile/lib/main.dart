@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
 import 'app.dart';
@@ -16,7 +15,8 @@ Future<void> main() async {
     storage: storage,
     languageCode: () => localeController.code,
   );
-  final pushService = PushNotificationService(api: api, navigatorKey: navigatorKey);
+  final pushService =
+      PushNotificationService(api: api, navigatorKey: navigatorKey);
 
   // Draw the first frame immediately. Secure-storage / Firebase / FCM can
   // block on the keychain or the network — never let that delay runApp or

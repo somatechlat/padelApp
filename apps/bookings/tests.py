@@ -90,12 +90,18 @@ class TestBookingCreation:
 
     def test_cancel_releases_slots(self, scheduled_court, user):
         from apps.bookings.services import BookingService
+        from apps.scheduling.models import TimeSlot
 
         booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
+        slot_ids = list(booking.slots.values_list("slot_id", flat=True))
         BookingService.cancel(booking)
         booking.refresh_from_db()
         assert booking.status == "cancelled"
-        assert all(s.slot.status == "available" for s in booking.slots.all())
+        assert booking.slots.count() == 0
+        assert all(
+            s.status == "available"
+            for s in TimeSlot.objects.filter(id__in=slot_ids)
+        )
 
     def test_cancelled_slot_can_be_rebooked(self, scheduled_court, user):
         from django.contrib.auth import get_user_model
@@ -125,7 +131,10 @@ class TestBookingCreation:
         assert released == 1
         booking.refresh_from_db()
         assert booking.status == "cancelled"
-        assert all(s.slot.status == "available" for s in booking.slots.all())
+        from apps.scheduling.models import TimeSlot
+
+        assert TimeSlot.objects.filter(status=TimeSlot.Status.BOOKED).count() == 0
+        assert TimeSlot.objects.filter(status=TimeSlot.Status.AVAILABLE).count() > 0
 
 
 class TestStateMachine:

@@ -48,7 +48,8 @@ class _NotificationPreferencesScreenState
 
   Future<void> _load() async {
     try {
-      final data = await context.read<ApiClient>().get('/notifications/preferences/');
+      final data =
+          await context.read<ApiClient>().get('/notifications/preferences/');
       final prefs = data as List<dynamic>? ?? [];
       final disabled = <String, Set<String>>{};
       for (final p in prefs) {
@@ -86,7 +87,9 @@ class _NotificationPreferencesScreenState
           },
     ];
     try {
-      await context.read<ApiClient>().put('/notifications/preferences/', data: items);
+      await context
+          .read<ApiClient>()
+          .put('/notifications/preferences/', data: items);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(AppLocalizations.of(context).success)),
@@ -94,8 +97,8 @@ class _NotificationPreferencesScreenState
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text(AppLocalizations.of(context).error)));
+        ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text(AppLocalizations.of(context).error)));
       }
     }
   }

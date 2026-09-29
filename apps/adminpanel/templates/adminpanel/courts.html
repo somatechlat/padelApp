@@ -146,6 +146,72 @@
 </div>
 
 <div class="section-header">
+  <div class="section-title">Horarios de Atencion (por cancha)</div>
+</div>
+<p style="color: var(--text-muted); font-size: 13px; margin-bottom: 16px;">
+  Define las horas en que cada cancha se puede reservar. Sin horario activo, la cancha no aparece en la app.
+</p>
+
+{% for c in courts %}
+<div class="card" style="margin-bottom: 20px; padding: 20px;">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+    <div style="font-weight: 800; font-size: 16px;">{{ c.name }}</div>
+    <form method="post" style="display: inline;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="apply_default_schedule">
+      <input type="hidden" name="court_id" value="{{ c.id }}">
+      <button type="submit" class="btn btn-sm btn-outline">Aplicar 08:00–22:00 todos los dias</button>
+    </form>
+  </div>
+  <form method="post">
+    {% csrf_token %}
+    <input type="hidden" name="action" value="save_schedule">
+    <input type="hidden" name="court_id" value="{{ c.id }}">
+    <table>
+      <thead>
+        <tr>
+          <th>Dia</th>
+          <th>Activo</th>
+          <th>Apertura</th>
+          <th>Cierre</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for wd, wd_label in weekdays %}
+        {% with s=c.schedules.all|dictsort:"weekday" %}
+        <tr>
+          <td style="font-weight: 700;">{{ wd_label }}</td>
+          <td>
+            {% with row=None %}
+            {% for sch in c.schedules.all %}{% if sch.weekday == wd %}{% with row=sch %}{% endwith %}{% endif %}{% endfor %}
+            {% endwith %}
+            <input type="checkbox" name="active_{{ wd }}"
+              {% for sch in c.schedules.all %}{% if sch.weekday == wd and sch.is_active %}checked{% endif %}{% endfor %}
+              style="width: 18px; height: 18px;">
+          </td>
+          <td>
+            <input type="time" name="open_{{ wd }}" step="1800"
+              value="{% for sch in c.schedules.all %}{% if sch.weekday == wd %}{{ sch.open_time|time:'H:i' }}{% endif %}{% endfor %}"
+              style="padding: 6px 8px;">
+          </td>
+          <td>
+            <input type="time" name="close_{{ wd }}" step="1800"
+              value="{% for sch in c.schedules.all %}{% if sch.weekday == wd %}{{ sch.close_time|time:'H:i' }}{% endif %}{% endfor %}"
+              style="padding: 6px 8px;">
+          </td>
+        </tr>
+        {% endwith %}
+        {% endfor %}
+      </tbody>
+    </table>
+    <div style="margin-top: 14px; display: flex; justify-content: flex-end;">
+      <button type="submit" class="btn">Guardar Horario de {{ c.name }}</button>
+    </div>
+  </form>
+</div>
+{% endfor %}
+
+<div class="section-header">
   <div class="section-title">Ventanas de Mantenimiento</div>
   <button onclick="document.getElementById('modal-maint').style.display='flex'" class="btn btn-outline">+ Agendar Mantenimiento</button>
 </div>

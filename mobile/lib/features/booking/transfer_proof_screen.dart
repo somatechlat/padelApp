@@ -176,8 +176,8 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
                   )
                 else if (club == null || !club.hasBank)
                   Padding(
-                    padding: const EdgeInsets.symmetric(
-                        vertical: AppSpacing.sm),
+                    padding:
+                        const EdgeInsets.symmetric(vertical: AppSpacing.sm),
                     child: Text(
                       l10n.error,
                       style: TextStyle(color: scheme.onSurface),
@@ -215,11 +215,9 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
           ),
         ),
         const SizedBox(height: AppSpacing.lg),
-        Text(l10n.uploadProof,
-            style: Theme.of(context).textTheme.titleMedium),
+        Text(l10n.uploadProof, style: Theme.of(context).textTheme.titleMedium),
         const SizedBox(height: AppSpacing.xs),
-        Text(l10n.maxFileSize,
-            style: Theme.of(context).textTheme.bodySmall),
+        Text(l10n.maxFileSize, style: Theme.of(context).textTheme.bodySmall),
         const SizedBox(height: AppSpacing.md),
         if (_image != null) ...[
           ClipRRect(
@@ -237,7 +235,8 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
           children: [
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _uploading ? null : () => _pickImage(ImageSource.camera),
+                onPressed:
+                    _uploading ? null : () => _pickImage(ImageSource.camera),
                 icon: const Icon(Icons.camera_alt_outlined),
                 label: Text(l10n.camera),
               ),
@@ -245,7 +244,8 @@ class _TransferProofScreenState extends State<TransferProofScreen> {
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: OutlinedButton.icon(
-                onPressed: _uploading ? null : () => _pickImage(ImageSource.gallery),
+                onPressed:
+                    _uploading ? null : () => _pickImage(ImageSource.gallery),
                 icon: const Icon(Icons.photo_library_outlined),
                 label: Text(l10n.gallery),
               ),

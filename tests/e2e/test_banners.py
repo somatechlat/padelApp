@@ -5,7 +5,6 @@ and BannersAdminView POST handlers (create_banner / edit_banner / toggle_banner 
 move_banner / delete_banner).
 """
 
-import tempfile
 from pathlib import Path
 
 import pytest

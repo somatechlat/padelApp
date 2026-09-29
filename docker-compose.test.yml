@@ -1,0 +1,68 @@
+# TEST overlay — project andespadel-test, host ports 29000+
+# Usage:
+#   docker compose -p andespadel-test -f docker-compose.yml -f docker-compose.test.yml up -d
+
+name: andespadel-test
+
+services:
+  db:
+    container_name: andespadel-test-db
+    environment:
+      POSTGRES_DB: padel_test
+      POSTGRES_USER: padel
+      POSTGRES_PASSWORD: padel_test
+    ports:
+      - "29000:5432"
+
+  redis:
+    container_name: andespadel-test-redis
+    ports:
+      - "29001:6379"
+
+  backend:
+    container_name: andespadel-test-backend
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+    ports:
+      - "29002:8000"
+
+  worker:
+    container_name: andespadel-test-worker
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+
+  beat:
+    container_name: andespadel-test-beat
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+
+  nginx:
+    container_name: andespadel-test-nginx
+    ports:
+      - "29003:80"
+
+  flutter:
+    container_name: andespadel-test-flutter
+    environment:
+      API_BASE_URL: http://127.0.0.1:29002/api
+
+networks:
+  padel-net:
+    name: andespadel-test-net
+
+volumes:
+  db_data:
+    name: andespadel-test_db_data
+  media_data:
+    name: andespadel-test_media_data
+  static_data:
+    name: andespadel-test_static_data
+  flutter_home:
+    name: andespadel-test_flutter_home
+  gradle_home:
+    name: andespadel-test_gradle_home
+  android_sdk:
+    name: andespadel-test_android_sdk

@@ -110,6 +110,102 @@ class AppLocalizationsCa extends AppLocalizations {
   String get eventsEmpty => 'Properament noves quedades i esdeveniments.';
 
   @override
+  String get firstName => 'Nom';
+
+  @override
+  String get lastName => 'Cognom';
+
+  @override
+  String get birthDate => 'Data de naixement';
+
+  @override
+  String get birthDateRequired => 'Selecciona la teva data de naixement';
+
+  @override
+  String get joinEvent => 'M\'apunto';
+
+  @override
+  String get eventJoined => 'T\'has apuntat!';
+
+  @override
+  String get eventLeft => 'Ja no hi vas';
+
+  @override
+  String get eventGoing => 'Hi vas';
+
+  @override
+  String get eventFull => 'Complet';
+
+  @override
+  String get fieldRequired => 'Aquest camp és obligatori';
+
+  @override
+  String fieldRequiredNamed(String field) {
+    return 'El camp $field és obligatori';
+  }
+
+  @override
+  String get fieldTooShort => 'Mínim 2 caràcters';
+
+  @override
+  String get emailRequired => 'Introdueix el teu email';
+
+  @override
+  String get emailInvalid => 'Email no vàlid';
+
+  @override
+  String get passwordRequired => 'Introdueix la teva contrasenya';
+
+  @override
+  String get passwordTooShort =>
+      'La contrasenya ha de tenir com a mínim 8 caràcters';
+
+  @override
+  String get codeRequired => 'Introdueix el codi de verificació';
+
+  @override
+  String get codeInvalid => 'El codi ha de tenir 6 dígits';
+
+  @override
+  String get skillLevel => 'Nivell de joc';
+
+  @override
+  String get skillIniciacion => 'Iniciació';
+
+  @override
+  String get skillIntermedio => 'Intermedi';
+
+  @override
+  String get skillAvanzado => 'Avançat';
+
+  @override
+  String get skillCompeticion => 'Competició';
+
+  @override
+  String get createMatch => 'Muntar partit';
+
+  @override
+  String get openMatches => 'Partits oberts';
+
+  @override
+  String get joinMatch => 'Unir-me';
+
+  @override
+  String get matchJoined => 'T\'has unit al partit';
+
+  @override
+  String get matchCreated => 'Partit creat. S\'ha avisat la teva categoria.';
+
+  @override
+  String get matchesEmpty => 'No hi ha partits oberts. Munta el primer!';
+
+  @override
+  String get matchPlayers => 'Jugadors';
+
+  @override
+  String get matchNotes => 'Notes (opcional)';
+
+  @override
   String get homeSubtitle => 'Troba la teva pista i reserva en segons';
 
   @override
@@ -128,7 +224,7 @@ class AppLocalizationsCa extends AppLocalizations {
   String get navBookings => 'Reserves';
 
   @override
-  String get navEvents => 'Events';
+  String get navEvents => 'Esdeveniments';
 
   @override
   String get navNotifications => 'Avisos';
@@ -256,6 +352,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get accountLocked => 'Compte bloquejat temporalment';
+
+  @override
+  String get accountInactive => 'Compte no actiu';
 
   @override
   String get emailNotVerified =>
@@ -480,124 +579,124 @@ class AppLocalizationsCa extends AppLocalizations {
   String get thisWeek => 'Aquesta setmana';
 
   @override
-  String get paymentMethodSubtitle => 'Elige cómo deseas pagar';
+  String get paymentMethodSubtitle => 'Tria com vols pagar';
 
   @override
-  String get payWithCard => 'Pagar con tarjeta';
+  String get payWithCard => 'Pagar amb targeta';
 
   @override
-  String get payWithTransfer => 'Transferencia bancaria';
+  String get payWithTransfer => 'Transferència bancària';
 
   @override
-  String get payWithCash => 'Pago en el establecimiento';
+  String get payWithCash => 'Pagament a l\'establiment';
 
   @override
-  String get cardDescription => 'Débito o crédito vía Stripe';
+  String get cardDescription => 'Dèbit o crèdit mitjançant Stripe';
 
   @override
   String get transferDescription =>
-      'Realiza una transferencia y sube tu comprobante';
+      'Fes una transferència i puja el comprovant';
 
   @override
-  String get cashDescription => 'Paga en el establecimiento al llegar';
+  String get cashDescription => 'Paga a l\'establiment en arribar';
 
   @override
-  String get transferInstructions => 'Datos para transferencia';
+  String get transferInstructions => 'Dades per a la transferència';
 
   @override
-  String get bankName => 'Banco';
+  String get bankName => 'Banc';
 
   @override
-  String get accountNumber => 'Número de cuenta';
+  String get accountNumber => 'Número de compte';
 
   @override
-  String get accountHolder => 'Titular de la cuenta';
+  String get accountHolder => 'Titular del compte';
 
   @override
-  String get beneficiaryCode => 'Código de beneficiario';
+  String get beneficiaryCode => 'Codi de beneficiari';
 
   @override
-  String get transferAmount => 'Monto a transferir';
+  String get transferAmount => 'Import a transferir';
 
   @override
-  String get uploadProof => 'Subir comprobante';
+  String get uploadProof => 'Pujar comprovant';
 
   @override
-  String get uploadProofHint => 'Tomar foto o seleccionar de galería';
+  String get uploadProofHint => 'Fes una foto o selecciona de la galeria';
 
   @override
-  String get proofUploaded => 'Comprobante subido';
+  String get proofUploaded => 'Comprovant pujat';
 
   @override
-  String get proofPending => 'Esperando confirmación del comprobante';
+  String get proofPending => 'S\'espera la confirmació del comprovant';
 
   @override
-  String get transferPending => 'Transferencia pendiente de verificación';
+  String get transferPending => 'Transferència pendent de verificació';
 
   @override
-  String get transferConfirmed => 'Transferencia confirmada';
+  String get transferConfirmed => 'Transferència confirmada';
 
   @override
-  String get transferRejected => 'Transferencia rechazada';
+  String get transferRejected => 'Transferència rebutjada';
 
   @override
   String transferRejectedReason(String reason) {
-    return 'Motivo: $reason';
+    return 'Motiu: $reason';
   }
 
   @override
-  String get confirmTransfer => 'Confirmar transferencia';
+  String get confirmTransfer => 'Confirmar transferència';
 
   @override
-  String get rejectTransfer => 'Rechazar transferencia';
+  String get rejectTransfer => 'Rebutjar transferència';
 
   @override
-  String get rejectionReason => 'Motivo del rechazo';
+  String get rejectionReason => 'Motiu del rebuig';
 
   @override
-  String get maxFileSize => 'Tamaño máximo: 5 MB';
+  String get maxFileSize => 'Mida màxima: 5 MB';
 
   @override
-  String get allowedFormats => 'Formatos: JPEG, PNG';
+  String get allowedFormats => 'Formats: JPEG, PNG';
 
   @override
-  String get imageTooLarge => 'La imagen excede 5 MB';
+  String get imageTooLarge => 'La imatge supera els 5 MB';
 
   @override
-  String get invalidFormat => 'Formato no permitido. Use JPEG o PNG';
+  String get invalidFormat => 'Format no permès. Useu JPEG o PNG';
 
   @override
-  String get proofUploadSuccess => 'Comprobante enviado correctamente';
+  String get proofUploadSuccess => 'Comprovant enviat correctament';
 
   @override
-  String get proofUploadError => 'Error al subir el comprobante';
+  String get proofUploadError => 'Error en pujar el comprovant';
 
   @override
-  String get camera => 'Cámara';
+  String get camera => 'Càmera';
 
   @override
-  String get gallery => 'Galería';
+  String get gallery => 'Galeria';
 
   @override
-  String get send => 'Enviar comprobante';
+  String get send => 'Enviar comprovant';
 
   @override
   String get bookingModified => 'Reserva modificada';
 
   @override
-  String get noShowPenalty => 'Penalizacion por inasistencia';
+  String get noShowPenalty => 'Penalització per incompareixença';
 
   @override
-  String get tournamentRegistered => 'Inscripcion registrada';
+  String get tournamentRegistered => 'Inscripció registrada';
 
   @override
-  String get newsPublished => 'Noticia publicada';
+  String get newsPublished => 'Notícia publicada';
 
   @override
   String get durationMin => 'min';
 
   @override
-  String get paymentProcessing => 'Procesando pago...';
+  String get paymentProcessing => 'S\'està processant el pagament...';
 
   @override
   String get tabQuedadas => 'Quedades';

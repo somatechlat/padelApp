@@ -43,6 +43,27 @@
   "lastName": "Last name",
   "birthDate": "Date of birth",
   "birthDateRequired": "Select your date of birth",
+  "joinEvent": "I'm going",
+  "eventJoined": "You're on the list!",
+  "eventLeft": "You're no longer attending",
+  "eventGoing": "You're going",
+  "eventFull": "Full",
+  "fieldRequired": "This field is required",
+  "fieldRequiredNamed": "The field {field} is required",
+  "@fieldRequiredNamed": {
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "fieldTooShort": "Minimum 2 characters",
+  "emailRequired": "Enter your email",
+  "emailInvalid": "Invalid email",
+  "passwordRequired": "Enter your password",
+  "passwordTooShort": "Password must be at least 8 characters",
+  "codeRequired": "Enter the verification code",
+  "codeInvalid": "Code must be 6 digits",
   "skillLevel": "Skill level",
   "skillIniciacion": "Beginner",
   "skillIntermedio": "Intermediate",
@@ -110,6 +131,7 @@
   "networkError": "Connection error. Check your internet.",
   "invalidCredentials": "Invalid credentials",
   "accountLocked": "Account temporarily blocked",
+  "accountInactive": "Account not active",
   "emailNotVerified": "Verify your email before signing in",
   "passwordMismatch": "Passwords do not match",
   "fillAllFields": "Fill in all fields",

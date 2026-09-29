@@ -34,6 +34,12 @@
         <input type="datetime-local" name="start_at" required>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN</label>
         <input type="datetime-local" name="end_at" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CUPO (0 = SIN LIMITE)</label>
+        <input type="number" name="capacity" min="0" value="0">
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="allow_registration" id="allow-reg" checked style="width: 18px; height: 18px;">
+          <label for="allow-reg" style="font-size: 14px; font-weight: 600;">Aceptar inscripciones (Me apunto)</label>
+        </div>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-event').style.display='none'" class="btn btn-outline">Cancelar</button>
@@ -69,6 +75,12 @@
         <input type="datetime-local" name="start_at" id="edit-event-start" required>
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">FIN</label>
         <input type="datetime-local" name="end_at" id="edit-event-end" required>
+        <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">CUPO (0 = SIN LIMITE)</label>
+        <input type="number" name="capacity" id="edit-event-capacity" min="0" value="0">
+        <div style="display: flex; align-items: center; gap: 10px; margin-top: 8px;">
+          <input type="checkbox" name="allow_registration" id="edit-allow-reg" style="width: 18px; height: 18px;">
+          <label for="edit-allow-reg" style="font-size: 14px; font-weight: 600;">Aceptar inscripciones (Me apunto)</label>
+        </div>
       </div>
       <div style="display: flex; justify-content: flex-end; gap: 12px;">
         <button type="button" onclick="document.getElementById('modal-edit-event').style.display='none'" class="btn btn-outline">Cancelar</button>
@@ -86,6 +98,7 @@
         <th>Categoria</th>
         <th>Lugar</th>
         <th>Inicio</th>
+        <th>Inscritos</th>
         <th>Estado</th>
         <th>Acciones</th>
       </tr>
@@ -97,9 +110,13 @@
         <td><span class="badge badge-active">{{ e.get_category_display }}</span></td>
         <td>{{ e.location|default:"--" }}</td>
         <td style="color: var(--text-muted); font-size: 12px;">{{ e.start_at|date:"Y-m-d H:i" }}</td>
+        <td>
+          {{ e.attendee_count }}{% if e.capacity %} / {{ e.capacity }}{% endif %}
+          {% if not e.allow_registration %}<span class="badge">Cerrado</span>{% endif %}
+        </td>
         <td><span class="badge badge-{{ e.status }}">{{ e.get_status_display }}</span></td>
         <td style="white-space: nowrap;">
-          <button type="button" class="btn btn-sm btn-outline" onclick="openEditEvent({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.description_es|escapejs }}', '{{ e.location|escapejs }}', '{{ e.start_at|date:"Y-m-d\\TH:i" }}', '{{ e.end_at|date:"Y-m-d\\TH:i" }}', '{{ e.category }}')">Editar</button>
+          <button type="button" class="btn btn-sm btn-outline" onclick="openEditEvent({{ e.id }}, '{{ e.title|escapejs }}', '{{ e.description_es|escapejs }}', '{{ e.location|escapejs }}', '{{ e.start_at|date:"Y-m-d\\TH:i" }}', '{{ e.end_at|date:"Y-m-d\\TH:i" }}', '{{ e.category }}', {{ e.capacity }}, {% if e.allow_registration %}true{% else %}false{% endif %})">Editar</button>
           <form method="post" style="display: inline;">
             {% csrf_token %}
             <input type="hidden" name="action" value="toggle_event">
@@ -336,7 +353,7 @@
 </div>
 
 <script>
-function openEditEvent(id, title, desc, location, startAt, endAt, category) {
+function openEditEvent(id, title, desc, location, startAt, endAt, category, capacity, allowReg) {
   document.getElementById('edit-event-id').value = id;
   document.getElementById('edit-event-title').value = title;
   document.getElementById('edit-event-description').value = desc;
@@ -344,8 +361,11 @@ function openEditEvent(id, title, desc, location, startAt, endAt, category) {
   document.getElementById('edit-event-start').value = startAt;
   document.getElementById('edit-event-end').value = endAt;
   document.getElementById('edit-event-category').value = category || 'quedada';
+  document.getElementById('edit-event-capacity').value = capacity || 0;
+  document.getElementById('edit-allow-reg').checked = !!allowReg;
   document.getElementById('modal-edit-event').style.display = 'flex';
 }
+
 function openEditTournament(id, title, capacity, price, startDate, endDate) {
   document.getElementById('edit-tournament-id').value = id;
   document.getElementById('edit-tournament-title').value = title;

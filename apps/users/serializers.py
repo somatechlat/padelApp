@@ -105,13 +105,18 @@ class LoginSerializer(serializers.Serializer):
                     _("Cuenta temporalmente bloqueada por intentos fallidos"),
                     code="account_locked",
                 )
-            raise AuthenticationFailed(_("Credenciales invalidas"), code="invalid_credentials")
+            raise AuthenticationFailed(
+                _("Credenciales inválidas"), code="invalid_credentials"
+            )
         if not user.email_verified:
             raise AuthenticationFailed(
-                _("Verifica tu email antes de iniciar sesion"), code="email_not_verified"
+                _("Verifica tu email antes de iniciar sesion"),
+                code="email_not_verified",
             )
         if user.status != "active":
-            raise AuthenticationFailed(_("Cuenta no activa"), code="account_inactive")
+            raise AuthenticationFailed(
+                _("Cuenta no activa"), code="account_inactive"
+            )
         cache.delete(key)
         refresh = RefreshToken.for_user(user)
         attrs["_user"] = user
@@ -139,7 +144,7 @@ class UserSerializer(serializers.ModelSerializer):
             "status",
             "email_verified",
         ]
-        read_only_fields = ["email", "role", "status", "email_verified", "full_name", "skill_level_name"]
+        read_only_fields = ["email", "role", "status", "email_verified", "skill_level_name"]
 
     skill_level_name = serializers.CharField(
         source="skill_level.name", read_only=True, default=None, allow_null=True

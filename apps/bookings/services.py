@@ -113,6 +113,7 @@ class BookingService:
         from apps.security.services import log_event
 
         log_event(booking.user, "booking.confirm", "Booking", booking.id)
+        from apps.common.timefmt import fmt_date, fmt_time
         from apps.notifications.tasks import notify_admins_task, notify_task
 
         notify_task.delay(
@@ -122,8 +123,8 @@ class BookingService:
             "",
             {
                 "court": booking.court.name,
-                "date": str(booking.date),
-                "time": str(booking.start_time),
+                "date": fmt_date(booking.date),
+                "time": fmt_time(booking.start_time),
                 "booking_id": booking.id,
             },
         )
@@ -133,13 +134,16 @@ class BookingService:
             {
                 "user": booking.user.email,
                 "court": booking.court.name,
-                "date": str(booking.date),
-                "time": str(booking.start_time),
+                "date": fmt_date(booking.date),
+                "time": fmt_time(booking.start_time),
                 "duration": booking.duration_minutes,
                 "booking_id": booking.id,
             },
         )
         return booking
+
+    @staticmethod
+    def cancel(booking):
         with transaction.atomic():
             slot_ids = list(booking.slots.values_list("slot_id", flat=True))
             # Free the BookingSlot rows so the slots can be booked again
@@ -151,6 +155,7 @@ class BookingService:
         from apps.security.services import log_event
 
         log_event(booking.user, "booking.cancel", "Booking", booking.id)
+        from apps.common.timefmt import fmt_date, fmt_time
         from apps.notifications.tasks import notify_task
 
         notify_task.delay(
@@ -160,8 +165,8 @@ class BookingService:
             "",
             {
                 "court": booking.court.name,
-                "date": str(booking.date),
-                "time": str(booking.start_time),
+                "date": fmt_date(booking.date),
+                "time": fmt_time(booking.start_time),
                 "booking_id": booking.id,
             },
         )
@@ -176,6 +181,7 @@ class BookingService:
         booking.transition_to(Booking.Status.NO_SHOW)
         from apps.security.services import log_event
         log_event(booking.user, "booking.no_show", "Booking", booking.id)
+        from apps.common.timefmt import fmt_date, fmt_time
         from apps.notifications.tasks import notify_task
         notify_task.delay(
             booking.user_id,
@@ -184,8 +190,8 @@ class BookingService:
             "",
             {
                 "court": booking.court.name,
-                "date": str(booking.date),
-                "time": str(booking.start_time),
+                "date": fmt_date(booking.date),
+                "time": fmt_time(booking.start_time),
                 "amount": f"${booking.price}",
                 "booking_id": booking.id,
             },
@@ -247,6 +253,7 @@ class BookingService:
         log_event(booking.user, "booking.reschedule", "Booking", booking.id,
                   before={"date": old_date, "time": old_time},
                   after={"date": str(new_date), "time": str(new_start_time)})
+        from apps.common.timefmt import fmt_date, fmt_time
         from apps.notifications.tasks import notify_task
         notify_task.delay(
             booking.user_id,
@@ -255,8 +262,8 @@ class BookingService:
             "",
             {
                 "court": booking.court.name,
-                "date": str(new_date),
-                "time": str(new_start_time),
+                "date": fmt_date(new_date),
+                "time": fmt_time(new_start_time),
                 "booking_id": booking.id,
             },
         )

@@ -1,0 +1,68 @@
+# DEV overlay — project andespadel, host ports 28000+
+# Usage:
+#   docker compose -p andespadel -f docker-compose.yml -f docker-compose.dev.yml up -d
+
+name: andespadel
+
+services:
+  db:
+    container_name: andespadel-db
+    environment:
+      POSTGRES_DB: padel
+      POSTGRES_USER: padel
+      POSTGRES_PASSWORD: padel_dev
+    ports:
+      - "28000:5432"
+
+  redis:
+    container_name: andespadel-redis
+    ports:
+      - "28001:6379"
+
+  backend:
+    container_name: andespadel-backend
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+    ports:
+      - "28002:8000"
+
+  worker:
+    container_name: andespadel-worker
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+
+  beat:
+    container_name: andespadel-beat
+    image: andespadel-backend:dev
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.dev
+
+  nginx:
+    container_name: andespadel-nginx
+    ports:
+      - "28003:80"
+
+  flutter:
+    container_name: andespadel-flutter
+    environment:
+      API_BASE_URL: http://127.0.0.1:28002/api
+
+networks:
+  padel-net:
+    name: andespadel-net
+
+volumes:
+  db_data:
+    name: andespadel_db_data
+  media_data:
+    name: andespadel_media_data
+  static_data:
+    name: andespadel_static_data
+  flutter_home:
+    name: andespadel_flutter_home
+  gradle_home:
+    name: andespadel_gradle_home
+  android_sdk:
+    name: andespadel_android_sdk
