@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView
 
-from apps.adminpanel.admin_base import FINANCIAL_ROLES, MANAGER_ROLES
+from apps.adminpanel.admin_base import FINANCIAL_ROLES, STAFF_ROLES
 from apps.adminpanel.mixins import StaffRequiredMixin, require_roles
 from apps.payments.models import Payment
 from apps.payments.services import PaymentService
@@ -34,26 +34,37 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
         return redirect(request.get_full_path())
 
     def _action_confirm_transfer(self, request):
-        require_roles(request, MANAGER_ROLES)
+        # Front-desk work: receptionists verify the receipt at the counter.
+        require_roles(request, STAFF_ROLES)
         payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))
         PaymentService.confirm_transfer(payment)
         messages.success(request, f"Comprobante de transferencia verificado para pago #{payment.id}.")
 
     def _action_reject_transfer(self, request):
-        require_roles(request, MANAGER_ROLES)
+        require_roles(request, STAFF_ROLES)
         payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))
         reason = request.POST.get("rejection_reason", "").strip()
         if not reason:
             messages.error(request, "El motivo de rechazo es obligatorio.")
             return
-        PaymentService.reject_transfer(payment, reason)
+        try:
+            PaymentService.reject_transfer(payment, reason)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return
         messages.warning(request, f"Transferencia rechazada para pago #{payment.id}.")
 
     def _action_refund(self, request):
         require_roles(request, FINANCIAL_ROLES)
         payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))
         amount = payment.amount
-        PaymentService.refund(payment, amount)
+        try:
+            PaymentService.refund(payment, amount)
+        except ValueError as exc:
+            # Bounds rejections are user errors (double refund, over-amount),
+            # not crashes — surface them, do not 500.
+            messages.error(request, str(exc))
+            return
         if payment.booking:
             payment.booking.transition_to("cancelled")
         messages.success(request, f"Reembolso procesado para pago #{payment.id}.")

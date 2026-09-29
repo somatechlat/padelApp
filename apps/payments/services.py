@@ -1,4 +1,8 @@
 import logging
+from decimal import Decimal
+
+from django.db import transaction
+from django.utils.translation import gettext
 
 from apps.notifications.services import NotificationService
 from apps.payments.models import Payment
@@ -79,10 +83,20 @@ class PaymentService:
 
     @staticmethod
     def confirm_transfer(payment):
-        payment.status = Payment.Status.CAPTURED
-        payment.save(update_fields=["status", "updated_at"])
-        if payment.booking and payment.booking.status == "pending_payment":
-            payment.booking.transition_to("confirmed")
+        """Mark a bank transfer as captured and confirm its booking.
+
+        Idempotent: a double-click on the admin button, or two receptionists
+        confirming the same receipt, must not send two notifications or
+        re-run the booking transition.
+        """
+        with transaction.atomic():
+            payment.refresh_from_db()
+            if payment.status == Payment.Status.CAPTURED:
+                return payment
+            payment.status = Payment.Status.CAPTURED
+            payment.save(update_fields=["status", "updated_at"])
+            if payment.booking and payment.booking.status == "pending_payment":
+                payment.booking.transition_to("confirmed")
         log_event(payment.user, "payment.transfer_confirmed", "Payment", payment.id)
         NotificationService.notify(
             payment.user,
@@ -93,6 +107,17 @@ class PaymentService:
 
     @staticmethod
     def reject_transfer(payment, reason):
+        """Reject a pending bank transfer. Refuses payments already processed."""
+        payment.refresh_from_db()
+        if payment.status not in (
+            Payment.Status.PENDING,
+            Payment.Status.PENDING_TRANSFER,
+        ):
+            raise ValueError(
+                gettext("El pago #{payment_id} ya fue procesado.").format(
+                    payment_id=payment.id
+                )
+            )
         payment.status = Payment.Status.FAILED
         payment.rejection_reason = reason
         payment.save(update_fields=["status", "rejection_reason", "updated_at"])
@@ -119,30 +144,25 @@ class PaymentService:
         payment stays open until staff collects it, the booking is confirmed up
         front and admins get an immediate alert.
         """
-        payment = Payment.objects.create(
-            booking=booking,
-            user=booking.user,
-            method=Payment.Method.CASH,
-            amount=amount,
-            currency="USD",
-            status=Payment.Status.PENDING if on_arrival else Payment.Status.CAPTURED,
-        )
+        with transaction.atomic():
+            payment = Payment.objects.create(
+                booking=booking,
+                user=booking.user,
+                method=Payment.Method.CASH,
+                amount=amount,
+                currency="USD",
+                status=Payment.Status.PENDING if on_arrival else Payment.Status.CAPTURED,
+            )
+            if on_arrival and booking.status == "pending_payment":
+                # If the booking cannot be confirmed (cancelled in a race, say),
+                # roll back so there is no orphan Payment row left behind.
+                booking.transition_to("confirmed")
         log_event(
             booking.user,
             "payment.cash_on_arrival" if on_arrival else "payment.cash_recorded",
             "Payment",
             payment.id,
         )
-        if on_arrival and booking.status == "pending_payment":
-            try:
-                booking.transition_to("confirmed")
-            except ValueError:
-                logger.exception(
-                    "Failed to confirm booking %s after cash-on-arrival payment %s",
-                    booking.id,
-                    payment.id,
-                )
-                raise
         NotificationService.notify(
             booking.user,
             "payment_success",
@@ -177,7 +197,31 @@ class PaymentService:
     @staticmethod
     def refund(payment, amount):
         """Process a refund. For transfer/cash payments, just mark as refunded.
-        For Stripe payments, call the Stripe API first."""
+        For Stripe payments, call the Stripe API first.
+
+        Bounded: refuses non-positive amounts, amounts above what was captured,
+        and a second refund of the same payment.
+        """
+        payment.refresh_from_db()
+        if payment.status == Payment.Status.REFUNDED:
+            raise ValueError(
+                gettext("El pago #{payment_id} ya fue reembolsado.").format(
+                    payment_id=payment.id
+                )
+            )
+        try:
+            amount = Decimal(str(amount))
+            captured = Decimal(str(payment.amount))
+        except Exception as err:
+            raise ValueError(gettext("Monto de reembolso invalido.")) from err
+        if amount <= 0:
+            raise ValueError(gettext("El monto del reembolso debe ser mayor que cero."))
+        if amount > captured:
+            raise ValueError(
+                gettext("No se puede reembolsar ${amount} de un pago de ${captured}.").format(
+                    amount=amount, captured=captured
+                )
+            )
         if payment.stripe_payment_intent_id:
             import stripe
 

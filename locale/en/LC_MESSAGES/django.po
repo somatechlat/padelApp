@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-09-29 07:20-0500\n"
+"POT-Creation-Date: 2026-09-29 09:52-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -16,6 +16,15 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: apps/adminpanel/views/users.py:55
+msgid "No puedes asignar un rol superior al tuyo."
+msgstr "You cannot assign a role above your own."
+
+#: apps/adminpanel/views/users.py:63
+msgid ""
+"No puedes quitar el ultimo superadmin. Crea otro antes de degradar este."
+msgstr "You cannot remove the last superadmin. Create another one before demoting this one."
 
 #: apps/bookings/admin.py:51
 #, python-format
@@ -103,11 +112,11 @@ msgstr "Tournament is not accepting registrations"
 
 #: apps/events/views.py:67
 msgid "El evento no esta publicado"
-msgstr ""
+msgstr "The event is not published"
 
 #: apps/events/views.py:72
 msgid "El evento esta completo"
-msgstr ""
+msgstr "The event is full"
 
 #: apps/events/views.py:145
 msgid "Inscripcion no encontrada"
@@ -138,6 +147,224 @@ msgstr "Consent recorded"
 #: apps/gdpr/views.py:47
 msgid "Tus datos fueron anonimizados (derecho al olvido)"
 msgstr "Your data has been anonymized (right to be forgotten)"
+
+#: apps/notifications/services.py:44
+msgid "Booking confirmed"
+msgstr "Booking confirmed"
+
+#: apps/notifications/services.py:45
+#, python-brace-format
+msgid "Your booking for {court} on {date} at {time} is confirmed."
+msgstr "Your booking for {court} on {date} at {time} is confirmed."
+
+#: apps/notifications/services.py:48
+msgid "Booking cancelled"
+msgstr "Booking cancelled"
+
+#: apps/notifications/services.py:49
+#, python-brace-format
+msgid "Your booking for {court} on {date} at {time} was cancelled."
+msgstr "Your booking for {court} on {date} at {time} was cancelled."
+
+#: apps/notifications/services.py:52
+msgid "Booking reminder"
+msgstr "Booking reminder"
+
+#: apps/notifications/services.py:53
+#, python-brace-format
+msgid "Reminder: {court} tomorrow at {time}."
+msgstr "Reminder: {court} tomorrow at {time}."
+
+#: apps/notifications/services.py:56
+msgid "Booking starting soon"
+msgstr "Booking starting soon"
+
+#: apps/notifications/services.py:57
+#, fuzzy, python-brace-format
+#| msgid "Your booking for {court} on {date} at {time} is confirmed."
+msgid "Your booking for {court} starts in 2 hours at {time}."
+msgstr "Your booking for {court} on {date} at {time} is confirmed."
+
+#: apps/notifications/services.py:60
+#, fuzzy
+#| msgid "Booking confirmed"
+msgid "Booking modified"
+msgstr "Booking confirmed"
+
+#: apps/notifications/services.py:61
+#, fuzzy, python-brace-format
+#| msgid "Your booking for {court} on {date} at {time} is confirmed."
+msgid "Your booking for {court} has been rescheduled to {date} at {time}."
+msgstr "Your booking for {court} on {date} at {time} is confirmed."
+
+#: apps/notifications/services.py:64
+msgid "No-show penalty"
+msgstr "No-show penalty"
+
+#: apps/notifications/services.py:65
+#, python-brace-format
+msgid ""
+"You did not attend your booking for {court}. A penalty of {amount} has been "
+"applied."
+msgstr ""
+"You did not attend your booking for {court}. A penalty of {amount} has been "
+"applied."
+
+#: apps/notifications/services.py:68
+msgid "Payment received"
+msgstr "Payment received"
+
+#: apps/notifications/services.py:69
+#, python-brace-format
+msgid "We received your payment of {amount}."
+msgstr "We received your payment of {amount}."
+
+#: apps/notifications/services.py:72
+#, fuzzy
+#| msgid "Payment received"
+msgid "Payment failed"
+msgstr "Payment received"
+
+#: apps/notifications/services.py:73
+#, python-brace-format
+msgid ""
+"Your payment of {amount} could not be processed. Please try again or contact "
+"support."
+msgstr ""
+"Your payment of {amount} could not be processed. Please try again or contact "
+"support."
+
+#: apps/notifications/services.py:76
+msgid "Payment refunded"
+msgstr "Payment refunded"
+
+#: apps/notifications/services.py:77
+#, python-brace-format
+msgid "A refund of {amount} was processed."
+msgstr "A refund of {amount} was processed."
+
+#: apps/notifications/services.py:80
+msgid "Transfer confirmed"
+msgstr "Transfer confirmed"
+
+#: apps/notifications/services.py:81
+#, python-brace-format
+msgid "Your bank transfer of {amount} was confirmed."
+msgstr "Your bank transfer of {amount} was confirmed."
+
+#: apps/notifications/services.py:84
+#, fuzzy
+#| msgid "Transfer confirmed"
+msgid "Transfer rejected"
+msgstr "Transfer confirmed"
+
+#: apps/notifications/services.py:85
+#, fuzzy, python-brace-format
+#| msgid "Your bank transfer of {amount} was confirmed."
+msgid "Your bank transfer of {amount} was rejected. Reason: {reason}"
+msgstr "Your bank transfer of {amount} was confirmed."
+
+#: apps/notifications/services.py:88
+msgid "Tournament reminder"
+msgstr "Tournament reminder"
+
+#: apps/notifications/services.py:89
+#, python-brace-format
+msgid "The tournament {tournament} starts tomorrow."
+msgstr "The tournament {tournament} starts tomorrow."
+
+#: apps/notifications/services.py:92
+msgid "Tournament registration confirmed"
+msgstr "Tournament registration confirmed"
+
+#: apps/notifications/services.py:93
+#, python-brace-format
+msgid "You are registered for {tournament}."
+msgstr "You are registered for {tournament}."
+
+#: apps/notifications/services.py:96
+#, fuzzy
+#| msgid "Tournament registration confirmed"
+msgid "Tournament registration"
+msgstr "Tournament registration confirmed"
+
+#: apps/notifications/services.py:97
+#, fuzzy, python-brace-format
+#| msgid "You are registered for {tournament}."
+msgid "Your registration for {tournament} has been received."
+msgstr "You are registered for {tournament}."
+
+#: apps/notifications/services.py:100
+msgid "New announcement"
+msgstr "New announcement"
+
+#: apps/notifications/services.py:101 apps/notifications/services.py:105
+#: apps/notifications/services.py:121
+#, python-brace-format
+msgid "{title}"
+msgstr "{title}"
+
+#: apps/notifications/services.py:104
+msgid "New event"
+msgstr "New event"
+
+#: apps/notifications/services.py:108
+#, fuzzy
+#| msgid "Inscripcion no encontrada"
+msgid "Inscripcion confirmada"
+msgstr "Registration not found"
+
+#: apps/notifications/services.py:109
+#, python-brace-format
+msgid "Te apuntaste a: {title}"
+msgstr "You joined: {title}"
+
+#: apps/notifications/services.py:112
+msgid "Nueva reserva"
+msgstr "New booking"
+
+#: apps/notifications/services.py:113
+#, python-brace-format
+msgid ""
+"Nueva reserva de {user}: {court} el {date} a las {time} ({duration} min)."
+msgstr "New booking by {user}: {court} on {date} at {time} ({duration} min)."
+
+#: apps/notifications/services.py:116
+msgid "Reserva pago en el establecimiento"
+msgstr "Booking — pay at the venue"
+
+#: apps/notifications/services.py:117
+#, python-brace-format
+msgid ""
+"{user} reservó {court} el {date} a las {time} y pagará en el establecimiento."
+msgstr "{user} booked {court} on {date} at {time} and will pay at the venue."
+
+#: apps/notifications/services.py:120
+msgid "Nuevo partido en tu categoría"
+msgstr "New match in your category"
+
+#: apps/payments/services.py:117
+#, python-brace-format
+msgid "El pago #{payment_id} ya fue procesado."
+msgstr "Payment #{payment_id} has already been processed."
+
+#: apps/payments/services.py:208
+#, python-brace-format
+msgid "El pago #{payment_id} ya fue reembolsado."
+msgstr "Payment #{payment_id} has already been refunded."
+
+#: apps/payments/services.py:216
+msgid "Monto de reembolso invalido."
+msgstr "Invalid refund amount."
+
+#: apps/payments/services.py:218
+msgid "El monto del reembolso debe ser mayor que cero."
+msgstr "The refund amount must be greater than zero."
+
+#: apps/payments/services.py:221
+#, python-brace-format
+msgid "No se puede reembolsar ${amount} de un pago de ${captured}."
+msgstr "Cannot refund ${amount} from a payment of ${captured}."
 
 #: apps/payments/views.py:34
 #, python-brace-format
@@ -172,7 +399,7 @@ msgstr "Email already registered"
 msgid "Debes aceptar los terminos"
 msgstr "You must accept the terms"
 
-#: apps/users/serializers.py:78 apps/users/views.py:199
+#: apps/users/serializers.py:78 apps/users/views.py:190
 msgid "Codigo invalido"
 msgstr "Invalid code"
 
@@ -196,108 +423,60 @@ msgstr "Account not active"
 msgid "Contrasena actual incorrecta"
 msgstr "Current password is incorrect"
 
-#: apps/users/views.py:80
+#: apps/users/views.py:73
 msgid "Verification code - Andes Padel"
 msgstr "Verification code - Andes Padel"
 
-#: apps/users/views.py:81
+#: apps/users/views.py:74
 #, python-brace-format
 msgid "Your verification code is: {code}"
 msgstr "Your verification code is: {code}"
 
-#: apps/users/views.py:96
+#: apps/users/views.py:88
 msgid "Revisa tu email para verificar la cuenta"
 msgstr "Check your email to verify your account"
 
-#: apps/users/views.py:113 apps/users/views.py:205
+#: apps/users/views.py:105 apps/users/views.py:196
 msgid "Codigo invalido o expirado"
 msgstr "Invalid or expired code"
 
-#: apps/users/views.py:117
+#: apps/users/views.py:109
 msgid "Email verificado"
 msgstr "Email verified"
 
-#: apps/users/views.py:168 apps/users/views.py:186
+#: apps/users/views.py:160 apps/users/views.py:177
 msgid "Si el email existe, recibira un codigo"
 msgstr "If the email exists, a code will be sent"
 
-#: apps/users/views.py:171
+#: apps/users/views.py:163
 msgid "Restablecer contrasena - Andes Padel"
-msgstr ""
+msgstr "Reset password - Andes Padel"
 
-#: apps/users/views.py:172
+#: apps/users/views.py:164
 #, python-brace-format
 msgid "Tu codigo de restablecimiento es: {code}"
-msgstr ""
+msgstr "Your reset code is: {code}"
 
-#: apps/users/views.py:210
+#: apps/users/views.py:201
 msgid "Contrasena actualizada"
 msgstr "Password updated"
 
-#: apps/users/views.py:226
+#: apps/users/views.py:217
 msgid "Contrasena cambiada"
 msgstr "Password changed"
 
 #: padel/settings/base.py:118
 msgid "Espanol"
-msgstr ""
+msgstr "Spanish"
 
 #: padel/settings/base.py:119
 msgid "English"
-msgstr ""
+msgstr "English"
 
 #: padel/settings/base.py:120
 msgid "Portugues"
-msgstr ""
+msgstr "Portuguese"
 
 #: padel/settings/base.py:121
 msgid "Catalan"
-msgstr ""
-
-#~ msgid "Booking confirmed"
-#~ msgstr "Booking confirmed"
-
-#~ msgid "Your booking for {court} on {date} at {time} is confirmed."
-#~ msgstr "Your booking for {court} on {date} at {time} is confirmed."
-
-#~ msgid "Booking cancelled"
-#~ msgstr "Booking cancelled"
-
-#~ msgid "Your booking for {court} on {date} at {time} was cancelled."
-#~ msgstr "Your booking for {court} on {date} at {time} was cancelled."
-
-#~ msgid "Booking reminder"
-#~ msgstr "Booking reminder"
-
-#~ msgid "Reminder: {court} tomorrow at {time}."
-#~ msgstr "Reminder: {court} tomorrow at {time}."
-
-#~ msgid "Payment received"
-#~ msgstr "Payment received"
-
-#~ msgid "We received your payment of {amount}."
-#~ msgstr "We received your payment of {amount}."
-
-#~ msgid "Payment refunded"
-#~ msgstr "Payment refunded"
-
-#~ msgid "A refund of {amount} was processed."
-#~ msgstr "A refund of {amount} was processed."
-
-#~ msgid "Transfer confirmed"
-#~ msgstr "Transfer confirmed"
-
-#~ msgid "Your bank transfer of {amount} was confirmed."
-#~ msgstr "Your bank transfer of {amount} was confirmed."
-
-#~ msgid "Tournament reminder"
-#~ msgstr "Tournament reminder"
-
-#~ msgid "The tournament {tournament} starts tomorrow."
-#~ msgstr "The tournament {tournament} starts tomorrow."
-
-#~ msgid "Tournament registration confirmed"
-#~ msgstr "Tournament registration confirmed"
-
-#~ msgid "You are registered for {tournament}."
-#~ msgstr "You are registered for {tournament}."
+msgstr "Catalan"

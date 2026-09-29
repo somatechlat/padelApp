@@ -108,6 +108,78 @@ merge casually.
 
 ---
 
+## 3b. Admin panel RBAC
+
+Role hierarchy, low to high:
+
+```
+cliente < recepcionista < gerente < dueno < superadmin
+```
+
+Constants live in `apps/adminpanel/admin_base.py`:
+
+| Constant | Roles |
+|---|---|
+| `STAFF_ROLES` | recepcionista, gerente, dueno, superadmin |
+| `MANAGER_ROLES` | gerente, dueno, superadmin |
+| `FINANCIAL_ROLES` | dueno, superadmin |
+
+Gate whole views with `StaffRequiredMixin` / `ManagerRequiredMixin` /
+`FinanceRequiredMixin`. When one view mixes routine and privileged `post()`
+actions, call `require_roles(request, ROLES)` at the top of the handler — it
+raises `PermissionDenied`. Do not swallow an authorization failure as
+`messages.error` + redirect: that is a soft failure an attacker can script
+around, and it does not show up as a 4xx in logs.
+
+Action-level matrix (what each role may actually do):
+
+| Action | recepcionista | gerente | dueno / superadmin |
+|---|---|---|---|
+| Calendar, courts, banners, events | yes | yes | yes |
+| Create/cancel booking, block slot | yes | yes | yes |
+| Confirm / reject bank transfer | **yes** | yes | yes |
+| Record cash | yes | yes | yes |
+| Refund | no | no | **yes** |
+| Change a user's status (suspend/activate) | no | **yes** | yes |
+| Change a user's role | no | no | **yes** |
+| Club settings (bank details, policies) | no | no | **yes** |
+| Audit log | no | no | **yes** |
+| Reports — booking counts | no | **yes** | yes |
+| Reports — revenue, per-court income, top customers | no | **restricted** | **yes** |
+| Reports — CSV export (customer emails) | no | no | **yes** |
+
+Design notes, so the next change does not undo them:
+
+- **Transfer confirm/reject is front-desk work.** Receptionists verify the
+  receipt at the counter and need to act; routing it through a manager just
+  queues up people standing at the desk. It is reversible and non-financial.
+- **Refund is not.** Refund moves money and is `FINANCIAL_ROLES` only.
+- **Role changes refuse privilege escalation with 403**, not a flash message:
+  a `dueno` cannot mint a `superadmin`, and nobody can assign a role above
+  their own (`role_level`).
+- **The last `superadmin` cannot be demoted.** Doing so would lock every
+  privileged surface with no way back in.
+- **Revenue is owner-only.** `ReportsAdminView` does not even compute the
+  aggregates unless the role is in `FINANCIAL_ROLES`, so a template slip
+  cannot leak them. Managers see booking counts and "Restringido".
+- Django admin (`/admin/`) has its own gate: `RoleGatedAdmin` in
+  `apps/adminpanel/admin_base.py`. It is coarser than the panel and should be
+  tightened independently.
+
+Payment service safety bounds (`apps/payments/services.py`) back the RBAC up,
+because a handler can be reached from more than one view:
+
+- `confirm_transfer` is **idempotent** and atomic — a double-click does not
+  send two notifications or re-run the booking transition.
+- `reject_transfer` refuses a payment that is no longer pending.
+- `refund` refuses a non-positive amount, an amount above what was captured,
+  and a second refund of the same payment. Amounts are coerced through
+  `Decimal(str(...))` because `payment.amount` can arrive as a bare string.
+- `_record_cash_payment` is wrapped in `transaction.atomic()`, so a failed
+  `booking.transition_to("confirmed")` leaves no orphan `Payment` row.
+
+---
+
 ## 4. Environments and ports
 
 Three Docker Compose projects. **There is no port 8000.** Old docs that say
@@ -195,6 +267,18 @@ fallback; device locale is deliberately ignored.
 - **msgid must match the source byte-for-byte**, accents included. A catalog
   entry of `Credenciales invalidas` does not match code that calls
   `_("Credenciales inválidas")`.
+- **`gettext()` on a variable is not extractable.** `makemessages` only sees
+  string *literals* passed to a recognized name (`gettext`, `gettext_lazy`,
+  `gettext_noop`, `pgettext`, `_`). A table of literals localized later via
+  `gettext(template[0])` is invisible to it: the msgids go obsolete (`#~`) and
+  the strings ship untranslated in every language. Wrap the literals at
+  definition time with `gettext_noop(...)` and call `gettext(...)` at render
+  time. Spell out `gettext_noop` rather than aliasing it to `_` — `_` is
+  gettext, and rebinding it is the shadowing trap above. See
+  `apps/notifications/services.py` `MESSAGE_TEMPLATES`, which had exactly this
+  bug: notification titles and bodies were English for every locale.
+- Dict **keys** in such tables are event identifiers, not user-facing. Do not
+  wrap them — a `gettext_noop("booking_confirmed")` key pollutes the catalog.
 - Adminpanel templates are currently Spanish-only. Do not claim 4-language
   admin coverage in docs.
 
@@ -224,6 +308,7 @@ fallback; device locale is deliberately ignored.
 | `localhost:8000` | Does not exist. Use 28002 (dev) / 29002 (test) / prod URL. |
 | `make seed-test` | Not a target. It is `seeddemo-test`. |
 | `_ , created = Model.objects.get_or_create(...)` | Shadows gettext. Always. |
+| `gettext(some_variable)` | Not extractable. Wrap the literal in `gettext_noop` where it is defined or `makemessages` marks it obsolete and it ships untranslated. |
 | Adding an ARB key to `en`+`es` only | Ships Spanish UI to ca/pt users. |
 | `firebase_options.dart` | Gitignored. Push is **optional**: without it the app still builds and runs, with push disabled. Run `flutterfire configure` to enable FCM. |
 | `Manual_Usuario_AndesPadel.docx`, `images/Archive.zip` | Were tracked despite `*.docx`/`*.zip` in `.gitignore`. Ignore rules do not untrack. |
@@ -239,7 +324,8 @@ fallback; device locale is deliberately ignored.
 Trust levels as of 2026-09-29:
 
 - **Current:** `README.md`, `docs/DEPLOYMENTS.md`, `docs/BUILD_AND_DEPLOY.md`,
-  `TESTING_GUIDE.md`, `mobile/README.md`, `store/README.md`, this file.
+  `docs/SECURITY.md`, `TESTING_GUIDE.md`, `mobile/README.md`, `store/README.md`,
+  this file.
 - **Historical:** `docs/DEPLOYMENT_PLAN.md`, `docs/plans/`, `docs/srs/`.
 
 Two facts still need operator confirmation and are marked `UNVERIFIED` in the
@@ -267,13 +353,12 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    B105/B106/B107 (password-shaped-string heuristics) are globally skipped
    because they fire on every test fixture; a real secret scanner is the right
    tool for credential leaks.
-4. **Cash-on-arrival re-raises** if `transition_to("confirmed")` fails, so the
-   API can return 500 in a race where the booking was cancelled. The `Payment`
-   row is already created. A compensating rollback would be stricter.
-5. **Adminpanel RBAC calls still open to review:** `confirm_transfer` /
-   `reject_transfer` are `gerente`+ (receptionists may need them);
-   `change_status` is open to every staff role; reports still show revenue
-   cards to `gerente`.
+4. **Django admin RBAC is coarser than the panel.** `RoleGatedAdmin` is
+   all-or-nothing per role in a way the custom panel is not. Split it the same
+   way if staff are ever pointed at `/admin/`.
+5. **Firebase API keys are still in git history** (`AIza...` for Android and
+   iOS, from commit `d26820e`). Untracking did not erase them. Rotate in
+   Google Cloud Console.
 6. **Server IP is unverified** (`140.82.15.48` vs `140.82.155.48`).
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.

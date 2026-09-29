@@ -533,13 +533,127 @@ class TestAdminPanelRoleScoping:
         payment.refresh_from_db()
         assert payment.status != Payment.Status.REFUNDED
 
-    def test_recepcionista_cannot_confirm_transfer(self, client, staff_users, payment):
+    def test_recepcionista_can_confirm_transfer(self, client, staff_users, payment):
+        # Front-desk: receptionists verify the receipt at the counter.
+        payment.status = Payment.Status.PENDING_TRANSFER
+        payment.method = Payment.Method.TRANSFER
+        payment.save(update_fields=["status", "method"])
         client.force_login(staff_users["recepcionista"])
         resp = client.post(
             "/adminpanel/payments/",
             {"action": "confirm_transfer", "payment_id": str(payment.id)},
         )
+        assert resp.status_code == 302
+        payment.refresh_from_db()
+        assert payment.status == Payment.Status.CAPTURED
+
+    def test_recepcionista_can_reject_transfer(self, client, staff_users, payment):
+        payment.status = Payment.Status.PENDING_TRANSFER
+        payment.method = Payment.Method.TRANSFER
+        payment.save(update_fields=["status", "method"])
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {
+                "action": "reject_transfer",
+                "payment_id": str(payment.id),
+                "rejection_reason": "Comprobante ilegible",
+            },
+        )
+        assert resp.status_code == 302
+        payment.refresh_from_db()
+        assert payment.status == Payment.Status.FAILED
+        assert payment.rejection_reason == "Comprobante ilegible"
+
+    def test_recepcionista_cannot_change_status(self, client, staff_users):
+        client.force_login(staff_users["recepcionista"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_status", "user_id": str(target.id), "status": "suspended"},
+        )
         assert resp.status_code == 403
+        target.refresh_from_db()
+        assert target.status != "suspended"
+
+    def test_gerente_can_change_status(self, client, staff_users):
+        client.force_login(staff_users["gerente"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_status", "user_id": str(target.id), "status": "suspended"},
+        )
+        assert resp.status_code == 302
+        target.refresh_from_db()
+        assert target.status == "suspended"
+
+    def test_last_superadmin_cannot_be_demoted(self, client, staff_users):
+        client.force_login(staff_users["superadmin"])
+        resp = client.post(
+            "/adminpanel/users/",
+            {
+                "action": "change_role",
+                "user_id": str(staff_users["superadmin"].id),
+                "role": "dueno",
+            },
+        )
+        assert resp.status_code == 302
+        staff_users["superadmin"].refresh_from_db()
+        assert staff_users["superadmin"].role == "superadmin"
+
+    def test_dueno_cannot_promote_above_self(self, client, staff_users):
+        client.force_login(staff_users["dueno"])
+        target = staff_users["cliente"]
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_role", "user_id": str(target.id), "role": "superadmin"},
+        )
+        assert resp.status_code == 403
+        target.refresh_from_db()
+        assert target.role == "cliente"
+
+    def test_refund_error_is_a_flash_not_a_500(self, client, staff_users, payment):
+        # Double-clicking the refund button must not crash the panel.
+        payment.status = Payment.Status.REFUNDED
+        payment.save(update_fields=["status"])
+        client.force_login(staff_users["dueno"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {"action": "refund", "payment_id": str(payment.id)},
+        )
+        assert resp.status_code == 302
+        msgs = [str(m) for m in resp.wsgi_request._messages]
+        assert any("ya fue reembolsado" in m for m in msgs)
+
+    def test_reject_transfer_error_is_a_flash_not_a_500(self, client, staff_users, payment):
+        payment.status = Payment.Status.CAPTURED
+        payment.save(update_fields=["status"])
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/payments/",
+            {
+                "action": "reject_transfer",
+                "payment_id": str(payment.id),
+                "rejection_reason": "tarde",
+            },
+        )
+        assert resp.status_code == 302
+        msgs = [str(m) for m in resp.wsgi_request._messages]
+        assert any("ya fue procesado" in m for m in msgs)
+
+    def test_gerente_sees_no_revenue_on_reports(self, client, staff_users):
+        client.force_login(staff_users["gerente"])
+        resp = client.get("/adminpanel/reports/")
+        assert resp.status_code == 200
+        assert b"Restringido" in resp.content
+        assert resp.context["can_see_revenue"] is False
+
+    def test_dueno_sees_revenue_on_reports(self, client, staff_users):
+        client.force_login(staff_users["dueno"])
+        resp = client.get("/adminpanel/reports/")
+        assert resp.status_code == 200
+        assert resp.context["can_see_revenue"] is True
+        assert b"Restringido" not in resp.content
 
     def test_recepcionista_cannot_change_role(self, client, staff_users):
         client.force_login(staff_users["recepcionista"])
@@ -661,13 +775,14 @@ class TestAdminPanelRoleScoping:
         assert target.role == "gerente"
 
     def test_dueno_cannot_promote_to_superadmin(self, client, staff_users):
+        # Privilege escalation is refused with 403, not a soft flash + redirect.
         client.force_login(staff_users["dueno"])
         target = staff_users["recepcionista"]
         resp = client.post(
             "/adminpanel/users/",
             {"action": "change_role", "user_id": str(target.id), "role": "superadmin"},
         )
-        assert resp.status_code == 302
+        assert resp.status_code == 403
         target.refresh_from_db()
         assert target.role == "recepcionista"
 

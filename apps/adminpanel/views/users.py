@@ -1,10 +1,12 @@
 from django.contrib import messages
 from django.contrib.auth import get_user_model
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect
+from django.utils.translation import gettext as _
 from django.views.generic import ListView
 
-from apps.adminpanel.admin_base import FINANCIAL_ROLES
+from apps.adminpanel.admin_base import FINANCIAL_ROLES, MANAGER_ROLES
 from apps.adminpanel.mixins import StaffRequiredMixin, require_roles, role_level
 from apps.security.services import log_event
 from apps.users.models import Role as UserRole
@@ -49,7 +51,17 @@ class UsersAdminView(StaffRequiredMixin, ListView):
             messages.error(request, "Rol invalido.")
             return
         if role_level(new_role) > role_level(request.user.role):
-            messages.error(request, "No puedes asignar un rol superior al tuyo.")
+            # Privilege escalation is an attack, not a typo: 403, not a flash.
+            raise PermissionDenied(_("No puedes asignar un rol superior al tuyo."))
+        if (
+            target_user.role == "superadmin"
+            and new_role != "superadmin"
+            and not User.objects.filter(role="superadmin").exclude(pk=target_user.pk).exists()
+        ):
+            messages.error(
+                request,
+                _("No puedes quitar el ultimo superadmin. Crea otro antes de degradar este."),
+            )
             return
         target_user.role = new_role
         target_user.save(update_fields=["role"])
@@ -57,6 +69,9 @@ class UsersAdminView(StaffRequiredMixin, ListView):
         log_event(request.user, "admin.user_role_change", "User", target_user.id)
 
     def _action_change_status(self, request):
+        # Suspending/activating an account is operational management, not
+        # front-desk work — a receptionist must not be able to lock anyone out.
+        require_roles(request, MANAGER_ROLES)
         target_user = get_object_or_404(User, id=request.POST.get("user_id"))
         new_status = request.POST.get("status")
         if new_status not in UserStatus.values:

@@ -4,7 +4,7 @@ import os
 from django.conf import settings
 from django.core.mail import send_mail
 from django.utils import translation
-from django.utils.translation import gettext
+from django.utils.translation import gettext, gettext_noop
 
 from apps.notifications.models import (
     DeviceToken,
@@ -41,84 +41,84 @@ DEFAULT_CHANNELS = ("email", "push", "inapp")
 # ``language_code`` and then interpolated with the event ``data`` params.
 MESSAGE_TEMPLATES = {
     "booking_confirmed": (
-        "Booking confirmed",
-        "Your booking for {court} on {date} at {time} is confirmed.",
+        gettext_noop("Booking confirmed"),
+        gettext_noop("Your booking for {court} on {date} at {time} is confirmed."),
     ),
     "booking_cancelled": (
-        "Booking cancelled",
-        "Your booking for {court} on {date} at {time} was cancelled.",
+        gettext_noop("Booking cancelled"),
+        gettext_noop("Your booking for {court} on {date} at {time} was cancelled."),
     ),
     "booking_reminder": (
-        "Booking reminder",
-        "Reminder: {court} tomorrow at {time}.",
+        gettext_noop("Booking reminder"),
+        gettext_noop("Reminder: {court} tomorrow at {time}."),
     ),
     "booking_reminder_2h": (
-        "Booking starting soon",
-        "Your booking for {court} starts in 2 hours at {time}.",
+        gettext_noop("Booking starting soon"),
+        gettext_noop("Your booking for {court} starts in 2 hours at {time}."),
     ),
     "booking_modified": (
-        "Booking modified",
-        "Your booking for {court} has been rescheduled to {date} at {time}.",
+        gettext_noop("Booking modified"),
+        gettext_noop("Your booking for {court} has been rescheduled to {date} at {time}."),
     ),
     "no_show_penalty": (
-        "No-show penalty",
-        "You did not attend your booking for {court}. A penalty of {amount} has been applied.",
+        gettext_noop("No-show penalty"),
+        gettext_noop("You did not attend your booking for {court}. A penalty of {amount} has been applied."),
     ),
     "payment_success": (
-        "Payment received",
-        "We received your payment of {amount}.",
+        gettext_noop("Payment received"),
+        gettext_noop("We received your payment of {amount}."),
     ),
     "payment_failed": (
-        "Payment failed",
-        "Your payment of {amount} could not be processed. Please try again or contact support.",
+        gettext_noop("Payment failed"),
+        gettext_noop("Your payment of {amount} could not be processed. Please try again or contact support."),
     ),
     "payment_refunded": (
-        "Payment refunded",
-        "A refund of {amount} was processed.",
+        gettext_noop("Payment refunded"),
+        gettext_noop("A refund of {amount} was processed."),
     ),
     "transfer_confirmed": (
-        "Transfer confirmed",
-        "Your bank transfer of {amount} was confirmed.",
+        gettext_noop("Transfer confirmed"),
+        gettext_noop("Your bank transfer of {amount} was confirmed."),
     ),
     "transfer_rejected": (
-        "Transfer rejected",
-        "Your bank transfer of {amount} was rejected. Reason: {reason}",
+        gettext_noop("Transfer rejected"),
+        gettext_noop("Your bank transfer of {amount} was rejected. Reason: {reason}"),
     ),
     "tournament_reminder": (
-        "Tournament reminder",
-        "The tournament {tournament} starts tomorrow.",
+        gettext_noop("Tournament reminder"),
+        gettext_noop("The tournament {tournament} starts tomorrow."),
     ),
     "tournament_confirmed": (
-        "Tournament registration confirmed",
-        "You are registered for {tournament}.",
+        gettext_noop("Tournament registration confirmed"),
+        gettext_noop("You are registered for {tournament}."),
     ),
     "tournament_registered": (
-        "Tournament registration",
-        "Your registration for {tournament} has been received.",
+        gettext_noop("Tournament registration"),
+        gettext_noop("Your registration for {tournament} has been received."),
     ),
     "news_published": (
-        "New announcement",
-        "{title}",
+        gettext_noop("New announcement"),
+        gettext_noop("{title}"),
     ),
     "event_published": (
-        "New event",
-        "{title}",
+        gettext_noop("New event"),
+        gettext_noop("{title}"),
     ),
     "event_registered": (
-        "Inscripcion confirmada",
-        "Te apuntaste a: {title}",
+        gettext_noop("Inscripcion confirmada"),
+        gettext_noop("Te apuntaste a: {title}"),
     ),
     "admin_booking_created": (
-        "Nueva reserva",
-        "Nueva reserva de {user}: {court} el {date} a las {time} ({duration} min).",
+        gettext_noop("Nueva reserva"),
+        gettext_noop("Nueva reserva de {user}: {court} el {date} a las {time} ({duration} min)."),
     ),
     "admin_cash_booking": (
-        "Reserva pago en el establecimiento",
-        "{user} reservó {court} el {date} a las {time} y pagará en el establecimiento.",
+        gettext_noop("Reserva pago en el establecimiento"),
+        gettext_noop("{user} reservó {court} el {date} a las {time} y pagará en el establecimiento."),
     ),
     "open_match_created": (
-        "Nuevo partido en tu categoría",
-        "{title}",
+        gettext_noop("Nuevo partido en tu categoría"),
+        gettext_noop("{title}"),
     ),
 }
 
