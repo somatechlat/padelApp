@@ -79,6 +79,13 @@
                               background: var(--card-bg); color: var(--text-primary); font-size: 12px; width: 140px;">
                 <button type="submit" class="btn btn-sm btn-danger">Rechazar</button>
               </form>
+            {% elif p.method == 'cash' and p.status == 'pending' %}
+              <form method="post" style="margin: 0;">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="collect_cash">
+                <input type="hidden" name="payment_id" value="{{ p.id }}">
+                <button type="submit" class="btn btn-sm">Cobrar efectivo</button>
+              </form>
             {% elif p.rejection_reason %}
               <span style="color: var(--accent-red); font-size: 12px;">Rechazado: {{ p.rejection_reason }}</span>
             {% elif p.status == 'confirmed' or p.status == 'captured' %}

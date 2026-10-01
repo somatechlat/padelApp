@@ -163,11 +163,29 @@ class PaymentService:
             "Payment",
             payment.id,
         )
-        NotificationService.notify(
-            booking.user,
-            "payment_success",
-            data={"amount": f"${amount}", "payment_id": payment.id},
-        )
+        # Tell the player which thing actually happened. Paying at the venue
+        # is not a payment yet — only a recorded cash payment is.
+        if on_arrival:
+            from apps.common.timefmt import fmt_date, fmt_time
+
+            NotificationService.notify(
+                booking.user,
+                "payment_cash_on_arrival",
+                data={
+                    "amount": f"${amount}",
+                    "court": booking.court.name,
+                    "date": fmt_date(booking.date),
+                    "time": fmt_time(booking.start_time),
+                    "payment_id": payment.id,
+                    "booking_id": booking.id,
+                },
+            )
+        else:
+            NotificationService.notify(
+                booking.user,
+                "payment_cash_collected",
+                data={"amount": f"${amount}", "payment_id": payment.id},
+            )
         if on_arrival:
             from apps.notifications.tasks import notify_admins_task
 
@@ -182,6 +200,40 @@ class PaymentService:
                     "booking_id": booking.id,
                 },
             )
+        return payment
+
+    @staticmethod
+    def collect_cash(payment):
+        """Staff collected the cash for a 'Pago en el establecimiento' booking.
+
+        The client's booking is only really confirmed once this happens, so
+        the money and the notification both move here — not at booking time.
+        """
+        if payment.method != Payment.Method.CASH:
+            raise ValueError(gettext("Solo se puede cobrar en efectivo"))
+        if payment.status != Payment.Status.PENDING:
+            raise ValueError(gettext("Este pago ya fue registrado"))
+        with transaction.atomic():
+            payment.status = Payment.Status.CAPTURED
+            payment.save(update_fields=["status", "updated_at"])
+            if payment.booking and payment.booking.status != "confirmed":
+                payment.booking.transition_to("confirmed")
+        from apps.security.services import log_event
+
+        log_event(payment.user, "payment.cash_collected", "Payment", payment.id)
+        from apps.common.timefmt import fmt_date, fmt_time
+
+        NotificationService.notify(
+            payment.user,
+            "payment_cash_collected",
+            data={
+                "amount": f"${payment.amount}",
+                "court": payment.booking.court.name if payment.booking else "",
+                "date": fmt_date(payment.booking.date) if payment.booking else "",
+                "time": fmt_time(payment.booking.start_time) if payment.booking else "",
+                "payment_id": payment.id,
+            },
+        )
         return payment
 
     @staticmethod

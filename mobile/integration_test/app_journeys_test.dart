@@ -57,23 +57,33 @@ void main() {
     }
 
     app.main();
+    await tester.pump(const Duration(seconds: 4));
     await tester.pumpAndSettle(const Duration(seconds: 3));
-    await snap(tester, '01-login');
 
-    await tester.enterText(find.byType(TextField).first, email);
-    await tester.enterText(find.byType(TextField).last, password);
-    await snap(tester, '02-login-filled');
+    // A previous run may have left a session in secure storage, in which case
+    // we land straight on the shell and there is no login form to fill. Only
+    // drive the form when it is actually on screen.
+    final hasForm = find.byType(TextField).evaluate().isNotEmpty;
+    final onShellAlready = find.byType(NavigationBar).evaluate().isNotEmpty;
+    // ignore: avoid_print
+    print('STATE hasForm=$hasForm onShell=$onShellAlready');
 
-    final filled = find.widgetWithText(FilledButton, 'Entrar');
-    final elevated = find.widgetWithText(ElevatedButton, 'Entrar');
-    final target = filled.evaluate().isNotEmpty ? filled : elevated;
-    await tester.ensureVisible(target);
-    await tester.pumpAndSettle(const Duration(seconds: 1));
-    await tester.tap(target, warnIfMissed: false);
-    await tester.pump(const Duration(seconds: 12));
-    await tester.pumpAndSettle(const Duration(seconds: 4));
+    if (hasForm && !onShellAlready) {
+      await snap(tester, '01-login');
+      await tester.enterText(find.byType(TextField).at(0), email);
+      await tester.enterText(find.byType(TextField).at(1), password);
+      await snap(tester, '02-login-filled');
 
-    await snap(tester, '03-after-login');
+      final filled = find.widgetWithText(FilledButton, 'Entrar');
+      final elevated = find.widgetWithText(ElevatedButton, 'Entrar');
+      final target = filled.evaluate().isNotEmpty ? filled : elevated;
+      await tester.ensureVisible(target);
+      await tester.pumpAndSettle(const Duration(seconds: 1));
+      await tester.tap(target, warnIfMissed: false);
+      await tester.pump(const Duration(seconds: 12));
+      await tester.pumpAndSettle(const Duration(seconds: 4));
+      await snap(tester, '03-after-login');
+    }
 
     final texts = find.byType(Text).evaluate().map((e) {
       final w = e.widget as Text;
@@ -82,10 +92,8 @@ void main() {
     // ignore: avoid_print
     print('SCREEN_TEXTS(${texts.length}): ${texts.take(30).join(' | ')}');
 
-    final onShell = find.byType(NavigationBar).evaluate().isNotEmpty;
-    expect(onShell, isTrue,
-        reason: 'login did not reach the app shell (see 03-after-login.png)');
-
+    expect(find.byType(NavigationBar).evaluate().isNotEmpty, isTrue,
+        reason: 'app shell not reached — still on auth (see screenshots)');
     await snap(tester, '03-home');
 
     const tabs = [

@@ -54,6 +54,19 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
             return
         messages.warning(request, f"Transferencia rechazada para pago #{payment.id}.")
 
+    def _action_collect_cash(self, request):
+        # "Pago en el establecimiento": the player pays at the counter and
+        # staff marks it collected here. That is what turns the reservation
+        # from pending into booked and tells the player it is settled.
+        require_roles(request, STAFF_ROLES)
+        payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))
+        try:
+            PaymentService.collect_cash(payment)
+        except ValueError as exc:
+            messages.error(request, str(exc))
+            return
+        messages.success(request, f"Efectivo cobrado para pago #{payment.id}.")
+
     def _action_refund(self, request):
         require_roles(request, FINANCIAL_ROLES)
         payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))

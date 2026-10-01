@@ -19,6 +19,8 @@ TRANSACTIONAL_EVENTS = {
     "booking_modified",
     "no_show_penalty",
     "payment_success",
+    "payment_cash_on_arrival",
+    "payment_cash_collected",
     "payment_failed",
     "payment_refunded",
     "transfer_confirmed",
@@ -67,6 +69,22 @@ MESSAGE_TEMPLATES = {
     "payment_success": (
         gettext_noop("Payment received"),
         gettext_noop("We received your payment of {amount}."),
+    ),
+    # "Pago en el establecimiento": the money has NOT changed hands yet. The
+    # booking is confirmed and the player pays cash at the court, where staff
+    # marks it collected. Sending payment_success here told people their money
+    # had been received when it had not.
+    "payment_cash_on_arrival": (
+        gettext_noop("Pay at the venue"),
+        gettext_noop(
+            "Your booking for {court} on {date} at {time} is confirmed. "
+            "You chose to pay {amount} at the club — pay at the counter and "
+            "staff will mark your reservation as paid."
+        ),
+    ),
+    "payment_cash_collected": (
+        gettext_noop("Payment received"),
+        gettext_noop("We received your cash payment of {amount} at the club. Thank you!"),
     ),
     "payment_failed": (
         gettext_noop("Payment failed"),
