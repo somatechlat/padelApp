@@ -35,9 +35,16 @@ CSRF_TRUSTED_ORIGINS = PROD_ORIGINS
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
 EMAIL_HOST = secrets.EMAIL_HOST
 EMAIL_PORT = secrets.EMAIL_PORT
-EMAIL_USE_TLS = True
+# Port 465 is implicit TLS (SMTPS) and speaks no STARTTLS upgrade; port 587 is
+# plaintext that upgrades via STARTTLS. Hardcoding EMAIL_USE_TLS made 465
+# fail with "Connection unexpectedly closed", and the other way round would
+# break 587. Derive the mode from the port the operator configured.
+EMAIL_USE_SSL = EMAIL_PORT == 465
+EMAIL_USE_TLS = EMAIL_PORT == 587
 EMAIL_HOST_USER = secrets.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secrets.EMAIL_HOST_PASSWORD
+EMAIL_TIMEOUT = 30
+DEFAULT_FROM_EMAIL = getattr(secrets, "EMAIL_FROM", EMAIL_HOST_USER)
 
 # --- Fail-fast secret check (constraint C2/C3, NFR-0008) --------------------
 validate_production_secrets(
