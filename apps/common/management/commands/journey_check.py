@@ -22,6 +22,21 @@ from django.utils import timezone
 from apps.verification.models import VerificationCode
 
 
+def _make_png():
+    """Return a real, Pillow-generated PNG.
+
+    Hand-assembled PNG bytes get a bad IDAT checksum and PIL rejects them,
+    which is not the journey we mean to test.
+    """
+    import io
+
+    from PIL import Image
+
+    buf = io.BytesIO()
+    Image.new("RGB", (8, 8), (0, 47, 72)).save(buf, format="PNG")
+    return buf.getvalue()
+
+
 class _Reporter:
     def __init__(self, stdout):
         self.stdout = stdout
@@ -279,17 +294,12 @@ class Command(BaseCommand):
         # Upload the receipt — the journey the app's transfer-proof screen runs.
         # The endpoint reads request.FILES["proof_image"] and only accepts
         # JPEG/PNG, so this sends a real PNG file part rather than a string.
-        png_1x1 = (
-            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
-            b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00"
-            b"\x00\x0cIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01"
-            b"\x00\x05\xfe\xd4\xef\x00\x00\x00\x00IEND\xaeB`\x82"
-        )
+        png = _make_png()
         status, data = self.call(
             "POST",
             f"/api/payments/{payment_id}/upload-proof/",
             token=self.token,
-            form={"proof_image": ("comprobante.png", png_1x1, "image/png")},
+            form={"proof_image": ("comprobante.png", png, "image/png")},
         )
         self.rep.check(
             "upload transfer proof",

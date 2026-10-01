@@ -81,6 +81,21 @@ class PaymentProofUploadView(APIView):
                 {"detail": _("El archivo excede 5 MB")},
                 status=status.HTTP_400_BAD_REQUEST,
             )
+        # The declared Content-Type is attacker-controlled and a file can be
+        # truncated or corrupt. Django's ImageField re-decodes it on save and
+        # raises, which surfaced as a 500. Decode here so the client gets a
+        # 400 it can act on instead.
+        try:
+            from PIL import Image
+
+            with Image.open(proof) as img:
+                img.verify()
+            proof.seek(0)
+        except Exception:
+            return Response(
+                {"detail": _("La imagen del comprobante no es valida")},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
         payment.proof_image = proof
         payment.save(update_fields=["proof_image", "updated_at"])
         return Response(PaymentSerializer(payment).data, status=status.HTTP_200_OK)
