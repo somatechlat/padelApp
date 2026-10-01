@@ -195,10 +195,11 @@ class Command(BaseCommand):
                 "GET", f"/api/courts/{court_id}/availability/?date={self.day}", token=self.token
             )
             slots = data if isinstance(data, list) else data.get("results", [])
+            self.free_slots = [s["start"][:5] for s in slots if s.get("status") == "available"]
             self.rep.check(
                 "court availability returns slots",
-                status == 200 and len(slots) > 0,
-                f"{len(slots)} slots on {self.day}",
+                status == 200 and len(self.free_slots) > 0,
+                f"{len(self.free_slots)} free slots on {self.day}",
             )
 
         status, data = self.call("GET", "/api/club/", token=self.token)
@@ -212,6 +213,14 @@ class Command(BaseCommand):
         if not self.token or not getattr(self, "courts", None):
             self.rep.check("booking", False, "no courts")
             return
+        if not getattr(self, "free_slots", None):
+            self.rep.check("create booking", False, "no free slots to book")
+            return
+
+        # Take the first slot the API says is available — the same thing the
+        # booking wizard does. Hardcoding a time re-books a taken slot and the
+        # API correctly answers 409.
+        start = self.free_slots[0]
         court_id = self.courts[0]["id"]
         status, data = self.call(
             "POST",
@@ -220,13 +229,13 @@ class Command(BaseCommand):
             body={
                 "court": court_id,
                 "date": self.day,
-                "start_time": "18:00",
+                "start_time": start,
                 "duration_minutes": 60,
                 "players": 4,
             },
         )
         ok = status in (200, 201)
-        self.rep.check("create booking", ok, f"http {status} {data if not ok else ''}")
+        self.rep.check("create booking", ok, f"http {status} at {start} {data if not ok else ''}")
         if not ok:
             return
         self.booking = data
