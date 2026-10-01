@@ -37,6 +37,11 @@ services:
     networks:
       - padel-net
 
+    # `.:/app` lives in the dev/test overlays, NOT here. Mounting the host
+    # source over /app shadows the code baked into the image, and the host
+    # checkout is owned by the deploying uid while the image runs as `appuser`
+    # — so beat cannot even write celerybeat-schedule. Prod must run the image.
+
   backend:
     image: ${BACKEND_IMAGE:-andespadel-backend:dev}
     build:
@@ -48,7 +53,6 @@ services:
              python manage.py runserver 0.0.0.0:8000"
     restart: unless-stopped
     volumes:
-      - .:/app
       - ./docker/backend:/app/runsecrets:ro
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
@@ -72,7 +76,6 @@ services:
     command: celery -A padel worker -l info --concurrency=2
     restart: unless-stopped
     volumes:
-      - .:/app
       - ./docker/backend:/app/runsecrets:ro
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
@@ -88,7 +91,6 @@ services:
     command: celery -A padel beat -l info
     restart: unless-stopped
     volumes:
-      - .:/app
       - ./docker/backend:/app/runsecrets:ro
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}

@@ -26,18 +26,27 @@ services:
       DJANGO_SETTINGS_MODULE: padel.settings.dev
     ports:
       - "28002:8000"
+    volumes:
+      - .:/app
+      - ./docker/backend:/app/runsecrets:ro
 
   worker:
     container_name: andespadel-worker
     image: andespadel-backend:dev
     environment:
       DJANGO_SETTINGS_MODULE: padel.settings.dev
+    volumes:
+      - .:/app
+      - ./docker/backend:/app/runsecrets:ro
 
   beat:
     container_name: andespadel-beat
     image: andespadel-backend:dev
     environment:
       DJANGO_SETTINGS_MODULE: padel.settings.dev
+    volumes:
+      - .:/app
+      - ./docker/backend:/app/runsecrets:ro
 
   nginx:
     container_name: andespadel-nginx
