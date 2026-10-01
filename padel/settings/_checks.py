@@ -26,9 +26,11 @@ def validate_production_host(domain):
     Operators paste what the browser shows — ``https://www.example.com/`` — so
     accept that shape rather than making them guess. Strip the scheme, any
     ``www.`` prefix, a port and a path, and return the bare apex. Deriving
-    ``ALLOWED_HOSTS`` as ``[apex, f"www.{apex}"]`` then cannot produce
-    ``www.www.…``, which is what happens if a www-prefixed value is stored
-    as-is and re-prefixed at the call site.
+    ``ALLOWED_HOSTS`` as ``[apex, f"www.{apex}", f"app.{apex}"]`` then cannot
+    produce ``www.www.…``, which is what happens if a www-prefixed value is
+    stored as-is and re-prefixed at the call site. An ``app.`` prefix is
+    deliberately NOT stripped: that is the live app-facing name and must be
+    kept verbatim.
 
     The value still has to be supplied in docker/backend/secrets.py (via runsecrets) — nothing in the
     tree carries a default, so a deploy cannot silently bind to a name someone
@@ -55,6 +57,23 @@ def validate_production_host(domain):
             f"(got {domain!r})."
         )
     return value
+
+
+def derive_prod_hosts(domain):
+    """Return the full production allowlist for a validated apex.
+
+    Apex + www + app. The mobile apps and the staff panel are served from the
+    ``app.`` host; the apex and www live on a different machine and still need
+    to be a legal Host/Origin so a stray request cannot 400 and so CORS/CSRF
+    cover the origin the apps actually call.
+
+    Pure function so the allowlist shape is testable without importing
+    ``padel.settings.prod`` — that module refuses to import without real
+    production secrets, which is intentional and must not be relaxed for a
+    unit test.
+    """
+    apex = validate_production_host(domain)
+    return [apex, f"www.{apex}", f"app.{apex}"]
 
 
 def validate_localprod_secrets(values):

@@ -9,12 +9,12 @@ DEBUG = False
 # Production hostname comes from settings/secrets.py (PROD_DOMAIN). The old
 # host and domains are retired and deliberately not present in this tree —
 # see validate_production_host() for why this is not hard-coded.
-from padel.settings._checks import validate_production_host  # noqa: E402
+from padel.settings._checks import derive_prod_hosts, validate_production_host  # noqa: E402
 
-# Stored as the bare apex so the www form can be derived once, here.
+# Stored as the bare apex so the www/app forms can be derived once, here.
 PROD_DOMAIN = validate_production_host(getattr(secrets, "PROD_DOMAIN", ""))
-ALLOWED_HOSTS = [PROD_DOMAIN, f"www.{PROD_DOMAIN}"]
-PROD_ORIGINS = [f"https://{PROD_DOMAIN}", f"https://www.{PROD_DOMAIN}"]
+ALLOWED_HOSTS = derive_prod_hosts(PROD_DOMAIN)
+PROD_ORIGINS = [f"https://{host}" for host in ALLOWED_HOSTS]
 
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = True
