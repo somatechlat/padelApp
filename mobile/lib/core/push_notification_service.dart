@@ -127,7 +127,9 @@ class PushNotificationService {
       return;
     }
     try {
-      final token = await FirebaseMessaging.instance.getToken();
+      final token = await FirebaseMessaging.instance
+          .getToken()
+          .timeout(const Duration(seconds: 20));
       if (token != null && token.isNotEmpty) {
         await _api.post('/auth/me/devices/', data: {
           'platform': Platform.isIOS ? 'ios' : 'android',

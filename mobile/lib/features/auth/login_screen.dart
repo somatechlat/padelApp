@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
@@ -31,6 +33,18 @@ class _LoginScreenState extends State<LoginScreen> {
     super.dispose();
   }
 
+
+  Future<void> _registerPushSafely(PushNotificationService pushService) async {
+    try {
+      await pushService
+          .registerToken()
+          .timeout(const Duration(seconds: 20));
+    } catch (_) {
+      // Push is best-effort: a missing or slow token must not surface to the
+      // user or block anything. The app works with notifications disabled.
+    }
+  }
+
   void _toast(String message) {
     ScaffoldMessenger.of(context)
         .showSnackBar(SnackBar(content: Text(message)));
@@ -54,10 +68,12 @@ class _LoginScreenState extends State<LoginScreen> {
     await auth.login(_email.text.trim(), _password.text);
     if (!mounted) return;
     if (auth.authenticated) {
-      try {
-        await pushService.registerToken();
-      } catch (_) {}
+      // Navigate first. Registering the FCM token is a network call to
+      // Firebase that can hang (it waits on APNs), and awaiting it here left
+      // the user on a blank screen after tapping Entrar. Push is an optional
+      // channel — it must never gate entry to the app.
       nav.pushNamedAndRemoveUntil('/shell', (route) => false);
+      unawaited(_registerPushSafely(pushService));
       return;
     }
     // Wrong password / locked / unverified — always a specific message.
