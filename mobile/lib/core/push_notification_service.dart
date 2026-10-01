@@ -7,12 +7,13 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 
 import '../core/api_client.dart';
+import '../firebase_options.dart';
 
-// Firebase config (google-services.json / GoogleService-Info.plist /
-// firebase_options.dart) is supplied out-of-band and is gitignored on purpose.
-// This service therefore does NOT import firebase_options.dart: when Firebase
-// is not configured, push is disabled at runtime and every method is a no-op,
-// so a fresh clone still compiles and runs.
+// Firebase is configured from the real project (andespadel-21f1e) via
+// firebase_options.dart, plus the native google-services.json /
+// GoogleService-Info.plist. All three are gitignored because they are
+// project credentials supplied out-of-band; run `flutterfire configure` on a
+// fresh clone to regenerate them.
 
 /// Handles Firebase Cloud Messaging (FCM) push notifications.
 ///
@@ -51,44 +52,32 @@ class PushNotificationService {
 
   /// Initialize Firebase, request permissions, and set up message handlers.
   /// Call this once at app startup (before runApp or in main).
-  ///
-  /// Safe to call when Firebase config is absent: logs that push is disabled
-  /// and returns without throwing.
   Future<void> initialize() async {
-    // Native config (google-services.json via the Gradle plugin, or
-    // GoogleService-Info.plist) is enough when present. firebase_options.dart
-    // is intentionally not imported — it is gitignored and must not be
-    // required for the tree to compile. If Firebase is not configured,
-    // initializeApp throws and we leave push disabled.
+    // Explicit options from firebase_options.dart (project andespadel-21f1e).
+    // A bare initializeApp() relies on the native plist being discovered and
+    // logged "No app has been configured yet" before FCM came up; passing the
+    // options makes init deterministic on both platforms.
     try {
-      await Firebase.initializeApp();
+      await Firebase.initializeApp(
+        options: DefaultFirebaseOptions.currentPlatform,
+      );
       _firebaseReady = true;
+      debugPrint('Firebase initialised (push enabled)');
     } catch (e) {
       _firebaseReady = false;
-      debugPrint(
-          'Push notifications disabled (Firebase not configured, config is supplied out-of-band and gitignored): $e');
+      debugPrint('Push notifications disabled (Firebase init failed): $e');
       return;
     }
 
-    // Request permission (iOS required, Android auto-grants)
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-      provisional: false,
-    );
-    if (settings.authorizationStatus == AuthorizationStatus.denied) {
-      debugPrint('Push notifications permission denied');
-      return;
-    }
-
-    // Create Android notification channel
+    // Create the Android channel and wire the foreground/notification-tap
+    // handlers BEFORE the permission prompt. Registering handlers is what makes
+    // delivery work; it must not be skipped if the user is slow to answer the
+    // system permission sheet (or if it is denied).
     await _localNotifications
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(_channel);
 
-    // Initialize local notifications for foreground display
     const androidSettings =
         AndroidInitializationSettings('@mipmap/ic_launcher');
     const iosSettings = DarwinInitializationSettings(
@@ -103,13 +92,26 @@ class PushNotificationService {
       ),
     );
 
-    // Handle foreground messages
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // Handle notification tap when app is in background/terminated
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    // Check if app was opened from a notification
+    // Request permission last (iOS shows a system sheet; Android auto-grants).
+    // Do not return early on denial — handlers above stay registered so a later
+    // grant in Settings starts delivering without an app restart.
+    try {
+      final settings = await FirebaseMessaging.instance.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+        provisional: false,
+      );
+      debugPrint(
+          'Push permission status: ${settings.authorizationStatus.name}');
+    } catch (e) {
+      debugPrint('Push permission request failed: $e');
+    }
+
+    // If the app was opened from a notification, navigate now.
     final initialMessage = await FirebaseMessaging.instance.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage);

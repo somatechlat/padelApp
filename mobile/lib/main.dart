@@ -42,7 +42,11 @@ Future<void> _initBackground(
     debugPrint('Locale load failed: $e');
   }
   try {
-    await pushService.initialize().timeout(const Duration(seconds: 10));
+    // Firebase.initializeApp + notification permission can legitimately take
+    // longer than 10s on first launch (the system permission sheet). A short
+    // timeout here was aborting channel/handler setup after init had already
+    // succeeded. Keep a generous ceiling so the chain always finishes.
+    await pushService.initialize().timeout(const Duration(seconds: 60));
   } catch (e) {
     debugPrint('Push notification init failed: $e');
   }
