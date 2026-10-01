@@ -82,11 +82,24 @@ class Command(BaseCommand):
             boundary = "----journeyform"
             parts = []
             for key, value in form.items():
-                parts.append(f"--{boundary}\r\n".encode())
-                parts.append(
-                    f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode()
-                )
-                parts.append(str(value).encode() + b"\r\n")
+                if isinstance(value, tuple):
+                    filename, content, ctype = value
+                    parts.append(f"--{boundary}\r\n".encode())
+                    parts.append(
+                        (
+                            f'Content-Disposition: form-data; name="{key}"; '
+                            f'filename="{filename}"\r\n'
+                        ).encode()
+                    )
+                    parts.append(f"Content-Type: {ctype}\r\n\r\n".encode())
+                    parts.append(content)
+                    parts.append(b"\r\n")
+                else:
+                    parts.append(f"--{boundary}\r\n".encode())
+                    parts.append(
+                        f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode()
+                    )
+                    parts.append(str(value).encode() + b"\r\n")
             parts.append(f"--{boundary}--\r\n".encode())
             data = b"".join(parts)
             headers["Content-Type"] = f"multipart/form-data; boundary={boundary}"
@@ -264,11 +277,19 @@ class Command(BaseCommand):
                        f"status={pay.get('status')}")
 
         # Upload the receipt — the journey the app's transfer-proof screen runs.
+        # The endpoint reads request.FILES["proof_image"] and only accepts
+        # JPEG/PNG, so this sends a real PNG file part rather than a string.
+        png_1x1 = (
+            b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR\x00\x00\x00\x01"
+            b"\x00\x00\x00\x01\x08\x02\x00\x00\x00\x90wS\xde\x00\x00"
+            b"\x00\x0cIDATx\x9cc\xf8\xcf\xc0\x00\x00\x00\x03\x00\x01"
+            b"\x00\x05\xfe\xd4\xef\x00\x00\x00\x00IEND\xaeB`\x82"
+        )
         status, data = self.call(
             "POST",
             f"/api/payments/{payment_id}/upload-proof/",
             token=self.token,
-            form={"file": "comprobante"},
+            form={"proof_image": ("comprobante.png", png_1x1, "image/png")},
         )
         self.rep.check(
             "upload transfer proof",
