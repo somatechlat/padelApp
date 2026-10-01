@@ -4,9 +4,12 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PYTHONDONTWRITEBYTECODE=1
 
+# gosu lets the entrypoint chown the runtime volumes as root and then exec the
+# real command as appuser, so the app itself never runs privileged.
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends gettext \
-    && rm -rf /var/lib/apt/lists/*
+    && apt-get install -y --no-install-recommends gettext gosu \
+    && rm -rf /var/lib/apt/lists/* \
+    && gosu nobody true
 
 WORKDIR /app
 
@@ -15,9 +18,14 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 
 COPY . .
 
-RUN useradd -m appuser && chown -R appuser:appuser /app
-USER appuser
+RUN useradd -m appuser \
+    && chown -R appuser:appuser /app \
+    && chmod +x /app/docker/entrypoint.prod.sh
+
+# Root only for the entrypoint; it drops to appuser before exec.
+USER root
 
 EXPOSE 8000
 
+ENTRYPOINT ["/app/docker/entrypoint.prod.sh"]
 CMD ["gunicorn", "padel.wsgi:application", "--bind", "0.0.0.0:8000", "--workers", "3"]
