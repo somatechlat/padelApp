@@ -236,10 +236,36 @@ class Command(BaseCommand):
             self.rep.check("booking payment", False, "no booking id in response")
             return
 
+        # Bank transfer is the club's manual method: the customer pays and
+        # uploads a receipt, then reception confirms it. BookingPaymentView is
+        # POST-only — GET is 405 by design.
         status, pay = self.call(
-            "GET", f"/api/bookings/{booking_id}/payments/", token=self.token
+            "POST",
+            f"/api/bookings/{booking_id}/payments/",
+            token=self.token,
+            body={"method": "transfer", "reference": "JRN" + self.email.split("@")[0].split("_")[-1]},
         )
-        self.rep.check("booking payments endpoint", status in (200, 201), f"http {status}")
+        ok = status == 201
+        self.rep.check("create transfer payment", ok, f"http {status} {pay if not ok else ''}")
+        if not ok:
+            return
+
+        payment_id = pay.get("id")
+        self.rep.check("transfer payment pending", pay.get("status") == "pending_transfer",
+                       f"status={pay.get('status')}")
+
+        # Upload the receipt — the journey the app's transfer-proof screen runs.
+        status, data = self.call(
+            "POST",
+            f"/api/payments/{payment_id}/upload-proof/",
+            token=self.token,
+            form={"file": "comprobante"},
+        )
+        self.rep.check(
+            "upload transfer proof",
+            status in (200, 201),
+            f"http {status} {data if status not in (200, 201) else ''!s}",
+        )
 
     def journey_events(self):
         if not self.token:
