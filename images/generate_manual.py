@@ -253,17 +253,28 @@ add_table(
     ["Rol", "Acceso Panel", "Acceso Django Admin", "Descripción"],
     [
         ["superadmin", "Completo", "Completo", "Acceso total a todos los módulos y configuración"],
-        ["dueño", "Completo", "Completo (excepto finanzas edit)", "Propietario, acceso amplio"],
-        ["gerente", "Completo", "CRUD no-financiero, vista financiero", "Gestión operativa diaria"],
-        ["recepcionista", "Completo", "Solo lectura/edición no-financiero", "Atención al cliente, reservas"],
+        ["dueno", "Completo", "Completo (excepto finanzas edit)", "Propietario, acceso amplio"],
+        ["gerente", "Operativo + reportes de reservas", "CRUD no-financiero, vista financiero", "Gestión operativa diaria"],
+        ["recepcionista", "Operativo (reservas, caja, eventos)", "Solo lectura/edición no-financiero", "Atención al cliente, reservas"],
         ["cliente", "Sin acceso", "Sin acceso", "Solo app móvil"],
     ],
 )
 
 doc.add_paragraph()
 doc.add_paragraph(
-    "Nota: Los permisos financieros (Payment, CancellationPolicy) están restringidos "
-    "a superadmin y dueño. El gerente puede ver pero no editar estos módulos."
+    "Jerarquía: cliente < recepcionista < gerente < dueno < superadmin. "
+    "Nadie puede asignar un rol superior al propio, y el último superadmin "
+    "no puede ser degradado (quedaría el panel bloqueado)."
+)
+
+doc.add_paragraph()
+doc.add_paragraph(
+    "Nota: el dinero está restringido por diseño. Reembolsar y ver ingresos "
+    "corresponde solo a dueno y superadmin (FINANCIAL_ROLES). El gerente ve "
+    "únicamente los conteos de reservas; en ingresos y top de clientes el "
+    "panel muestra \"Restringido\". El recepcionista no ve reportes. "
+    "Confirmar o rechazar una transferencia y cobrar efectivo sí es trabajo "
+    "de recepción: es reversible y no mueve dinero."
 )
 
 add_screenshot("03_admin_login", "Figura 1: Pantalla de inicio de sesión del panel")
@@ -733,13 +744,33 @@ add_bullet("Acciones (botones según estado)")
 
 doc.add_heading("Acciones por estado:", level=3)
 add_table(
-    ["Estado", "Acciones Disponibles"],
+    ["Estado", "Acciones Disponibles", "Roles"],
     [
-        ["pending_transfer", "Aprobar (confirm_transfer), Ver comprobante, Rechazar (con motivo)"],
-        ["confirmed / captured", "Reembolsar (refund, con confirmación JS)"],
-        ["rejected", "Mostrar motivo de rechazo"],
-        ["Otros", "Sin acciones disponibles"],
+        ["pending_transfer", "Aprobar (confirm_transfer), Ver comprobante, Rechazar (con motivo)", "recepcionista+"],
+        ["pending_cash", "Cobrar efectivo (collect_cash) — marca la reserva como pagada", "recepcionista+"],
+        ["confirmed / captured", "Reembolsar (refund, con confirmación JS)", "dueno / superadmin"],
+        ["rejected", "Mostrar motivo de rechazo", "—"],
+        ["Otros", "Sin acciones disponibles", "—"],
     ],
+)
+
+doc.add_paragraph()
+doc.add_paragraph(
+    "Confirmar, rechazar y cobrar efectivo están en STAFF_ROLES porque son "
+    "trabajo de mostrador: la recepción verifica el comprobante o cobra en "
+    "efectivo y necesita poder actuar sin esperar a un gerente. Son "
+    "reversibles y no mueven dinero. Reembolsar sí mueve dinero y está "
+    "restringido a FINANCIAL_ROLES (dueno, superadmin); el botón devuelve "
+    "403 a cualquier otro rol."
+)
+
+doc.add_paragraph()
+doc.add_paragraph(
+    "Efectivo (\"Pago en el establecimiento\"): el jugador paga en el club. "
+    "Hasta que recepción pulsa \"Cobrar efectivo\", la reserva sigue pendiente "
+    "y la app le avisa de que debe pagar en el mostrador. Al cobrarla, la "
+    "reserva pasa a confirmada y la app le confirma el pago. Un mismo pago "
+    "no puede cobrarse dos veces."
 )
 
 add_screenshot("20_custom_admin_payments", "Figura 17: Gestión de pagos y transferencias")
@@ -782,18 +813,28 @@ doc.add_paragraph(
     "generar métricas y exportaciones."
 )
 
-doc.add_heading("KPI Principal:", level=3)
+doc.add_heading("KPI Principal (solo dueno / superadmin):", level=3)
 add_bullet("Ingresos Mensuales Acumulados — Total de pagos confirmados en el mes actual ($)")
 
 doc.add_heading("Reportes disponibles:", level=3)
-add_bullet("Reservas por Estado — Distribución de reservas según su estado (count)")
-add_bullet("Ingresos por Cancha — Desglose de ingresos por cada cancha (total $)")
-add_bullet("Top 10 Clientes Frecuentes — Los 10 usuarios con más reservas (email, nombre, count)")
+add_bullet("Reservas por Estado — Distribución de reservas según su estado (count) — visible para gerente+")
+add_bullet("Ingresos por Cancha — Desglose de ingresos por cada cancha (total $) — solo dueno / superadmin")
+add_bullet("Top 10 Clientes Frecuentes — Los 10 usuarios con más reservas (email, nombre, count) — solo dueno / superadmin")
 
-doc.add_heading("Exportar CSV:", level=3)
+doc.add_paragraph()
+doc.add_paragraph(
+    "El resto del panel de reportes está deliberadamente restringido. Un "
+    "gerente ve los conteos de reservas y, en las casillas de dinero y de "
+    "clientes, la palabra \"Restringido\". Los agregados monetarios ni siquiera "
+    "se calculan para esos roles: un error de plantilla no puede filtrarlos. "
+    "El recepcionista no tiene acceso a esta sección."
+)
+
+doc.add_heading("Exportar CSV (solo dueno / superadmin):", level=3)
 add_bullet("Botón \"Exportar CSV\" descarga un reporte completo")
 add_bullet("Formato: andes_padel_report.csv")
-add_bullet("Contenido: últimas 500 reservas con ID, Fecha, Cliente, Cancha, Precio, Estado")
+add_bullet("Contenido: últimas 500 reservas con ID, Fecha, Cliente (email), Cancha, Precio, Estado")
+add_bullet("La exportación incluye correos de clientes: por eso es solo owner (403 para otros roles)")
 
 doc.add_paragraph(
     "Métodos del ReportService:\n"

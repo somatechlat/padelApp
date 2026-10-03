@@ -98,17 +98,29 @@ class PushNotificationService {
     // Request permission last (iOS shows a system sheet; Android auto-grants).
     // Do not return early on denial — handlers above stay registered so a later
     // grant in Settings starts delivering without an app restart.
-    try {
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-      debugPrint(
-          'Push permission status: ${settings.authorizationStatus.name}');
-    } catch (e) {
-      debugPrint('Push permission request failed: $e');
+    //
+    // SKIP_PUSH_PROMPT is for automated screenshot / UI-test runs only: the
+    // iOS system sheet is not a Flutter widget, so it blocks every tap and
+    // cannot be dismissed from a test. Handlers stay registered above either
+    // way, so turning the prompt off does not disable delivery on a real
+    // install. Production builds never set this and always prompt.
+    const skipPushPrompt =
+        bool.fromEnvironment('SKIP_PUSH_PROMPT', defaultValue: false);
+    if (skipPushPrompt) {
+      debugPrint('Push permission prompt skipped (SKIP_PUSH_PROMPT)');
+    } else {
+      try {
+        final settings = await FirebaseMessaging.instance.requestPermission(
+          alert: true,
+          badge: true,
+          sound: true,
+          provisional: false,
+        );
+        debugPrint(
+            'Push permission status: ${settings.authorizationStatus.name}');
+      } catch (e) {
+        debugPrint('Push permission request failed: $e');
+      }
     }
 
     // If the app was opened from a notification, navigate now.

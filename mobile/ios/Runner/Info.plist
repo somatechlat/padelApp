@@ -24,6 +24,10 @@
 	<string>????</string>
 	<key>CFBundleVersion</key>
 	<string>$(FLUTTER_BUILD_NUMBER)</string>
+	<!-- Required for App Store Connect export compliance. We only use
+	     standard HTTPS (TLS), so no exempt encryption is involved. -->
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSAppTransportSecurity</key>
@@ -48,9 +52,9 @@
 		</dict>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>AndesPadel needs camera access to take photos of bank transfer proofs for payment verification.</string>
+	<string>Andes Padel usa la cámara para que puedas fotografiar el comprobante de tu transferencia bancaria.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>AndesPadel needs photo library access to select images of bank transfer proofs for payment verification.</string>
+	<string>Andes Padel usa tu galería para que puedas adjuntar el comprobante de tu transferencia bancaria.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>
