@@ -2,15 +2,60 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:dio/io.dart';
+import 'package:flutter/foundation.dart';
 
 import 'storage.dart';
+
+/// Where a debug build talks when nobody says otherwise: the dev compose stack.
+const String _devFallbackBaseUrl = 'http://127.0.0.1:28002/api';
+
+/// Addresses that resolve to the phone itself (or an emulator on the laptop),
+/// never to a deployed API.
+bool _isNotADeployedHost(String url) {
+  final host = Uri.tryParse(url)?.host ?? '';
+  return host.isNotEmpty &&
+      host != '127.0.0.1' &&
+      host != 'localhost' &&
+      host != '::1' &&
+      host != '10.0.2.2';
+}
+
+/// Decides the API base URL for a build, refusing to guess in release mode.
+///
+/// Split from [resolveApiBaseUrl] so the release rule can be unit tested: the
+/// test VM is never in release mode, so a guard that can only be exercised by
+/// shipping is a guard nobody exercises.
+String baseUrlFor(String configured, {required bool isRelease}) {
+  if (isRelease && !_isNotADeployedHost(configured)) {
+    throw StateError(
+      'Refusing to build a release app against "$configured". Pass '
+      '--dart-define=API_BASE_URL=https://<host>/api. A release binary must '
+      'name a real host: loopback resolves to the device itself.',
+    );
+  }
+  return configured.isEmpty ? _devFallbackBaseUrl : configured;
+}
+
+/// Resolves the API base URL for this build.
+///
+/// The previous build path defaulted to `127.0.0.1:28002` and relied on a
+/// comment telling the operator to pass `--dart-define`. That is exactly the
+/// kind of instruction that gets skipped, and the result ships an app that
+/// cannot reach any API on any real device — silent, and only visible to a user
+/// who installed it. A release binary must name a real host, so a missing or
+/// loopback value is an error instead.
+String resolveApiBaseUrl(String? override) => baseUrlFor(
+      override ?? const String.fromEnvironment('API_BASE_URL', defaultValue: ''),
+      isRelease: kReleaseMode,
+    );
 
 /// Thin wrapper around [Dio] for the Andes Padel REST API.
 ///
 /// Adds the JWT `Authorization` header on every request and transparently
 /// refreshes the access token (single retry) when the API answers 401.
 /// The [baseUrl] can be overridden at build time with
-/// `--dart-define=API_BASE_URL=...` (defaults to the Android emulator host).
+/// `--dart-define=API_BASE_URL=...`; release builds require a real host, see
+/// [resolveApiBaseUrl].
 class ApiClient {
   ApiClient(
       {required TokenStorage storage,
@@ -20,13 +65,7 @@ class ApiClient {
       : _storage = storage,
         _languageCode = languageCode,
         _dio = dio ?? Dio() {
-    _dio.options.baseUrl = baseUrl ??
-        const String.fromEnvironment(
-          'API_BASE_URL',
-          // Debug/simulator defaults to the local andespadel Docker cluster.
-          // Release builds must pass --dart-define=API_BASE_URL=...
-          defaultValue: 'http://127.0.0.1:28002/api',
-        );
+    _dio.options.baseUrl = resolveApiBaseUrl(baseUrl);
     _dio.options.headers['Accept'] = 'application/json';
     // 10s was too tight: iOS stalls on this host's happy-eyeballs/IPv6 path
     // and mobile networks routinely need longer for the TLS handshake.

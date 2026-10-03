@@ -62,7 +62,21 @@ android {
 
     buildTypes {
         release {
-            signingConfig = keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            // Fail closed. Previously this was
+            //   keystorePropertiesFile.exists() ? signingConfigs.release : signingConfigs.debug
+            // which meant a CI box or fresh clone without key.properties still
+            // produced a signed AAB — signed by the debug key, which Play will
+            // accept for the first upload and then reject forever after, because
+            // the upload key cannot be rotated. Losing it ends the listing.
+            if (!keystorePropertiesFile.exists()) {
+                throw new GradleException(
+                    "android/key.properties is missing, so there is no upload key. " +
+                    "Refusing to build a release bundle: it would be signed with the " +
+                    "debug key and could never be replaced on Google Play. " +
+                    "Create key.properties (storeFile, storePassword, keyAlias, keyPassword) " +
+                    "or run a --debug build.")
+            }
+            signingConfig = signingConfigs.release
         }
     }
 }

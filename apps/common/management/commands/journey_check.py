@@ -15,8 +15,9 @@ import json
 import urllib.error
 import urllib.request
 from datetime import timedelta
+from urllib.parse import urlsplit
 
-from django.core.management.base import BaseCommand
+from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
 from apps.verification.models import VerificationCode
@@ -63,10 +64,19 @@ class Command(BaseCommand):
     help = "Exercise every customer journey over HTTP and report pass/fail."
 
     def add_arguments(self, parser):
-        parser.add_argument("--base", default="http://127.0.0.1:8000")
+        parser.add_argument("--base", default="http://127.0.0.1:28002/api")
 
     def handle(self, *args, **options):
         self.base = options["base"].rstrip("/")
+        # The base URL is operator-supplied and every request below is built from
+        # it, so refuse anything that is not plain HTTP(S) before the first
+        # urlopen. Without this a typo'd or injected --base could point the
+        # journey runner at file:// and have it read local files.
+        scheme = urlsplit(self.base).scheme
+        if scheme not in ("http", "https"):
+            raise CommandError(
+                f"--base must be an http:// or https:// URL, got {scheme!r}"
+            )
         self.rep = _Reporter(self.stdout)
         stamp = timezone.now().strftime("%Y%m%d%H%M%S")
         self.email = f"journey_{stamp}@andespadelclub.com"
@@ -125,7 +135,7 @@ class Command(BaseCommand):
             self.base + path, data=data, headers=headers, method=method
         )
         try:
-            with urllib.request.urlopen(req, timeout=30) as resp:
+            with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310
                 raw, status = resp.read(), resp.status
         except urllib.error.HTTPError as exc:
             raw, status = exc.read(), exc.code

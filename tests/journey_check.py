@@ -40,7 +40,7 @@ def call(method, path, token=None, body=None, form=None):
         headers["Authorization"] = f"Bearer {token}"
     data = None
     if form is not None:
-        boundary = "----journey%d" % random.randint(10**6, 10**7)
+        boundary = f"----journey{random.randint(10**6, 10**7)}"
         parts = []
         for k, v in form.items():
             parts.append(f"--{boundary}\r\n".encode())
