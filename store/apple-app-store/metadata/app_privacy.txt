@@ -1,24 +1,44 @@
 APPLE APP PRIVACY — "App Privacy" questionnaire answers
-(Based on what the app actually collects. Adjust if you add analytics later.)
+Verified against the code 2026-10-03.
 
 Data Used to Track You
   → None
+     (No IDFA, no advertising SDK, no cross-app tracking.)
 
 Data Linked to Identity
   • Name                          — App Functionality, Account
   • Email Address                 — App Functionality, Account
   • Phone Number (optional)       — App Functionality, Account
-  • Other User Content (transfer proof photos) — App Functionality
-  • Purchase History / Payments   — App Functionality (via Stripe; card data never touches our servers)
+  • Other User Content (transfer-proof photos) — App Functionality
+  • Purchase History / Payments   — App Functionality
   • Identifiers (user id)         — App Functionality
 
 Data Not Linked to Identity
   • Diagnostics (crash logs)      — App Functionality
-  • Usage Data (if Firebase Analytics enabled) — Analytics
+
+NOT collected — do not tick these
+  • Usage Data / Analytics        — firebase_analytics is NOT a dependency
+  • Location                      — the address shown is the club's, not the user's
+  • Health & Fitness, Contacts, Browsing History, Search History
+  • Financial info (card numbers) — handled entirely by Stripe; never touches
+                                    our servers or the app
 
 Third-party SDKs
-  • Stripe (payments)        — Purchase History / Payment info
-  • Firebase Cloud Messaging — Push token (Identifiers), Diagnostics
-  • Firebase Analytics       — Usage Data (only if you enable it)
+  • Stripe (payments)             — Purchase History / Payment info.
+                                    Card numbers go card → Stripe; we never see them.
+  • Firebase Cloud Messaging      — push token (Identifiers), crash Diagnostics
+  • firebase_analytics            — NOT bundled. If it is added later this
+                                    questionnaire must be updated first.
 
-Data Deletion: offered in-app (Account → Erase) and by request.
+Data Sharing
+  → No. We do not sell or share personal data with third parties.
+  Photos of transfer receipts are visible only to club staff who confirm the
+  payment.
+
+Data Deletion
+  → YES, offered in-app: Perfil → Borrar cuenta (Delete account).
+    POST /api/gdpr/me/erase/ anonymizes the record and blacklists the session
+    tokens. Also available by request: info@loyallia.com
+
+Age range
+  → 4+ (sports booking; no gambling, no unrestricted UGC).

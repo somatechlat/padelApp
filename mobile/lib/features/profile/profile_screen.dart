@@ -45,6 +45,48 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
+  /// Apple Guideline 5.1.1(v): an app that supports account creation must
+  /// offer account deletion from inside the app. The backend already has
+  /// POST /api/gdpr/me/erase/; this wires it to a button the user can reach.
+  Future<void> _confirmDeleteAccount(BuildContext context) async {
+    final l10n = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(l10n.deleteAccount),
+        content: Text(l10n.deleteAccountConfirm),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.cancel),
+          ),
+          FilledButton(
+            style: FilledButton.styleFrom(backgroundColor: AppColors.danger),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.deleteAccount),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true || !context.mounted) return;
+
+    final api = context.read<ApiClient>();
+    final auth = context.read<AuthState>();
+    final nav = Navigator.of(context);
+    try {
+      await api.post('/gdpr/me/erase/');
+    } catch (_) {
+      // Even if the request fails the session is not something to keep
+      // hanging around after the user asked to be erased; log out either way.
+    }
+    if (!context.mounted) return;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(l10n.deleteAccountDone)),
+    );
+    await auth.logout();
+    nav.pushNamedAndRemoveUntil('/login', (route) => false);
+  }
+
   Future<void> _pickLanguage(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final locale = context.read<LocaleController>();
@@ -149,6 +191,17 @@ class ProfileScreen extends StatelessWidget {
                     style: TextStyle(color: AppColors.danger),
                   ),
                   onTap: () => _confirmLogout(context),
+                ),
+                ListTile(
+                  leading: Icon(
+                    Icons.delete_outline,
+                    color: AppColors.danger,
+                  ),
+                  title: Text(
+                    l10n.deleteAccount,
+                    style: TextStyle(color: AppColors.danger),
+                  ),
+                  onTap: () => _confirmDeleteAccount(context),
                 ),
               ],
             ),

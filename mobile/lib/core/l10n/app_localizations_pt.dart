@@ -333,6 +333,16 @@ class AppLocalizationsPt extends AppLocalizations {
   String get logoutConfirm => 'Tem certeza que deseja sair?';
 
   @override
+  String get deleteAccount => 'Apagar conta';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Tem certeza de que deseja apagar sua conta? Seus dados serão anonimizados e esta ação não pode ser desfeita.';
+
+  @override
+  String get deleteAccountDone => 'Sua conta foi apagada.';
+
+  @override
   String get cancel => 'Cancelar';
 
   @override

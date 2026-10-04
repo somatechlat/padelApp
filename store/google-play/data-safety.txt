@@ -1,25 +1,39 @@
 GOOGLE PLAY — Data safety form answers
+Verified against the code 2026-10-03.
 
 Does your app collect or share any of the required data types?
-  YES
+  YES — collected only, never shared or sold.
 
 Data types (personal):
   • Name                          — collected, linked to identity, not shared, app functionality
   • Email address                 — collected, linked to identity, not shared, app functionality
+  • Phone number (optional)       — collected, linked to identity, not shared, app functionality
   • Photos (transfer proof)       — collected, linked to identity, not shared, app functionality
   • Purchase history              — collected, linked to identity, not shared, app functionality
   • User IDs                      — collected, linked to identity, not shared, app functionality
-  • Crash logs                    — collected, not linked to identity, not shared, app functionality/diagnostics
+  • Crash logs                    — collected, not linked to identity, not shared, diagnostics
+
+NOT collected:
+  • Location                      — the address shown is the club's, not the user's
+  • Device IDs / advertising IDs
+  • In-app search and browsing history
+  • Health & fitness
 
 Is this data collected, shared, or both?
   Collected (not sold, not shared with advertisers)
 
 Is data collection optional or required?
-  Required for account + bookings. Erase available in-app.
+  Required for account + bookings. Phone is optional.
+  Erase available in-app: Perfil → Borrar cuenta
 
 Security practices
   • Data is encrypted in transit: YES (HTTPS/TLS)
-  • Data can be requested for deletion: YES (in-app erase)
+  • Data can be requested for deletion: YES (in-app erase + info@loyallia.com)
   • Independent security review: NO
 
 Financial info (card numbers) is handled by Stripe — NOT collected by the app.
+
+Third-party SDKs
+  • Stripe (payments)             — card data goes card → Stripe only
+  • Firebase Cloud Messaging      — push token, crash diagnostics
+  • firebase_analytics            — NOT bundled

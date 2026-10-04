@@ -124,6 +124,9 @@
   "language": "Language",
   "logout": "Sign out",
   "logoutConfirm": "Are you sure you want to sign out?",
+  "deleteAccount": "Delete account",
+  "deleteAccountConfirm": "Delete your account? Your data will be anonymized. This cannot be undone.",
+  "deleteAccountDone": "Your account has been deleted.",
   "cancel": "Cancel",
   "confirm": "Confirm",
 

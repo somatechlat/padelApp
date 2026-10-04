@@ -334,6 +334,16 @@ class AppLocalizationsEs extends AppLocalizations {
   String get logoutConfirm => '¿Seguro que quieres cerrar sesión?';
 
   @override
+  String get deleteAccount => 'Borrar cuenta';
+
+  @override
+  String get deleteAccountConfirm =>
+      '¿Seguro que quieres borrar tu cuenta? Tus datos serán anonimizados y esta acción no se puede deshacer.';
+
+  @override
+  String get deleteAccountDone => 'Tu cuenta fue borrada.';
+
+  @override
   String get cancel => 'Cancelar';
 
   @override

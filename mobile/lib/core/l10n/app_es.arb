@@ -124,6 +124,9 @@
   "language": "Idioma",
   "logout": "Cerrar sesión",
   "logoutConfirm": "¿Seguro que quieres cerrar sesión?",
+  "deleteAccount": "Borrar cuenta",
+  "deleteAccountConfirm": "¿Seguro que quieres borrar tu cuenta? Tus datos serán anonimizados y esta acción no se puede deshacer.",
+  "deleteAccountDone": "Tu cuenta fue borrada.",
   "cancel": "Cancelar",
   "confirm": "Confirmar",
 
