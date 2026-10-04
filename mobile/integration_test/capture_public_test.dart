@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:integration_test/integration_test.dart';
 
+import 'package:padel_app/core/widgets/password_field.dart';
 import 'package:padel_app/main.dart' as app;
 
 /// Captures the public (no-login) screens for store listings.
@@ -9,8 +10,9 @@ import 'package:padel_app/main.dart' as app;
 ///   SCREENSHOT_DIR=/tmp/shots flutter drive \
 ///     --driver=test_driver/integration_test.dart \
 ///     --target=integration_test/capture_public_test.dart \
-///     --dart-define=API_BASE_URL=https://app.andespadelclub.com/api \
-///     --dart-define=SKIP_PUSH_PROMPT=true
+///     --dart-define=API_BASE_URL=http://127.0.0.1:28002/api \
+///     --dart-define=SKIP_PUSH_PROMPT=true \
+///     -d "iPhone 17 Pro Max"
 ///
 /// Two traps this file exists to avoid:
 ///   1. SKIP_PUSH_PROMPT is required — the iOS notification sheet is not a
@@ -45,6 +47,23 @@ void main() {
       await tester.tap(registerLink.first, warnIfMissed: false);
       await tester.pump(const Duration(seconds: 3));
       await tester.pump(const Duration(seconds: 1));
+
+      // Fill the form so the store shot shows a real registration in progress
+      // rather than an empty form. Operator-supplied address.
+      Future<void> fill(Finder field, String text) async {
+        if (field.evaluate().isEmpty) return;
+        await tester.ensureVisible(field.first);
+        await tester.pump(const Duration(milliseconds: 400));
+        await tester.enterText(field.first, text);
+        await tester.pump(const Duration(milliseconds: 400));
+      }
+
+      await fill(find.widgetWithText(TextField, 'Nombre'), 'Cannachain');
+      await fill(find.widgetWithText(TextField, 'Apellido'), 'Costa');
+      await fill(find.widgetWithText(TextField, 'Email'), 'cannachaincosta@gmail.com');
+      await fill(find.widgetWithText(PasswordField, 'Contraseña'), 'Andes12345!');
+      await tester.pump(const Duration(seconds: 1));
+
       await snap(tester, '02-register');
 
       final back = find.byType(BackButton);

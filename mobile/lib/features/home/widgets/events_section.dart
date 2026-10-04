@@ -5,11 +5,22 @@ import '../../../core/theme/app_theme.dart';
 
 /// Events (quedadas) horizontal strip (home layout step 3).
 class HomeEventsSection extends StatelessWidget {
-  const HomeEventsSection(
-      {super.key, required this.l10n, required this.events});
+  const HomeEventsSection({
+    super.key,
+    required this.l10n,
+    required this.events,
+    this.loadFailed = false,
+    this.onRetry,
+  });
 
   final AppLocalizations l10n;
   final List<dynamic> events;
+
+  /// True when the list is empty because the request failed, not because the
+  /// club has nothing scheduled. Showing "coming soon" for a load failure is
+  /// a lie the user cannot act on.
+  final bool loadFailed;
+  final VoidCallback? onRetry;
 
   @override
   Widget build(BuildContext context) {
@@ -35,12 +46,24 @@ class HomeEventsSection extends StatelessWidget {
               borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
               border: Border.all(color: scheme.outline),
             ),
-            child: Text(
-              l10n.eventsEmpty,
-              style: TextStyle(
-                color: scheme.onSurface.withValues(alpha: 0.55),
-                fontSize: 14,
-              ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  loadFailed ? l10n.networkError : l10n.eventsEmpty,
+                  style: TextStyle(
+                    color: scheme.onSurface.withValues(alpha: 0.55),
+                    fontSize: 14,
+                  ),
+                ),
+                if (loadFailed && onRetry != null) ...[
+                  const SizedBox(height: AppSpacing.sm),
+                  OutlinedButton(
+                    onPressed: onRetry,
+                    child: Text(l10n.retry),
+                  ),
+                ],
+              ],
             ),
           )
         else

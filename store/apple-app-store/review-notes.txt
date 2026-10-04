@@ -14,7 +14,7 @@ What the app does:
 
 Why it might look empty on first launch:
   - Courts and time slots come from the live backend at
-    https://www.andespadelclub.com/api/
+    https://app.andespadelclub.com/api/
   - Bookable slots are published by club staff for upcoming days. If
     you review outside opening hours, the court list is still visible
     under "Inicio", but slot times may appear on the next screen.
@@ -30,6 +30,6 @@ Push notifications:
   provisioning profile).
 
 Privacy:
-  Privacy policy: https://www.andespadelclub.com/privacy
+  Privacy policy: https://app.andespadelclub.com/privacy
   In-app account deletion: Perfil → Borrar cuenta
   Support: info@loyallia.com

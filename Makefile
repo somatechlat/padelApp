@@ -2,7 +2,7 @@ SHELL := /bin/bash
 
 .PHONY: up-dev up-test up-prod down-dev down-test down-prod \
 	test-dev test-test lint-dev fltest-dev flcheck seeddemo-dev seeddemo-test \
-	up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios
+	up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios ship-android
 
 # ─── Three environments (see docs/DEPLOYMENTS.md) ───────────────────────────
 # dev  → project andespadel      ports 28000+
@@ -15,10 +15,12 @@ COMPOSE_PROD := docker compose -p andespadel-prod -f docker-compose.yml -f docke
 
 API_DEV  := http://127.0.0.1:28002/api
 API_TEST := http://127.0.0.1:29002/api
-# Production domain is andespadelclub.com. No server is provisioned yet —
-# do not run up-prod anywhere until the operator supplies one.
-#   make <target> API_PROD=https://www.andespadelclub.com/api
-API_PROD ?=
+# Production API. Live host for the app, admin panel and public pages:
+# https://app.andespadelclub.com/api — verified answering, Let's Encrypt cert.
+# The apex/www of andespadelclub.com is a different machine and does NOT serve
+# /api or /privacy; do not substitute it here.
+#   make ship-android API_PROD=https://staging.example.com/api
+API_PROD ?= https://app.andespadelclub.com/api
 
 up-dev:
 	$(COMPOSE_DEV) up -d
@@ -107,7 +109,15 @@ ios-sim-dev:
 # Usage: ASC_USER=... ASC_PASSWORD=... make ship-ios
 ship-ios:
 	chmod +x mobile/tool/release_ipa.sh
-	./mobile/tool/release_ipa.sh
+	API_BASE_URL=$(API_PROD) ./mobile/tool/release_ipa.sh
+
+# Build the signed Android App Bundle for Google Play.
+# Google Play requires an AAB, not an APK, for every new app.
+# Upload itself is still a manual step — there is no Play upload tooling here.
+ship-android:
+	cd mobile && flutter build appbundle --release \
+		--dart-define=API_BASE_URL=$(API_PROD)
+	@echo "AAB ready: mobile/build/app/outputs/bundle/release/app-release.aab"
 
 shell:
 	$(COMPOSE_DEV) exec backend python manage.py shell

@@ -31,7 +31,10 @@ Apple and Google legally require the account holder — no tool can do these:
 1. **Paid agreements** — Apple Developer Program ($99/yr) and Google Play Console ($25 once) must be **paid and active**.
 2. **Banking / tax info** — App Store Connect → Business and Paying; Play Console → Payments.
 3. **Content rating questionnaire** — legal answers; I drafted the privacy/data ones above.
-4. **Privacy policy URL must be live.** Draft lives at `landing/privacy.html` — publish it to `https://www.andespadelclub.com/privacy`.
+4. **Privacy policy URL must be live.** Served from `landing/privacy.html` at
+   `https://app.andespadelclub.com/privacy` — verified answering. Note the
+   apex/`www` of `andespadelclub.com` is a different machine that does not
+   serve `/privacy`; every URL in this kit therefore uses the `app.` subdomain.
 5. **App Privacy / Data safety** — paste the answers above into the web forms (one-time click-through).
 6. **Age rating** — pick "4+" / "Everyone" (sports, no gambling/UGC risk).
 7. **First release** — Google requires a **closed test** with ~12 testers for 14 days before full production (new personal dev accounts). If the account is an **organization** account, you can go straight to production.
@@ -50,11 +53,25 @@ Apple and Google legally require the account holder — no tool can do these:
 
 ## Repeatable build commands
 
+Both release paths **must** pass `API_BASE_URL`. A release binary without it
+falls back to `http://127.0.0.1:28002/api`, which on a device is the phone
+itself — the app installs and then cannot reach any API. The Dart side now
+throws at startup in release mode rather than shipping that, so a missing define
+is a loud build failure instead of a silent dead app.
+
 ```bash
 # iOS → TestFlight (bumps build number, builds, uploads)
+# API_BASE_URL defaults to https://app.andespadelclub.com/api inside the script.
 ASC_USER='info@loyallia.com' ASC_PASSWORD='xxxx-xxxx-xxxx-xxxx' make ship-ios
 
 # Android → Play-ready AAB (already signed with release keystore)
-cd mobile && flutter build appbundle --release
+make ship-android
+# equivalently:
+cd mobile && flutter build appbundle --release \
+  --dart-define=API_BASE_URL=https://app.andespadelclub.com/api
 # output: mobile/build/app/outputs/bundle/release/app-release.aab
 ```
+
+`make ship-android` fails if `mobile/android/key.properties` is absent, rather
+than silently signing with the debug key. A debug-signed bundle uploads once and
+can never be replaced afterwards, so losing the upload key ends the listing.

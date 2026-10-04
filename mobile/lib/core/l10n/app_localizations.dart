@@ -744,6 +744,24 @@ abstract class AppLocalizations {
   /// **'¿Seguro que quieres cerrar sesión?'**
   String get logoutConfirm;
 
+  /// No description provided for @deleteAccount.
+  ///
+  /// In es, this message translates to:
+  /// **'Borrar cuenta'**
+  String get deleteAccount;
+
+  /// No description provided for @deleteAccountConfirm.
+  ///
+  /// In es, this message translates to:
+  /// **'¿Seguro que quieres borrar tu cuenta? Tus datos serán anonimizados y esta acción no se puede deshacer.'**
+  String get deleteAccountConfirm;
+
+  /// No description provided for @deleteAccountDone.
+  ///
+  /// In es, this message translates to:
+  /// **'Tu cuenta fue borrada.'**
+  String get deleteAccountDone;
+
   /// No description provided for @cancel.
   ///
   /// In es, this message translates to:

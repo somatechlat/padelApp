@@ -334,6 +334,16 @@ class AppLocalizationsEn extends AppLocalizations {
   String get logoutConfirm => 'Are you sure you want to sign out?';
 
   @override
+  String get deleteAccount => 'Delete account';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Delete your account? Your data will be anonymized. This cannot be undone.';
+
+  @override
+  String get deleteAccountDone => 'Your account has been deleted.';
+
+  @override
   String get cancel => 'Cancel';
 
   @override

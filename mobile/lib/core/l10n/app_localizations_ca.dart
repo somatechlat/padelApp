@@ -336,6 +336,16 @@ class AppLocalizationsCa extends AppLocalizations {
   String get logoutConfirm => 'Segur que vols tancar sessió?';
 
   @override
+  String get deleteAccount => 'Esborrar compte';
+
+  @override
+  String get deleteAccountConfirm =>
+      'Segur que vols esborrar el teu compte? Les teves dades seran anonimitzades i aquesta acció no es pot desfer.';
+
+  @override
+  String get deleteAccountDone => 'El teu compte ha estat esborrat.';
+
+  @override
   String get cancel => 'Cancel·lar';
 
   @override
