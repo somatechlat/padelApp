@@ -37,6 +37,7 @@ class _HomeScreenState extends State<HomeScreen> {
   ClubInfo? _club;
   bool _clubLoadFailed = false;
   bool _loadingClub = true;
+  bool _eventsLoadFailed = false;
 
   @override
   void initState() {
@@ -56,10 +57,16 @@ class _HomeScreenState extends State<HomeScreen> {
       );
       final list = data is Map ? data['results'] : data;
       if (!mounted) return;
-      setState(() => _events = (list as List<dynamic>?) ?? const []);
+      setState(() {
+        _events = (list as List<dynamic>?) ?? const [];
+        _eventsLoadFailed = false;
+      });
     } catch (_) {
       if (!mounted) return;
-      setState(() => _events = const []);
+      setState(() {
+        _events = const [];
+        _eventsLoadFailed = true;
+      });
     }
   }
 
@@ -162,7 +169,12 @@ class _HomeScreenState extends State<HomeScreen> {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(
                       AppSpacing.md, AppSpacing.lg, AppSpacing.md, 0),
-                  child: HomeEventsSection(l10n: l10n, events: _events),
+                  child: HomeEventsSection(
+                    l10n: l10n,
+                    events: _events,
+                    loadFailed: _eventsLoadFailed,
+                    onRetry: _loadEvents,
+                  ),
                 ),
               ),
               // ── 4. Banners (promos / events) ──

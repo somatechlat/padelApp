@@ -53,6 +53,18 @@ class PushNotificationService {
   /// Initialize Firebase, request permissions, and set up message handlers.
   /// Call this once at app startup (before runApp or in main).
   Future<void> initialize() async {
+    // SKIP_PUSH is for automated screenshot / UI-test runs only. In the iOS
+    // simulator there is no APNS token, so FirebaseMessaging.getToken() blocks
+    // for a minute and the parallel Dio calls starve — every tab then paints
+    // "Error de conexión" while the API itself answers in ~0.3s. Production
+    // builds never set this and always push.
+    const skipPush = bool.fromEnvironment('SKIP_PUSH', defaultValue: false);
+    if (skipPush) {
+      _firebaseReady = false;
+      debugPrint('Push notifications skipped (SKIP_PUSH)');
+      return;
+    }
+
     // Explicit options from firebase_options.dart (project andespadel-21f1e).
     // A bare initializeApp() relies on the native plist being discovered and
     // logged "No app has been configured yet" before FCM came up; passing the
