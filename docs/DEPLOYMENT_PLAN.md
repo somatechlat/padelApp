@@ -2,15 +2,16 @@
 
 > **HISTORICAL ARCHIVE** — this was a one-shot plan. Do not use as a runbook. See docs/DEPLOYMENTS.md.
 
-**Date:** 2026-08-26
+**Date:** 2026-08-26 — **HISTORICAL. Kept as a record only.**
 **Two environments:** Local (dev) + Testing Server (LOYALLIA)
 
-**Server addresses — RETIRED.** Every host this document names is out of
-service. The live production domain is `https://www.andespadelclub.com`, and
-**no production server is provisioned yet**. **Do not deploy to, SSH into, or
-point DNS at anything written below** — it is kept only as a record of how the
-previous environment was laid out. Obtain a server address from the operator
-before any infrastructure work.
+> **Superseded.** A production server exists and is live at
+> `https://app.andespadelclub.com` (see `docs/DEPLOYMENTS.md`). Every host
+> named below is **retired**. Do not deploy to, SSH into, or point DNS at
+> anything written in this document — it describes how a previous
+> environment was laid out, and those boxes are gone. The `www.`/apex of
+> `andespadelclub.com` is a different machine and serves none of our
+> surfaces.
 
 ---
 

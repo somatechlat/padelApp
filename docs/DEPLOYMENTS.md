@@ -81,13 +81,30 @@ docker compose -p andespadel-prod \
 
 ## Production target
 
-The production domain is **`andespadelclub.com`**
-(`https://www.andespadelclub.com`). It is the live name and it is safe to
-write into docs, store metadata and the landing page.
+**API and app host: `https://app.andespadelclub.com`** — live, verified
+2026-10-03. Serving the API at `/api`, the admin panel at `/adminpanel/`, the
+static landing page and `/privacy`.
 
-**There is no production server.** No host has been provisioned and no address
-has been supplied. Do not SSH, do not run `make up-prod` against anything, and
-do not create DNS records. Ask the operator first.
+| Host | IP | Serves |
+|---|---|---|
+| `app.andespadelclub.com` | `140.82.15.48` | API, admin, landing, `/privacy` |
+| `www.andespadelclub.com` | `190.92.174.243` | **nothing of ours.** `/api` and `/privacy` are 404 |
+
+Use the `app.` subdomain for every API URL, privacy link and release script.
+The `www.`/apex name is a different machine and is not provisioned to this
+operator — do not "clean up" URLs to it.
+
+Deploy root on the server is `/opt/padelapp`, compose project
+`andespadel-prod`, nginx vhost `/etc/nginx/sites-enabled/padelapp`. That box
+also runs unrelated services (`loyallia-*`, `soma-agent-zero`) — leave those
+alone.
+
+`make up-prod` works but **the stack is live**. Confirm with the operator
+before deploying; it overwrites a running service.
+
+`padel.settings.prod` still reads `PROD_DOMAIN` from `runsecrets` and refuses
+to import without it, so a box with no secrets fails closed instead of binding
+to a name someone else controls. Keep it that way.
 
 The domain is deliberately **not** a hard-coded fallback in settings, so a
 deploy cannot silently bind to a name someone else now controls. Supply these

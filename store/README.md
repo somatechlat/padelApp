@@ -1,7 +1,16 @@
 # Store publishing kit — Andes Padel
 
 Everything needed to publish on **Google Play** and **Apple App Store**.
-Generated 2026-09-23.
+Generated 2026-09-23; screenshots and metadata updated 2026-10-04.
+
+## Status
+
+| Store | Status |
+|---|---|
+| **Apple App Store** | Build 8 **submitted for review** (2026-10-04). Age rating 4+, category Sports, price Free, `es-MX` + `en-US` listings, all screenshot sets filled. |
+| **Google Play** | AAB built and signed. **Not uploaded** — needs the three Play Console forms (below). |
+
+See `AGENTS.md` §10b for the full release record.
 
 ## What's ready (drop-in)
 
@@ -16,13 +25,26 @@ Generated 2026-09-23.
 | Apple metadata ES | `apple-app-store/metadata/es-ES/` | same fields |
 | App Privacy answers | `apple-app-store/metadata/app_privacy.txt` | Apple questionnaire |
 | Data safety answers | `google-play/data-safety.txt` | Play questionnaire |
-| Release AAB (signed) | `mobile/build/app/outputs/bundle/release/app-release.aab` | 55.5 MB, release keystore |
-| Release IPA (TestFlight) | `mobile/build/ios/ipa/padel_app.ipa` | 22.9 MB, v1.0.0 (5) |
+| Release AAB (signed) | `mobile/build/app/outputs/bundle/release/app-release.aab` | 56.6 MB, release keystore, alias `upload` |
+| Release IPA | built by `make ship-ios` | v1.0.0 (build 8), uploaded to TestFlight |
 
-## Screenshots
+## Screenshots — DONE
 
-Coming from `store/*/images/screenshots/` (captured on iPhone 17 Pro / Pro Max simulators).
-Apple requires **6.9"** and **6.5"** (or 6.7"/6.5") sets. Play wants **phone** screenshots (min 2, max 8) at 16:9 or 9:16.
+All sets captured and committed under `store/*/images/screenshots/`:
+
+| Set | Size | Files | Captured on |
+|---|---|---|---|
+| `apple-app-store/images/screenshots/iPhone_6.9/` | 1320×2868 | 7 | iPhone 17 Pro Max sim |
+| `apple-app-store/images/screenshots/iPhone_6.5/` | 1242×2688 | 7 | downscaled from 6.9" |
+| `apple-app-store/images/screenshots/iPad_13/` | 2064×2752 | 5 | iPad Pro 13-inch (M5) sim |
+| `google-play/images/screenshots/phone/` | 1320×2347 (9:16) | 7 | cropped from 6.9" |
+
+Screens, in order: login, register, home, bookings, events, notifications,
+profile. Apple requires the iPad set because the app is universal
+(`TARGETED_DEVICE_FAMILY = "1,2"`).
+
+Reproduce with `mobile/integration_test/capture_store_test.dart` — see
+`AGENTS.md` §5 for the exact `flutter drive` invocation.
 
 ## ONLY YOU can do (account-owner actions)
 

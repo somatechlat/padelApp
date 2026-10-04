@@ -7,7 +7,7 @@ Flutter client for the Andes Padel booking platform (courts, bookings, payments,
 | Item | Value | Source |
 |---|---|---|
 | Package name | `padel_app` | `pubspec.yaml` |
-| Version | `1.0.0+6` | `pubspec.yaml` (build number is bumped by `make ship-ios`) |
+| Version | `1.0.0+8` | `pubspec.yaml` (build number is bumped by `make ship-ios`) |
 | Dart SDK constraint | `^3.6.1` | `pubspec.yaml` `environment.sdk` |
 | Host Flutter binary | `/usr/local/bin/flutter` | Makefile / `AGENTS.md` |
 | Docker tools image (optional) | `ghcr.io/cirruslabs/flutter:3.27.3` | `docker-compose.yml` profile `tools` |
@@ -124,3 +124,53 @@ Runs `mobile/tool/release_ipa.sh`: bumps the pubspec build number, `flutter pub 
 | iOS | `com.andes.padel.padelApp` |
 
 They differ on purpose.
+
+## Store screenshot capture
+
+`integration_test/capture_store_test.dart` walks login → home → all five tabs
+→ the booking wizard and writes the PNGs used for both store listings.
+`integration_test/capture_public_test.dart` covers the pre-login screens.
+
+Run it against the local seeded stack (`make up-dev && make seeddemo-dev`) so
+the shots contain real bookings rather than empty states:
+
+```bash
+SCREENSHOT_DIR=/tmp/shots flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/capture_store_test.dart \
+  --dart-define=API_BASE_URL=http://localhost:28002/api \
+  --dart-define=SKIP_PUSH_PROMPT=true --dart-define=SKIP_PUSH=true \
+  --dart-define=SHOT_EMAIL=cliente@andespadelclub.com \
+  --dart-define=SHOT_PASSWORD=Andes12345! \
+  -d "iPhone 17 Pro Max"
+```
+
+Two defines exist only for this:
+
+| Define | Why |
+|---|---|
+| `SKIP_PUSH_PROMPT` | The iOS permission sheet is not a Flutter widget and swallows every tap. |
+| `SKIP_PUSH` | In the simulator there is no APNS token, so `getToken()` blocks for a minute and starves the parallel Dio calls. Production builds never set either. |
+
+The harness is fussy for a reason — see `AGENTS.md` §8 for the traps
+(`IndexedStack` keeping tabs mounted, `NavigationBar` keeping both icons,
+`pageBack` looking for an English tooltip, and so on).
+
+## Account deletion
+
+`ProfileScreen` has a destructive **Borrar cuenta** row calling
+`POST /api/gdpr/me/erase/`. Apple Guideline 5.1.1(v) requires in-app account
+deletion for any app that supports account creation, and
+`landing/privacy.html` already promised the button existed. Do not remove it.
+
+## Release
+
+```bash
+make ship-ios       # bump build → IPA → TestFlight. Needs ASC_USER +
+                    # an app-specific password (not the Apple ID password).
+make ship-android   # signed AAB for Play. Fails closed without key.properties.
+```
+
+Both must pass `API_BASE_URL=https://app.andespadelclub.com/api`. A release
+binary that falls back to `127.0.0.1` installs fine and cannot reach any API
+on a device — `baseUrlFor()` now throws rather than ship that.

@@ -23,6 +23,82 @@ Postgres + Redis behind nginx. Compose-driven. Currency USD, timezone
 
 ---
 
+## 1b. Project structure at a glance
+
+Read this once and you know where everything is.
+
+```
+padelApp/
+├── AGENTS.md                  ← you are here. Operating brief. Read first.
+├── README.md                  ← project overview
+├── TESTING_GUIDE.md           ← how to run every test suite
+├── Makefile                   ← all entry points (see §5)
+│
+├── padel/                     ← Django project (settings, urls, celery, wsgi)
+│   └── settings/              ← base / dev / prod / prod_local / local_sqlite
+│                                _checks.py  fail-fast secret + host validation
+│
+├── apps/                      ← 14 Django apps
+│   ├── HTTP apps (views/urls/serializers):
+│   │   users · courts · bookings · payments · notifications
+│   │   events · gdpr · reports · adminpanel
+│   └── Library apps (models + services only):
+│       policies · pricing · scheduling · security · verification · common
+│
+├── mobile/                    ← Flutter app (iOS + Android)
+│   ├── lib/
+│   │   ├── core/              api_client · storage · friendly_error
+│   │   │                      form_validation · locale_controller
+│   │   │                      push_notification_service · theme
+│   │   │                      l10n/ · models/ · widgets/
+│   │   ├── features/          auth · booking (wizard) · bookings (list)
+│   │   │                      events · home · notifications · profile
+│   │   └── shell/             app_shell.dart — 5-tab NavigationBar
+│   ├── integration_test/      capture_public_test.dart  (login + register)
+│   │                          capture_store_test.dart   (all 5 tabs + wizard)
+│   ├── test/                  hermetic unit tests (fake_api.dart, no network)
+│   ├── tool/                  release_ipa.sh — one-command iOS ship
+│   └── android/               upload-keystore.jks + key.properties (gitignored)
+│
+├── store/                     ← everything to publish on both stores
+│   ├── apple-app-store/
+│   │   ├── images/            app-icon-1024.png
+│   │   │   └── screenshots/   iPhone_6.9/ · iPhone_6.5/ · iPad_13/
+│   │   ├── metadata/          en-US/ · es-ES/  (name, subtitle, description,
+│   │   │                      keywords, URLs, release_notes)
+│   │   │   app_privacy.txt    ← Apple questionnaire answers
+│   │   └── review-notes.txt   ← what the reviewer sees
+│   └── google-play/
+│       ├── images/            app-icon-512 · feature-graphic-1024x500
+│       │   └── screenshots/phone/   9:16, 1320x2347
+│       ├── listing/           en-US/ · es-419/
+│       ├── release-notes/     en-US.txt · es-419.txt
+│       ├── data-safety.txt    ← Play questionnaire answers
+│       └── content-rating-draft.txt
+│
+├── landing/                   ← static marketing site (privacy.html lives here)
+├── docker/                    nginx · backend · secrets templates
+├── tests/
+│   ├── e2e/                   Playwright (own pytest.ini)
+│   └── journey_check.py       smoke every customer journey against a live API
+└── docs/
+    ├── DEPLOYMENTS.md         ← current. Port/URL truth.
+    ├── BUILD_AND_DEPLOY.md    ← current
+    ├── SECURITY.md            ← current
+    ├── plans/                 ← design + change records (dated)
+    └── srs/                   ← HISTORICAL requirements baseline (see §8)
+```
+
+**The two folders that get confused:** `mobile/lib/features/booking/` is the
+booking **wizard**; `mobile/lib/features/bookings/` is the booking **list**
+screen. Do not merge them.
+
+**Where business logic goes:** `apps/<app>/services.py`, never in views or
+serializers. Serializers validate and reshape; they must not write to the DB
+or call Celery.
+
+---
+
 ## 2. Non-negotiables
 
 These are the rules that bite. Breaking them is a bug, not a style choice.
@@ -221,9 +297,35 @@ make lint            # ruff check . && flake8 && bandit -r apps   (inside contai
 make fltest-dev      # flutter test against the dev API
 make flcheck         # flutter analyze
 make flrun           # flutter run
-make ship-ios        # TestFlight build + upload (needs ASC_USER/ASC_PASSWORD)
 make seeddemo-dev    # demo data, password Andes12345!  — dev/test only, NEVER prod
+
+# ── release ────────────────────────────────────────────────────────────
+make ship-ios        # bump build → IPA → upload to TestFlight
+                     #   needs ASC_USER + an APP-SPECIFIC PASSWORD (not the
+                     #   Apple ID password). API_BASE_URL defaults to prod.
+make ship-android    # Play-ready SIGNED AAB (Play requires AAB, not APK)
+                     #   refuses to build without mobile/android/key.properties
+
+# ── store screenshots ──────────────────────────────────────────────────
+# Capture every store screen on a simulator. Reads the local seeded stack.
+cd mobile && SCREENSHOT_DIR=/tmp/shots flutter drive \
+  --driver=test_driver/integration_test.dart \
+  --target=integration_test/capture_store_test.dart \
+  --dart-define=API_BASE_URL=http://localhost:28002/api \
+  --dart-define=SKIP_PUSH_PROMPT=true --dart-define=SKIP_PUSH=true \
+  --dart-define=SHOT_EMAIL=cliente@andespadelclub.com \
+  --dart-define=SHOT_PASSWORD=Andes12345! \
+  -d "iPhone 17 Pro Max"        # or "iPad Pro 13-inch (M5)"
+
+# Smoke every customer journey against a live API
+python3 tests/journey_check.py https://app.andespadelclub.com/api
 ```
+
+`SKIP_PUSH` is capture-only: in the iOS simulator there is no APNS token, so
+`FirebaseMessaging.getToken()` blocks for a minute and starves the parallel
+Dio calls — every tab then paints "Error de conexión" while the API answers in
+~0.3s. Production builds never set it. `SKIP_PUSH_PROMPT` skips only the
+permission sheet.
 
 Python lint on the host (faster than the container):
 
@@ -324,12 +426,28 @@ fallback; device locale is deliberately ignored.
 | `apps/common/timefmt.py` | Was untracked while imported in 5 places. Commit files before pushing work that depends on them. |
 | SRS (`docs/srs/`) | Requirements baseline, partially superseded. It says `/api/v1/`, 10-char passwords, partner-matching is v2 — none of which match the code. Treat as historical contract, not ground truth. |
 | Password policy | SRS says 10+ with complexity; code is `min_length: 8`, no complexity validator. |
+| `tester.pump(Duration(...))` | Advances the **fake** test clock and returns immediately. It never waits for a live HTTP response. Use `Future.delayed` + `pump()` in integration tests. |
+| `find.text(...)` in a tabbed `IndexedStack` | `AppShell` keeps all five tabs mounted, so every tab's AppBar title is still in the tree. A title check reports success over the wrong screen. Use `.hitTestable()` on a marker unique to the screen, or capture via `binding.takeScreenshot` after verifying that marker. |
+| `find.byIcon(Icons.x)` on `NavigationBar` | The bar keeps **both** the outline and the filled icon in the tree (unselected at opacity 0). "Selected icon found" is not a readiness signal. |
+| `tester.pageBack()` | Looks for the tooltip "Back". The app is Spanish, so the tooltip is "Atrás" and the tap never happens. Tap `find.byType(BackButton)` instead. |
+| iOS `takeScreenshot` / `simctl io screenshot` | Either can land a PNG under the *next* step's name if the preceding finders lied about which screen was up. The file is usually fine — the label is wrong. Fix the readiness signal, not the capture. |
+| iOS keychain survives app uninstall | `simctl uninstall` leaves secure storage. A stale token then auto-signs-in and every request 401s against a different API. `simctl erase` to clear. |
+| `NSExceptionDomains` with an IP address | ATS ignores IP-address exception domains. `NSAllowsLocalNetworking` is what actually permits `http://127.0.0.1` / `http://localhost`. |
+| Release `API_BASE_URL` | A release binary that falls back to `http://127.0.0.1:28002/api` installs fine and cannot reach anything on a device. `baseUrlFor()` now throws in release for an unset or loopback host. Pass `--dart-define`. |
+| `--dart-define` on `flutter drive` | Reaches the app. But `ASC_USER=x ASC_PASSWORD=y xcrun ... -u "$ASC_USER"` does **not** — the shell expands `$ASC_USER` before the assignment applies. `export` first. |
+| JWT ES256 for App Store Connect | Requires the **raw** 64-byte `r||s` signature. `openssl dgst -sign` emits DER; convert it. Also `aud` must be `appstoreconnect-v1`. |
+| App Store Connect `uploadOperations` URLs | Pre-signed S3 with `X-Amz-SignedHeaders=host`. Adding `Authorization` breaks the signature. Send only the headers given. |
+| `whatsNew` in `PREPARE_FOR_SUBMISSION` | Apple rejects it: "cannot be edited at this time". Locked until the first release. |
+| App Privacy questionnaire | Not in the App Store Connect API at all. No `es-EC` locale either — use `es-MX` for Ecuador. |
+| Google Play AAB vs APK | Play rejects APKs for new apps. `make ship-android` builds the AAB. A debug-signed bundle looks release-shaped and uploads once, permanently. |
+| Google Play personal accounts | A **personal** (not organization) dev account needs a 14-day closed test with ~12 testers before production. |
+| `images/generate_manual.py` | Regenerates `Manual_Usuario_AndesPadel.docx`. RBAC wording in it must match `apps/adminpanel/admin_base.py`. |
 
 ---
 
 ## 9. Docs map
 
-Trust levels as of 2026-09-29:
+Trust levels as of 2026-10-04:
 
 - **Current:** `README.md`, `docs/DEPLOYMENTS.md`, `docs/BUILD_AND_DEPLOY.md`,
   `docs/SECURITY.md`, `TESTING_GUIDE.md`, `mobile/README.md`, `store/README.md`,
@@ -343,13 +461,28 @@ Store it as the **bare apex** — `validate_production_host()` normalizes a
 pasted `https://www.andespadelclub.com` and `prod.py` derives `www.` from
 there, so `www.www.` cannot happen.
 
-**There is no production server yet.** Nothing is provisioned. Do **not** run
-`make up-prod` against anything, do not SSH anywhere, and do not create DNS
-records. Every previous host is retired and must never come back as a deploy
-target, a default, or a guess — if you need an address, ask the operator.
+**A production server exists and is live.** Measured 2026-10-03, not assumed:
 
-One further fact needs operator confirmation: whether a `resend` route should
-exist (there is currently none).
+| Fact | Evidence |
+|---|---|
+| API host | `https://app.andespadelclub.com/api` → `140.82.15.48` |
+| TLS | Let's Encrypt, `CN=app.andespadelclub.com`, valid 2026-10-01 → 2026-12-30 |
+| Deploy root | `/opt/padelapp`, compose project `andespadel-prod` |
+| nginx vhost | `/etc/nginx/sites-enabled/padelapp` |
+| `GET /api/courts/` | 200 |
+| `GET /privacy` | 200 |
+
+**`www.andespadelclub.com` is a different machine** (`190.92.174.243`) and does
+**not** serve `/api` or `/privacy` (404). It is not provisioned to this
+operator. Every URL in the store kit, the landing page and the release
+scripts therefore uses the `app.` subdomain — do not "tidy" it to `www.`.
+
+That box also hosts unrelated work (`loyallia-*`, `soma-agent-zero`).
+Confine changes to `/opt/padelapp`, the `padelapp` vhost and the
+`andespadel-prod-*` containers. Do not touch the other vhosts or containers.
+
+`make up-prod` still works but **confirm with the operator before deploying** —
+the code is wired to this host, and a deploy overwrites a live service.
 
 When you change a port, a make target, a URL, or add an API route, update
 `docs/DEPLOYMENTS.md` and this file in the same commit.
@@ -387,15 +520,111 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
    acceptance, not an expiry: Google API keys do not self-expire the way a
    time-boxed GitHub PAT does, so the exposure is open-ended until revoked.
    Do not re-raise as a new finding; it is a known, owned risk.
-6. **There is no production server.** The domain (`andespadelclub.com`) is
-   known and wired through docs and config templates. No host is
-   provisioned and no address is supplied. Do not attempt SSH, `make
-   up-prod`, DNS, or cert work until the operator provides one.
+6. **Production is live — treat it as live.** `app.andespadelclub.com` serves
+   the API, admin panel and privacy page. `www.` is a different host that
+   serves none of those. Never point anything at `www.` for API or privacy
+   URLs. Ask before `make up-prod`; it writes to a running service.
 7. **SRS (`docs/srs/`) still drifts** from the code (`/api/v1/`, password
    policy, partner-matching). Historical contract — do not treat as ground truth.
 8. **`timezone.datetime` / `timezone.timedelta`** are gone from `apps/`, but
    they worked only because Django re-exports those stdlib names. Use
    `from datetime import datetime, timedelta`.
+
+## 10b. Store release status (as of 2026-10-04)
+
+### iOS — App Store
+
+| | |
+|---|---|
+| App Store Connect app | **AndesPadel**, id `6806321664` |
+| Bundle id | `com.andes.padel.padelApp` |
+| Version / build | 1.0 / **8** (`mobile/pubspec.yaml` `1.0.0+8`) |
+| Status | **Submitted for review** (2026-10-04) |
+| Age rating | 4+ (only `userGeneratedContent` flagged) |
+| Primary category | Sports (secondary: Health & Fitness) |
+| Price | Free — no Paid Apps agreement, no banking/tax needed |
+| Primary language | `en-US`; `es-MX` carries the Spanish listing |
+| Release mode | Automatically after approval |
+
+**The account is free.** Do not apply the Paid Apps agreement, banking or
+W-8BEN — those exist so Apple can pay you for paid apps and IAP. Court
+bookings are paid through Stripe outside Apple's IAP, which is allowed for
+real-world services (a physical court at a physical venue). Say so plainly if
+a reviewer raises Guideline 3.1.1.
+
+**`es-EC` is not a valid App Store locale.** Apple has no per-country
+Spanish. The three are `es-ES` (Spain), `es-MX` (Latin America — including
+Ecuador), `es-US`. Use `es-MX`.
+
+**`whatsNew` ("What's New in This Version") cannot be set via API before the
+first release.** Apple locks it in `PREPARE_FOR_SUBMISSION`. Add it after
+1.0 goes live. Not a submission blocker.
+
+### Android — Google Play
+
+| | |
+|---|---|
+| App id | `com.andes.padel.padel_app` (underscore — different from iOS) |
+| Artifact | `mobile/build/app/outputs/bundle/release/app-release.aab` |
+| Signing | release keystore, alias `upload` |
+| Status | **Built and signed, not yet uploaded** |
+
+Play Console needs three things before the rollout button enables:
+1. **Data safety** form — answers in `store/google-play/data-safety.txt`
+2. **Content rating** — Everyone (`store/google-play/content-rating-draft.txt`)
+3. **AAB** in *Release → Production*
+
+If the Play account is **personal** (not organization), Google requires a
+closed test with ~12 testers for 14 days before production. Organization
+accounts go straight to production.
+
+### Screenshots
+
+All captured by `mobile/integration_test/capture_store_test.dart` and
+committed under `store/*/images/screenshots/`:
+
+| Set | Size | Source |
+|---|---|---|
+| Apple iPhone 6.9" | 1320×2868 | iPhone 17 Pro Max sim |
+| Apple iPhone 6.5" | 1242×2688 | downscaled from 6.9" |
+| Apple iPad 13" | 2064×2752 | iPad Pro 13-inch (M5) sim |
+| Play phone | 1320×2347 (9:16) | cropped from 6.9" |
+
+Apple requires an iPad set because the app is universal
+(`TARGETED_DEVICE_FAMILY = "1,2"`). If you ever drop iPad support, that
+requirement disappears — but it needs a new build.
+
+### Signing credentials — BACK THESE UP
+
+| File | Where | Note |
+|---|---|---|
+| Android upload keystore | `mobile/android/upload-keystore.jks` | **gitignored** |
+| Keystore passwords | `~/.android-upload-ks.pass`, `~/.android-upload-key.pass` | mode 600, outside repo |
+| Gradle signing props | `mobile/android/key.properties` | **gitignored** |
+| Apple Distribution cert | login keychain, team `29NGPXM563` | |
+| Apple provisioning | fresh store profile, valid to 2027-10-04 | |
+| ASC API key | `~/Downloads/AuthKey_*.p8` | Key ID + Issuer ID needed to sign a JWT |
+
+A backup copy lives at `~/Desktop/AndesPadel-KEYSTORE-BACKUP-2026-10-03/`
+— **move it off the machine.** Losing the keystore or its passwords ends the
+Play listing permanently.
+
+### Upload tooling
+
+- **iOS binary:** `make ship-ios` → `mobile/tool/release_ipa.sh` → `xcrun altool`.
+  Needs `ASC_USER` + an **app-specific password** (not the Apple ID password).
+- **iOS metadata/screenshots/age-rating:** App Store Connect REST API, signed
+  with an ES256 JWT from the `.p8`. Note JWT ES256 wants the **raw** `r||s`
+  signature; `openssl dgst -sign` emits DER and must be converted.
+- **Asset upload:** the returned `uploadOperations` URLs are **pre-signed S3**.
+  Sending `Authorization` breaks the signature — use only the given headers.
+- **Submit for Review:** the API refuses `CREATE` on
+  `appStoreVersionSubmissions` for an **App Manager** key. Admin role, or a
+  click in the web UI.
+- **Android:** no upload tooling in this repo. Drag the AAB into Play Console,
+  or use the Play Developer API with a service-account JSON.
+
+---
 
 ## 11. Commit style
 

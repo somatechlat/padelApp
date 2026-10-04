@@ -12,6 +12,12 @@ Three surfaces, one repo:
 
 Postgres + Redis behind nginx. Docker Compose driven.
 
+**Status (2026-10-04):** iOS build 8 is **in App Store review**; the Android
+AAB is built and signed, awaiting upload to Play. Live API:
+`https://app.andespadelclub.com/api`. See `AGENTS.md` for the full operating
+brief — including a project-structure map in §1b and the release record in
+§10b.
+
 ## Environments and ports
 
 There is **no port 8000 on the host**. Django listens on 8000 *inside* the container; host ports are remapped.
