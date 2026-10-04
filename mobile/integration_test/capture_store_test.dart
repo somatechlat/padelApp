@@ -41,18 +41,20 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
   }
 
-  /// Announces a shot. The PNG is taken by the HOST (`simctl io screenshot`)
-  /// which watches for this marker — flutter's takeScreenshot grabs the wrong
-  /// frame on iOS and files land under the wrong name.
+  /// Take a shot of whatever is on screen NOW.
+  ///
+  /// Earlier runs blamed takeScreenshot for files landing under the wrong
+  /// name. It was the finders: IndexedStack keeps every tab mounted, so the
+  /// test believed it was on screen X while screen Y was showing, and the PNG
+  /// was a correct capture of Y under X's name. With hit-testable markers the
+  /// capture is trustworthy again — and it is atomic, unlike a host-side
+  /// screenshot racing a block-buffered stdout.
   Future<void> snap(WidgetTester tester, String name) async {
     await tester.pump(const Duration(seconds: 1));
-    await Future<void>.delayed(const Duration(milliseconds: 400));
+    await binding.takeScreenshot(name);
     // ignore: avoid_print
     print('SNAPSHOT $name');
-    // flutter drive pipes stdout in blocks, so the host watcher can receive
-    // this line seconds late and grab the NEXT screen. Hold the frame long
-    // enough that even a delayed grab still gets the right one.
-    await Future<void>.delayed(const Duration(seconds: 5));
+    await Future<void>.delayed(const Duration(milliseconds: 300));
     await tester.pump();
   }
 
