@@ -60,9 +60,8 @@ class TestAdminManualBookingLocksSlots:
         BookingService.confirm(booking)
 
         booked = TimeSlot.objects.filter(court=court, date=day, status=TimeSlot.Status.BOOKED)
-        assert booked.exists(), (
-            "confirm() left every TimeSlot AVAILABLE — the slot is still open for a client to book"
-        )
+        reason = "confirm() left every TimeSlot AVAILABLE — the slot is still open to a client"
+        assert booked.exists(), reason
 
     def test_second_manual_booking_on_taken_slot_is_refused(self, court):
         from django.contrib.auth import get_user_model as gum
