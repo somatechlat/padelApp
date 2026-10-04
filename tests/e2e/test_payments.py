@@ -42,7 +42,9 @@ class TestPayments:
 
     def test_payments_confirm_transfer_button(self, admin_page: Page):
         admin_page.goto("/adminpanel/payments/")
-        confirm_form = admin_page.locator('form:has(input[name="action"][value="confirm_transfer"])')
+        confirm_form = admin_page.locator(
+            'form:has(input[name="action"][value="confirm_transfer"])'
+        )
         # May or may not have pending transfers
         if confirm_form.count() > 0:
             assert confirm_form.first.locator('button[type="submit"]').is_visible()
@@ -63,11 +65,24 @@ class TestPayments:
         admin_page.goto("/adminpanel/payments/")
         content = admin_page.content().lower()
         # Check that payment statuses are displayed somewhere on the page
-        assert any(s in content for s in [
-            "capturado", "pendiente", "confirmado", "fallido",
-            "reembolsado", "transferencia", "captured", "pending",
-            "confirmed", "failed", "refunded", "efectivo", "cash"
-        ])
+        assert any(
+            s in content
+            for s in [
+                "capturado",
+                "pendiente",
+                "confirmado",
+                "fallido",
+                "reembolsado",
+                "transferencia",
+                "captured",
+                "pending",
+                "confirmed",
+                "failed",
+                "refunded",
+                "efectivo",
+                "cash",
+            ]
+        )
 
     def test_payments_pagination(self, admin_page: Page):
         admin_page.goto("/adminpanel/payments/")

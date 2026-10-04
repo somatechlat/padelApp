@@ -26,9 +26,7 @@ class Payment(models.Model):
     method = models.CharField(max_length=10, choices=Method.choices)
     amount = models.DecimalField(max_digits=8, decimal_places=2)
     currency = models.CharField(max_length=3, default="USD")
-    status = models.CharField(
-        max_length=16, choices=Status.choices, default=Status.PENDING
-    )
+    status = models.CharField(max_length=16, choices=Status.choices, default=Status.PENDING)
     stripe_payment_intent_id = models.CharField(max_length=128, blank=True)
     reference = models.CharField(max_length=128, blank=True)
     proof_image = models.ImageField(

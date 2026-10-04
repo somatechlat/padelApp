@@ -16,10 +16,7 @@ class PenaltyResult:
 class PolicyService:
     @staticmethod
     def get_policy(booking):
-        return (
-            CancellationPolicy.objects.filter(venue=booking.court.venue, active=True)
-            .first()
-        )
+        return CancellationPolicy.objects.filter(venue=booking.court.venue, active=True).first()
 
     @staticmethod
     def evaluate(booking, now=None):

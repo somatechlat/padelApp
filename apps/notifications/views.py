@@ -36,9 +36,9 @@ class NotificationReadAllView(APIView):
     permission_classes = [IsAuthenticated]
 
     def post(self, request):
-        updated = Notification.objects.filter(
-            user=request.user, read_at__isnull=True
-        ).update(read_at=timezone.now())
+        updated = Notification.objects.filter(user=request.user, read_at__isnull=True).update(
+            read_at=timezone.now()
+        )
         return Response({"updated": updated})
 
 
@@ -46,9 +46,7 @@ class NotificationUnreadCountView(APIView):
     permission_classes = [IsAuthenticated]
 
     def get(self, request):
-        count = Notification.objects.filter(
-            user=request.user, read_at__isnull=True
-        ).count()
+        count = Notification.objects.filter(user=request.user, read_at__isnull=True).count()
         return Response({"count": count})
 
 

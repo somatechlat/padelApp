@@ -63,7 +63,9 @@ class RegisterSerializer(serializers.Serializer):
         from django.utils import timezone
 
         user.consent_ts = timezone.now()
-        user.save(update_fields=["consent_ts", "full_name", "first_name", "last_name", "skill_level"])
+        user.save(
+            update_fields=["consent_ts", "full_name", "first_name", "last_name", "skill_level"]
+        )
         return user
 
 
@@ -105,18 +107,14 @@ class LoginSerializer(serializers.Serializer):
                     _("Cuenta temporalmente bloqueada por intentos fallidos"),
                     code="account_locked",
                 )
-            raise AuthenticationFailed(
-                _("Credenciales inválidas"), code="invalid_credentials"
-            )
+            raise AuthenticationFailed(_("Credenciales inválidas"), code="invalid_credentials")
         if not user.email_verified:
             raise AuthenticationFailed(
                 _("Verifica tu email antes de iniciar sesion"),
                 code="email_not_verified",
             )
         if user.status != "active":
-            raise AuthenticationFailed(
-                _("Cuenta no activa"), code="account_inactive"
-            )
+            raise AuthenticationFailed(_("Cuenta no activa"), code="account_inactive")
         cache.delete(key)
         refresh = RefreshToken.for_user(user)
         attrs["_user"] = user

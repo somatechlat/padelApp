@@ -77,9 +77,7 @@ class SettingsAdminView(FinanceRequiredMixin, TemplateView):
         venue.bank_account_holder = request.POST.get(
             "bank_account_holder", venue.bank_account_holder
         )
-        venue.bank_account_code = request.POST.get(
-            "bank_account_code", venue.bank_account_code
-        )
+        venue.bank_account_code = request.POST.get("bank_account_code", venue.bank_account_code)
         venue.bank_extra = request.POST.get("bank_extra", venue.bank_extra)
 
     @staticmethod
@@ -90,9 +88,7 @@ class SettingsAdminView(FinanceRequiredMixin, TemplateView):
             if f"home_section_title_{lang}" in request.POST:
                 section[lang] = request.POST.get(f"home_section_title_{lang}", "").strip()
             if f"home_greeting_tagline_{lang}" in request.POST:
-                greeting[lang] = request.POST.get(
-                    f"home_greeting_tagline_{lang}", ""
-                ).strip()
+                greeting[lang] = request.POST.get(f"home_greeting_tagline_{lang}", "").strip()
         venue.home_section_title_i18n = {k: v for k, v in section.items() if v}
         venue.home_greeting_tagline_i18n = {k: v for k, v in greeting.items() if v}
 
@@ -138,9 +134,7 @@ class SettingsAdminView(FinanceRequiredMixin, TemplateView):
             p.penalty_ratio = Decimal(request.POST.get("penalty_ratio", str(p.penalty_ratio)))
             p.no_show_ratio = Decimal(request.POST.get("no_show_ratio", str(p.no_show_ratio)))
             p.hold_minutes = int(request.POST.get("hold_minutes", p.hold_minutes))
-            p.max_holds_per_user = int(
-                request.POST.get("max_holds_per_user", p.max_holds_per_user)
-            )
+            p.max_holds_per_user = int(request.POST.get("max_holds_per_user", p.max_holds_per_user))
         except (ValueError, TypeError, ArithmeticError):
             messages.error(request, "Valores de politica invalidos.")
             return

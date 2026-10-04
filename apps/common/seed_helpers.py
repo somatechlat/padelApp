@@ -134,9 +134,7 @@ def seed_promo_banners():
     created = 0
     for row in BANNER_SEEDS:
         title_es = row["title_i18n"].get("es", "")
-        existing = PromoBanner.objects.filter(
-            title_i18n__es=title_es
-        ).first()
+        existing = PromoBanner.objects.filter(title_i18n__es=title_es).first()
         if existing:
             continue
         source = SEED_ASSETS / row["slug"]

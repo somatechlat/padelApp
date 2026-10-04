@@ -21,7 +21,7 @@ class TestVisual:
 
     def test_admin_brand_color_in_sidebar(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")
-        active_link = admin_page.locator('aside nav a.active')
+        active_link = admin_page.locator("aside nav a.active")
         bg_color = active_link.evaluate("el => getComputedStyle(el).backgroundColor")
         # #002F48 = rgb(0, 47, 72)
         assert "0" in bg_color and "47" in bg_color and "72" in bg_color
@@ -69,7 +69,7 @@ class TestVisual:
 
     def test_status_badge_green_for_active(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
-        active_badge = admin_page.locator('.badge-active, .badge-confirmed').first
+        active_badge = admin_page.locator(".badge-active, .badge-confirmed").first
         if active_badge.is_visible():
             color = active_badge.evaluate("el => getComputedStyle(el).color")
             # Verde Limón accent color
@@ -77,7 +77,7 @@ class TestVisual:
 
     def test_status_badge_red_for_blocked(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
-        blocked_badge = admin_page.locator('.badge-blocked, .badge-cancelled, .badge-failed').first
+        blocked_badge = admin_page.locator(".badge-blocked, .badge-cancelled, .badge-failed").first
         if blocked_badge.is_visible():
             color = blocked_badge.evaluate("el => getComputedStyle(el).color")
             # Red accent

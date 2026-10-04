@@ -7,7 +7,8 @@ class IsStaffRole(BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return bool(
-            user and user.is_authenticated
+            user
+            and user.is_authenticated
             and user.role in ("recepcionista", "gerente", "dueno", "superadmin")
         )
 

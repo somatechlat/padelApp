@@ -63,9 +63,9 @@ class VerificationCodeService:
     @staticmethod
     def verify(user, purpose, code):
         try:
-            instance = VerificationCode.objects.filter(
-                user=user, purpose=purpose
-            ).latest("created_at")
+            instance = VerificationCode.objects.filter(user=user, purpose=purpose).latest(
+                "created_at"
+            )
         except VerificationCode.DoesNotExist:
             return False
         if instance.is_expired:

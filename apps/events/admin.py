@@ -41,8 +41,14 @@ class EventRegistrationAdmin(RoleGatedAdmin):
 @admin.register(Tournament)
 class TournamentAdmin(RoleGatedAdmin):
     list_display = (
-        "name_localized", "status", "start_date", "end_date",
-        "capacity", "confirmed_count", "price", "registration_deadline",
+        "name_localized",
+        "status",
+        "start_date",
+        "end_date",
+        "capacity",
+        "confirmed_count",
+        "price",
+        "registration_deadline",
     )
     list_filter = ("status",)
     search_fields = ("name", "name_es")

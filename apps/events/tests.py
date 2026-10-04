@@ -46,9 +46,7 @@ class TestEventModel:
         assert e.title_localized == "Titulo"
 
     def test_draft_not_in_published_feed(self):
-        Event.objects.create(
-            title="Draft", description="x", status=Event.Status.DRAFT
-        )
+        Event.objects.create(title="Draft", description="x", status=Event.Status.DRAFT)
         assert Event.published.all().count() == 0
 
 

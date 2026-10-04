@@ -23,9 +23,7 @@ MINIMAL_PNG = (
 
 
 def _named(page: Page, name: str):
-    return page.locator(
-        f'input[name="{name}"], textarea[name="{name}"], select[name="{name}"]'
-    )
+    return page.locator(f'input[name="{name}"], textarea[name="{name}"], select[name="{name}"]')
 
 
 @pytest.fixture
@@ -104,20 +102,24 @@ class TestPromoBanners:
         # Create + edit forms always present; row actions appear when banners exist
         content = admin_page.content()
         if 'value="toggle_banner"' in content or "Desactivar" in content or "Activar" in content:
-            assert admin_page.locator(
-                'form:has(input[name="action"][value="toggle_banner"])'
-            ).count() >= 1
-            assert admin_page.locator(
-                'form:has(input[name="action"][value="delete_banner"])'
-            ).count() >= 1
-            assert admin_page.locator(
-                'form:has(input[name="action"][value="move_banner"])'
-            ).count() >= 1
+            assert (
+                admin_page.locator('form:has(input[name="action"][value="toggle_banner"])').count()
+                >= 1
+            )
+            assert (
+                admin_page.locator('form:has(input[name="action"][value="delete_banner"])').count()
+                >= 1
+            )
+            assert (
+                admin_page.locator('form:has(input[name="action"][value="move_banner"])').count()
+                >= 1
+            )
         else:
             # Empty state still shows create UI
-            assert admin_page.locator(
-                'form:has(input[name="action"][value="create_banner"])'
-            ).count() >= 1
+            assert (
+                admin_page.locator('form:has(input[name="action"][value="create_banner"])').count()
+                >= 1
+            )
 
     def test_banner_create_toggle_delete_flow(self, admin_page: Page, png_upload: str):
         """Full admin CRUD cycle with image upload, then cleanup."""
@@ -156,7 +158,9 @@ class TestPromoBanners:
         admin_page.goto("/adminpanel/dashboard/")
         admin_page.wait_for_load_state("networkidle")
         nav = admin_page.locator("aside nav")
-        link_texts = [nav.locator("a").nth(i).inner_text().strip() for i in range(nav.locator("a").count())]
+        link_texts = [
+            nav.locator("a").nth(i).inner_text().strip() for i in range(nav.locator("a").count())
+        ]
         assert any("Banner" in t for t in link_texts)
 
 

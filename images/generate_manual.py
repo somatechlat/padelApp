@@ -195,9 +195,7 @@ add_table(
 )
 
 doc.add_heading("Paleta Corporativa", level=2)
-doc.add_paragraph(
-    "El sistema utiliza la identidad visual corporativa de Andes Pádel:"
-)
+doc.add_paragraph("El sistema utiliza la identidad visual corporativa de Andes Pádel:")
 add_table(
     ["Color", "Nombre", "Hex", "Uso"],
     [
@@ -228,7 +226,7 @@ doc.add_paragraph(
     "1. Navegue a https://www.andespadelclub.com/adminpanel/\n"
     "2. Será redirigido a la pantalla de inicio de sesión\n"
     "3. Ingrese su correo electrónico y contraseña\n"
-    "4. Haga clic en \"Iniciar sesión\""
+    '4. Haga clic en "Iniciar sesión"'
 )
 doc.add_paragraph(
     "Este panel requiere un rol de personal (recepcionista, gerente, dueño o superadmin). "
@@ -238,9 +236,9 @@ doc.add_paragraph(
 doc.add_heading("Panel Django Admin (Gestión técnica avanzada)", level=2)
 doc.add_paragraph(
     "1. Navegue a https://www.andespadelclub.com/admin/\n"
-    "2. Ingrese su correo electrónico en el campo \"Email\"\n"
-    "3. Ingrese su contraseña en el campo \"Contraseña\"\n"
-    "4. Haga clic en \"Iniciar sesión\""
+    '2. Ingrese su correo electrónico en el campo "Email"\n'
+    '3. Ingrese su contraseña en el campo "Contraseña"\n'
+    '4. Haga clic en "Iniciar sesión"'
 )
 
 doc.add_heading("Sistema de Roles (RBAC)", level=2)
@@ -254,8 +252,18 @@ add_table(
     [
         ["superadmin", "Completo", "Completo", "Acceso total a todos los módulos y configuración"],
         ["dueno", "Completo", "Completo (excepto finanzas edit)", "Propietario, acceso amplio"],
-        ["gerente", "Operativo + reportes de reservas", "CRUD no-financiero, vista financiero", "Gestión operativa diaria"],
-        ["recepcionista", "Operativo (reservas, caja, eventos)", "Solo lectura/edición no-financiero", "Atención al cliente, reservas"],
+        [
+            "gerente",
+            "Operativo + reportes de reservas",
+            "CRUD no-financiero, vista financiero",
+            "Gestión operativa diaria",
+        ],
+        [
+            "recepcionista",
+            "Operativo (reservas, caja, eventos)",
+            "Solo lectura/edición no-financiero",
+            "Atención al cliente, reservas",
+        ],
         ["cliente", "Sin acceso", "Sin acceso", "Solo app móvil"],
     ],
 )
@@ -272,7 +280,7 @@ doc.add_paragraph(
     "Nota: el dinero está restringido por diseño. Reembolsar y ver ingresos "
     "corresponde solo a dueno y superadmin (FINANCIAL_ROLES). El gerente ve "
     "únicamente los conteos de reservas; en ingresos y top de clientes el "
-    "panel muestra \"Restringido\". El recepcionista no ve reportes. "
+    'panel muestra "Restringido". El recepcionista no ve reportes. '
     "Confirmar o rechazar una transferencia y cobrar efectivo sí es trabajo "
     "de recepción: es reversible y no mueve dinero."
 )
@@ -408,7 +416,9 @@ add_bullet("Capacidad máxima de parejas/equipos")
 add_bullet("Cuota de inscripción ($)")
 add_bullet("Fecha de inicio y fin")
 add_bullet("Fecha límite de inscripción")
-add_bullet("Estado: borrador (draft), inscripciones abiertas (open), inscripciones cerradas (closed), en curso (in_progress), finalizado (finished)")
+add_bullet(
+    "Estado: borrador (draft), inscripciones abiertas (open), inscripciones cerradas (closed), en curso (in_progress), finalizado (finished)"
+)
 
 doc.add_heading("Eventos:", level=3)
 add_bullet("Título y descripción")
@@ -545,10 +555,18 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Parámetros configurables:", level=3)
-add_bullet("Horas de ventana gratuita (free_window_hours) — Horas mínimas antes de la reserva para cancelar sin cargo")
-add_bullet("Ratio de penalización por cancelación tardía (penalty_ratio) — Porcentaje cobrado si cancela después de la ventana (ej: 0.50 = 50%)")
-add_bullet("Ratio de penalización por no-show (no_show_ratio) — Porcentaje cobrado si el cliente no se presenta (ej: 1.00 = 100%)")
-add_bullet("Tiempo de hold en minutos (hold_minutes) — Duración máxima de un slot en hold antes de expirar")
+add_bullet(
+    "Horas de ventana gratuita (free_window_hours) — Horas mínimas antes de la reserva para cancelar sin cargo"
+)
+add_bullet(
+    "Ratio de penalización por cancelación tardía (penalty_ratio) — Porcentaje cobrado si cancela después de la ventana (ej: 0.50 = 50%)"
+)
+add_bullet(
+    "Ratio de penalización por no-show (no_show_ratio) — Porcentaje cobrado si el cliente no se presenta (ej: 1.00 = 100%)"
+)
+add_bullet(
+    "Tiempo de hold en minutos (hold_minutes) — Duración máxima de un slot en hold antes de expirar"
+)
 add_bullet("Estado activo/inactivo (active)")
 
 add_screenshot("14_admin_policies", "Figura 11: Políticas de cancelación")
@@ -652,12 +670,12 @@ doc.add_paragraph()
 doc.add_heading("Crear Reserva Manual:", level=3)
 doc.add_paragraph(
     "1. Seleccione la fecha en el calendario\n"
-    "2. En la sección \"Crear reserva manual\", seleccione la cancha\n"
+    '2. En la sección "Crear reserva manual", seleccione la cancha\n'
     "3. Seleccione el cliente (desplegable con todos los usuarios activos)\n"
     "4. Ingrese la hora de inicio (formato HH:MM)\n"
     "5. Seleccione la duración (60, 90 o 120 minutos)\n"
-    "6. Haga clic en \"Crear reserva\"\n"
-    "7. Se creará la reserva con estado \"confirmada\"\n"
+    '6. Haga clic en "Crear reserva"\n'
+    '7. Se creará la reserva con estado "confirmada"\n'
     "8. Se enviará una notificación al cliente vía Celery"
 )
 
@@ -671,9 +689,7 @@ add_screenshot("17_custom_admin_calendar", "Figura 14: Calendario de reservas")
 
 # 4.3 Canchas Panel
 doc.add_heading("4.3. Gestión de Canchas y Mantenimiento", level=2)
-doc.add_paragraph(
-    "Vista simplificada para la gestión rápida de canchas con acciones frecuentes."
-)
+doc.add_paragraph("Vista simplificada para la gestión rápida de canchas con acciones frecuentes.")
 
 doc.add_heading("Tabla de Canchas:", level=3)
 add_bullet("Columnas: Nombre, Tipo (badge), Iluminación (✓ LED / No), Estado, Acción")
@@ -746,8 +762,16 @@ doc.add_heading("Acciones por estado:", level=3)
 add_table(
     ["Estado", "Acciones Disponibles", "Roles"],
     [
-        ["pending_transfer", "Aprobar (confirm_transfer), Ver comprobante, Rechazar (con motivo)", "recepcionista+"],
-        ["pending_cash", "Cobrar efectivo (collect_cash) — marca la reserva como pagada", "recepcionista+"],
+        [
+            "pending_transfer",
+            "Aprobar (confirm_transfer), Ver comprobante, Rechazar (con motivo)",
+            "recepcionista+",
+        ],
+        [
+            "pending_cash",
+            "Cobrar efectivo (collect_cash) — marca la reserva como pagada",
+            "recepcionista+",
+        ],
         ["confirmed / captured", "Reembolsar (refund, con confirmación JS)", "dueno / superadmin"],
         ["rejected", "Mostrar motivo de rechazo", "—"],
         ["Otros", "Sin acciones disponibles", "—"],
@@ -766,8 +790,8 @@ doc.add_paragraph(
 
 doc.add_paragraph()
 doc.add_paragraph(
-    "Efectivo (\"Pago en el establecimiento\"): el jugador paga en el club. "
-    "Hasta que recepción pulsa \"Cobrar efectivo\", la reserva sigue pendiente "
+    'Efectivo ("Pago en el establecimiento"): el jugador paga en el club. '
+    'Hasta que recepción pulsa "Cobrar efectivo", la reserva sigue pendiente '
     "y la app le avisa de que debe pagar en el mostrador. Al cobrarla, la "
     "reserva pasa a confirmada y la app le confirma el pago. Un mismo pago "
     "no puede cobrarse dos veces."
@@ -784,22 +808,22 @@ doc.add_paragraph(
 
 doc.add_heading("Crear un Torneo:", level=3)
 doc.add_paragraph(
-    "1. Haga clic en \"Nuevo Torneo\"\n"
+    '1. Haga clic en "Nuevo Torneo"\n'
     "2. Ingrese el título del torneo\n"
     "3. Seleccione la categoría (Primera, Segunda, Tercera, Open, Mixto)\n"
     "4. Defina el máximo de parejas/equipos\n"
     "5. Establezca la cuota de inscripción ($)\n"
     "6. Seleccione fecha de inicio y fin\n"
-    "7. Haga clic en \"Crear torneo\"\n"
+    '7. Haga clic en "Crear torneo"\n'
     "8. El torneo se crea con estado 'open'"
 )
 
 doc.add_heading("Publicar una Noticia:", level=3)
 doc.add_paragraph(
-    "1. Haga clic en \"Nueva Noticia\"\n"
+    '1. Haga clic en "Nueva Noticia"\n'
     "2. Ingrese el título\n"
     "3. Escriba el contenido\n"
-    "4. Haga clic en \"Publicar\"\n"
+    '4. Haga clic en "Publicar"\n'
     "5. Se envían notificaciones a todos los usuarios"
 )
 
@@ -817,24 +841,32 @@ doc.add_heading("KPI Principal (solo dueno / superadmin):", level=3)
 add_bullet("Ingresos Mensuales Acumulados — Total de pagos confirmados en el mes actual ($)")
 
 doc.add_heading("Reportes disponibles:", level=3)
-add_bullet("Reservas por Estado — Distribución de reservas según su estado (count) — visible para gerente+")
-add_bullet("Ingresos por Cancha — Desglose de ingresos por cada cancha (total $) — solo dueno / superadmin")
-add_bullet("Top 10 Clientes Frecuentes — Los 10 usuarios con más reservas (email, nombre, count) — solo dueno / superadmin")
+add_bullet(
+    "Reservas por Estado — Distribución de reservas según su estado (count) — visible para gerente+"
+)
+add_bullet(
+    "Ingresos por Cancha — Desglose de ingresos por cada cancha (total $) — solo dueno / superadmin"
+)
+add_bullet(
+    "Top 10 Clientes Frecuentes — Los 10 usuarios con más reservas (email, nombre, count) — solo dueno / superadmin"
+)
 
 doc.add_paragraph()
 doc.add_paragraph(
     "El resto del panel de reportes está deliberadamente restringido. Un "
     "gerente ve los conteos de reservas y, en las casillas de dinero y de "
-    "clientes, la palabra \"Restringido\". Los agregados monetarios ni siquiera "
+    'clientes, la palabra "Restringido". Los agregados monetarios ni siquiera '
     "se calculan para esos roles: un error de plantilla no puede filtrarlos. "
     "El recepcionista no tiene acceso a esta sección."
 )
 
 doc.add_heading("Exportar CSV (solo dueno / superadmin):", level=3)
-add_bullet("Botón \"Exportar CSV\" descarga un reporte completo")
+add_bullet('Botón "Exportar CSV" descarga un reporte completo')
 add_bullet("Formato: andes_padel_report.csv")
 add_bullet("Contenido: últimas 500 reservas con ID, Fecha, Cliente (email), Cancha, Precio, Estado")
-add_bullet("La exportación incluye correos de clientes: por eso es solo owner (403 para otros roles)")
+add_bullet(
+    "La exportación incluye correos de clientes: por eso es solo owner (403 para otros roles)"
+)
 
 doc.add_paragraph(
     "Métodos del ReportService:\n"
@@ -856,7 +888,9 @@ doc.add_paragraph(
 
 doc.add_heading("Política de Cancelación:", level=3)
 add_bullet("Ventana Gratuita (horas) — Horas mínimas antes de la reserva para cancelar sin cargo")
-add_bullet("Penalización Cancelación Tardía (%) — Porcentaje cobrado si cancela después de la ventana")
+add_bullet(
+    "Penalización Cancelación Tardía (%) — Porcentaje cobrado si cancela después de la ventana"
+)
 add_bullet("Penalización No-Show (%) — Porcentaje cobrado si el cliente no se presenta")
 add_bullet("Tiempo de Hold (minutos) — Duración máxima de un slot en hold")
 
@@ -889,7 +923,7 @@ add_bullet("Por usuario — Búsqueda por correo electrónico (icontains)")
 
 doc.add_heading("Columnas de la tabla:", level=3)
 add_bullet("Fecha (UTC) — Formato YYYY-MM-DD HH:MM:SS")
-add_bullet("Usuario — Email o \"Sistema / Anónimo\"")
+add_bullet('Usuario — Email o "Sistema / Anónimo"')
 add_bullet("Acción — Badge monospace (ej: admin.login, booking_create)")
 add_bullet("Entidad — Badge (ej: user, booking, court, payment)")
 add_bullet("ID Entidad — Truncado, monospace")
@@ -912,16 +946,22 @@ doc.add_paragraph(
 )
 
 doc.add_heading("Consentimiento:", level=2)
-add_bullet("POST /api/auth/me/consent/ — Registra la versión de los términos aceptados por el usuario")
+add_bullet(
+    "POST /api/auth/me/consent/ — Registra la versión de los términos aceptados por el usuario"
+)
 add_bullet("Cada usuario tiene campos consent_version y consent_ts para rastrear el consentimiento")
 
 doc.add_heading("Exportación de Datos:", level=2)
 add_bullet("GET /api/auth/me/export/ — Exporta todos los datos del usuario en formato JSON")
-add_bullet("Incluye: perfil, reservas, pagos, notificaciones, consentimiento y registros de auditoría")
+add_bullet(
+    "Incluye: perfil, reservas, pagos, notificaciones, consentimiento y registros de auditoría"
+)
 
 doc.add_heading("Derecho al Olvido:", level=2)
 add_bullet("POST /api/auth/me/erase/ — Anonimiza permanentemente la cuenta del usuario")
-add_bullet("Los datos personales se eliminan pero los registros financieros se conservan de forma anónima")
+add_bullet(
+    "Los datos personales se eliminan pero los registros financieros se conservan de forma anónima"
+)
 add_bullet("Requiere autenticación activa")
 
 doc.add_paragraph(
@@ -985,7 +1025,7 @@ doc.add_paragraph(
 )
 
 doc.add_paragraph(
-    "En Swagger UI, puede hacer clic en el botón \"Authorize\" (candado) "
+    'En Swagger UI, puede hacer clic en el botón "Authorize" (candado) '
     "e ingresar su token de acceso para probar los endpoints protegidos "
     "directamente desde la interfaz."
 )
@@ -1007,9 +1047,21 @@ doc.add_paragraph(
 add_table(
     ["Cuenta", "Correo Electrónico", "Contraseña", "Rol", "Panel"],
     [
-        ["Super Administrador", "admin@andespadelclub.com", "Andes12345!", "superadmin", "Django + Personalizado"],
+        [
+            "Super Administrador",
+            "admin@andespadelclub.com",
+            "Andes12345!",
+            "superadmin",
+            "Django + Personalizado",
+        ],
         ["Gerente", "gerente@andespadelclub.com", "Andes12345!", "gerente", "Personalizado"],
-        ["Recepcionista", "recepcion@andespadelclub.com", "Andes12345!", "recepcionista", "Personalizado"],
+        [
+            "Recepcionista",
+            "recepcion@andespadelclub.com",
+            "Andes12345!",
+            "recepcionista",
+            "Personalizado",
+        ],
         ["Cliente", "cliente@andespadelclub.com", "Andes12345!", "cliente", "Solo App Móvil"],
         ["Jugadora", "jugador@andespadelclub.com", "Andes12345!", "cliente", "Solo App Móvil"],
     ],
@@ -1030,36 +1082,52 @@ doc.add_page_break()
 doc.add_heading("8. Solución de Problemas", level=1)
 
 problems = [
-    ("No puedo iniciar sesión al panel personalizado",
-     "Verifique que está usando el correo electrónico correcto (no un nombre de usuario). "
-     "La contraseña es sensible a mayúsculas y minúsculas. Solo usuarios con rol de personal "
-     "(recepcionista, gerente, dueño, superadmin) pueden acceder al panel. "
-     "Si olvidó su contraseña, contacte al administrador."),
-    ("La página no carga o muestra error 500",
-     "El servidor puede estar reiniciándose. Espere unos segundos y recargue la página. "
-     "Si el problema persiste, verifique que los contenedores Docker estén ejecutándose "
-     "con el comando: docker compose ps. Asegúrese de que el backend, db y redis estén activos."),
-    ("No se guardan los cambios en el panel Django",
-     "Verifique que tiene permisos de edición para la sección. El control de acceso RBAC "
-     "limita los permisos según su rol. Los módulos financieros (Payment, CancellationPolicy) "
-     "solo son editables por superadmin y dueño."),
-    ("El calendario no muestra las canchas",
-     "Asegúrese de que existan canchas activas en el sistema. Las canchas inactivas no "
-     "aparecen en el calendario. Cree canchas desde Gestión de Canchas o active las existentes."),
-    ("Los pagos por transferencia no se confirman",
-     "Los pagos por transferencia requieren verificación manual. Vaya a Pagos y Verificación, "
-     "encuentre el pago con estado 'pending_transfer' y haga clic en 'Aprobar'. "
-     "Puede verificar el comprobante de pago antes de aprobar."),
-    ("Las reservas manuales no aparecen en el calendario",
-     "Las reservas manuales se crean con estado 'confirmed'. Verifique que la fecha "
-     "seleccionada en el calendario coincida con la fecha de la reserva creada."),
-    ("No se envían notificaciones",
-     "Las notificaciones in-app y por email se envían automáticamente. Las notificaciones "
-     "push requieren configuración de Firebase Cloud Messaging. Verifique que Celery esté "
-     "ejecutándose: docker compose ps worker."),
-    ("El exportar CSV no funciona",
-     "Verifique que tenga conexión a la base de datos. El archivo CSV se genera con "
-     "las últimas 500 reservas. Si no hay reservas, el archivo estará vacío."),
+    (
+        "No puedo iniciar sesión al panel personalizado",
+        "Verifique que está usando el correo electrónico correcto (no un nombre de usuario). "
+        "La contraseña es sensible a mayúsculas y minúsculas. Solo usuarios con rol de personal "
+        "(recepcionista, gerente, dueño, superadmin) pueden acceder al panel. "
+        "Si olvidó su contraseña, contacte al administrador.",
+    ),
+    (
+        "La página no carga o muestra error 500",
+        "El servidor puede estar reiniciándose. Espere unos segundos y recargue la página. "
+        "Si el problema persiste, verifique que los contenedores Docker estén ejecutándose "
+        "con el comando: docker compose ps. Asegúrese de que el backend, db y redis estén activos.",
+    ),
+    (
+        "No se guardan los cambios en el panel Django",
+        "Verifique que tiene permisos de edición para la sección. El control de acceso RBAC "
+        "limita los permisos según su rol. Los módulos financieros (Payment, CancellationPolicy) "
+        "solo son editables por superadmin y dueño.",
+    ),
+    (
+        "El calendario no muestra las canchas",
+        "Asegúrese de que existan canchas activas en el sistema. Las canchas inactivas no "
+        "aparecen en el calendario. Cree canchas desde Gestión de Canchas o active las existentes.",
+    ),
+    (
+        "Los pagos por transferencia no se confirman",
+        "Los pagos por transferencia requieren verificación manual. Vaya a Pagos y Verificación, "
+        "encuentre el pago con estado 'pending_transfer' y haga clic en 'Aprobar'. "
+        "Puede verificar el comprobante de pago antes de aprobar.",
+    ),
+    (
+        "Las reservas manuales no aparecen en el calendario",
+        "Las reservas manuales se crean con estado 'confirmed'. Verifique que la fecha "
+        "seleccionada en el calendario coincida con la fecha de la reserva creada.",
+    ),
+    (
+        "No se envían notificaciones",
+        "Las notificaciones in-app y por email se envían automáticamente. Las notificaciones "
+        "push requieren configuración de Firebase Cloud Messaging. Verifique que Celery esté "
+        "ejecutándose: docker compose ps worker.",
+    ),
+    (
+        "El exportar CSV no funciona",
+        "Verifique que tenga conexión a la base de datos. El archivo CSV se genera con "
+        "las últimas 500 reservas. Si no hay reservas, el archivo estará vacío.",
+    ),
 ]
 
 for problem, solution in problems:

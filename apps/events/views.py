@@ -128,17 +128,13 @@ class TournamentViewSet(viewsets.ReadOnlyModelViewSet):
             )
         except ValueError as exc:
             return Response({"detail": str(exc)}, status=status.HTTP_409_CONFLICT)
-        return Response(
-            TournamentRegistrationSerializer(reg).data, status=status.HTTP_201_CREATED
-        )
+        return Response(TournamentRegistrationSerializer(reg).data, status=status.HTTP_201_CREATED)
 
     @action(detail=True, methods=["post"])
     def confirm(self, request, pk=None):
         tournament = self.get_object()
         try:
-            reg = TournamentRegistration.objects.get(
-                tournament=tournament, user=request.user
-            )
+            reg = TournamentRegistration.objects.get(tournament=tournament, user=request.user)
             TournamentService.confirm(reg)
         except TournamentRegistration.DoesNotExist:
             return Response(
@@ -154,9 +150,9 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
     http_method_names = ["get", "post", "delete"]
 
     def get_queryset(self):
-        qs = OpenMatch.objects.select_related(
-            "created_by", "skill_level"
-        ).prefetch_related("players")
+        qs = OpenMatch.objects.select_related("created_by", "skill_level").prefetch_related(
+            "players"
+        )
         if not self.request.user or not self.request.user.is_authenticated:
             return qs.none()
         category = self.request.query_params.get("skill_level")
@@ -194,9 +190,7 @@ class OpenMatchViewSet(viewsets.ModelViewSet):
                 {"detail": _("El partido ya esta completo")},
                 status=status.HTTP_409_CONFLICT,
             )
-        _player, created = OpenMatchPlayer.objects.get_or_create(
-            match=match, user=request.user
-        )
+        _player, created = OpenMatchPlayer.objects.get_or_create(match=match, user=request.user)
         if not created:
             return Response(
                 {"detail": _("Ya estas en este partido")},

@@ -44,7 +44,9 @@ class TestBookingCreation:
         from apps.bookings.services import BookingService
 
         with pytest.raises(Exception, match="La hora ya pas"):
-            BookingService.hold(user, scheduled_court, timezone.localdate() - timedelta(days=1), "08:00", 60)
+            BookingService.hold(
+                user, scheduled_court, timezone.localdate() - timedelta(days=1), "08:00", 60
+            )
 
     def test_confirm_booking(self, scheduled_court, user):
         from apps.bookings.services import BookingService
@@ -65,10 +67,7 @@ class TestBookingCreation:
         booking.refresh_from_db()
         assert booking.status == "cancelled"
         assert booking.slots.count() == 0
-        assert all(
-            s.status == "available"
-            for s in TimeSlot.objects.filter(id__in=slot_ids)
-        )
+        assert all(s.status == "available" for s in TimeSlot.objects.filter(id__in=slot_ids))
 
     def test_cancelled_slot_can_be_rebooked(self, scheduled_court, user):
         from django.contrib.auth import get_user_model
@@ -89,9 +88,7 @@ class TestBookingCreation:
         from apps.scheduling.models import BookingHold
 
         booking = BookingService.hold(user, scheduled_court, _future_day(), "10:00", 60)
-        BookingHold.objects.filter(user=user).update(
-            expires_at=tz.now() - tz.timedelta(minutes=1)
-        )
+        BookingHold.objects.filter(user=user).update(expires_at=tz.now() - tz.timedelta(minutes=1))
         from apps.scheduling.tasks import release_expired_holds
 
         released = release_expired_holds()

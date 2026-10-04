@@ -22,7 +22,11 @@ class TestReports:
     def test_reports_shows_bookings_by_status(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")
         content = admin_page.content()
-        assert "estado" in content.lower() or "status" in content.lower() or "reserva" in content.lower()
+        assert (
+            "estado" in content.lower()
+            or "status" in content.lower()
+            or "reserva" in content.lower()
+        )
 
     def test_reports_shows_revenue_by_court(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")
@@ -36,13 +40,17 @@ class TestReports:
 
     def test_reports_csv_export_link(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")
-        csv_link = admin_page.locator('a[href*="export=csv"], a:has-text("CSV"), a:has-text("Exportar")')
+        csv_link = admin_page.locator(
+            'a[href*="export=csv"], a:has-text("CSV"), a:has-text("Exportar")'
+        )
         if csv_link.count() > 0:
             assert csv_link.first.is_visible()
 
     def test_reports_csv_export_link_works(self, admin_page: Page):
         admin_page.goto("/adminpanel/reports/")
-        csv_link = admin_page.locator('a[href*="export=csv"], a:has-text("CSV"), a:has-text("Exportar")')
+        csv_link = admin_page.locator(
+            'a[href*="export=csv"], a:has-text("CSV"), a:has-text("Exportar")'
+        )
         if csv_link.count() > 0:
             # Verify the link exists and has correct href
             href = csv_link.first.get_attribute("href")
@@ -58,5 +66,6 @@ class TestReports:
         recepcion_page.wait_for_load_state("networkidle")
         # Recepcionista should be denied (not in STAFF_ROLES for manager views)
         # Actually recepcionista IS in STAFF_ROLES, so should have access
-        assert recepcion_page.locator("table, .card").count() >= 1 or \
-               recepcion_page.url.endswith("/adminpanel/login/")
+        assert recepcion_page.locator("table, .card").count() >= 1 or recepcion_page.url.endswith(
+            "/adminpanel/login/"
+        )

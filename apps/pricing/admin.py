@@ -7,7 +7,14 @@ from apps.pricing.models import Holiday, PriceRule
 @admin.register(PriceRule)
 class PriceRuleAdmin(RoleGatedAdmin):
     list_display = (
-        "name", "venue", "zone", "day_of_week", "court_type", "multiplier", "priority", "active",
+        "name",
+        "venue",
+        "zone",
+        "day_of_week",
+        "court_type",
+        "multiplier",
+        "priority",
+        "active",
     )
     list_filter = ("zone", "active", "venue")
     search_fields = ("name",)

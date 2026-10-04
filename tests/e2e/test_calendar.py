@@ -62,4 +62,6 @@ class TestCalendar:
         admin_page.goto("/adminpanel/calendar/")
         content = admin_page.content()
         # Manual booking form is inside a modal -- check the trigger button exists
-        assert "Reserva Manual" in content or "crear" in content.lower() or "Nueva Reserva" in content
+        assert (
+            "Reserva Manual" in content or "crear" in content.lower() or "Nueva Reserva" in content
+        )

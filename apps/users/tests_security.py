@@ -25,9 +25,7 @@ class TestRateLimit:
                     {"email": user.email, "password": "wrong"},
                 )
                 assert resp.status_code == 401
-            resp = api_client.post(
-                "/api/auth/login/", {"email": user.email, "password": "wrong"}
-            )
+            resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "wrong"})
             assert resp.status_code == 429
         finally:
             cache.clear()
@@ -35,9 +33,7 @@ class TestRateLimit:
 
 class TestTokenRevocation:
     def test_logout_blacklists_refresh(self, api_client, user):
-        resp = api_client.post(
-            "/api/auth/login/", {"email": user.email, "password": "pass12345"}
-        )
+        resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "pass12345"})
         assert resp.status_code == 200
         refresh = resp.data["refresh"]
         api_client.post("/api/auth/logout/", {"refresh": refresh}, format="json")
@@ -160,14 +156,16 @@ class TestAuditTrail:
         court = Court.objects.create(venue=venue, name="C1", price_base="10.00")
         day = timezone.localdate() + timedelta(days=1)
         wd = day.weekday()
-        CourtSchedule.objects.create(
-            court=court, weekday=wd, open_time="08:00", close_time="22:00"
-        )
+        CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
         api_client.force_authenticate(user)
         resp = api_client.post(
             "/api/bookings/",
-            {"court": court.id, "date": day.isoformat(), "start_time": "10:00",
-             "duration_minutes": 60},
+            {
+                "court": court.id,
+                "date": day.isoformat(),
+                "start_time": "10:00",
+                "duration_minutes": 60,
+            },
             format="json",
         )
         assert resp.status_code == 201

@@ -59,12 +59,9 @@ class TestAdminManualBookingLocksSlots:
         booking = BookingService.hold(customer, court, day, "10:00", 60)
         BookingService.confirm(booking)
 
-        booked = TimeSlot.objects.filter(
-            court=court, date=day, status=TimeSlot.Status.BOOKED
-        )
+        booked = TimeSlot.objects.filter(court=court, date=day, status=TimeSlot.Status.BOOKED)
         assert booked.exists(), (
-            "confirm() left every TimeSlot AVAILABLE — the slot is still open "
-            "for a client to book"
+            "confirm() left every TimeSlot AVAILABLE — the slot is still open for a client to book"
         )
 
     def test_second_manual_booking_on_taken_slot_is_refused(self, court):
@@ -121,9 +118,7 @@ def staff_users():
     superadmin = User.objects.create_user(
         email="super@test.com", password="pass12345", role="superadmin", is_staff=True
     )
-    cliente = User.objects.create_user(
-        email="cli@test.com", password="pass12345", role="cliente"
-    )
+    cliente = User.objects.create_user(email="cli@test.com", password="pass12345", role="cliente")
     return {
         "recepcionista": recepcionista,
         "gerente": gerente,

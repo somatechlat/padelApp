@@ -26,18 +26,14 @@ class Booking(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings"
     )
-    court = models.ForeignKey(
-        "courts.Court", on_delete=models.CASCADE, related_name="bookings"
-    )
+    court = models.ForeignKey("courts.Court", on_delete=models.CASCADE, related_name="bookings")
     date = models.DateField()
     start_time = models.TimeField()
     end_time = models.TimeField()
     duration_minutes = models.PositiveSmallIntegerField()
     players = models.PositiveSmallIntegerField(default=4)
     price = models.DecimalField(max_digits=8, decimal_places=2)
-    status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING_PAYMENT
-    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING_PAYMENT)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -60,7 +56,9 @@ class Booking(models.Model):
             ),
         ]
         indexes = [
-            models.Index(fields=["court", "date", "start_time"], name="idx_booking_court_date_start"),
+            models.Index(
+                fields=["court", "date", "start_time"], name="idx_booking_court_date_start"
+            ),
             models.Index(fields=["status"], name="idx_booking_status"),
         ]
 
@@ -91,9 +89,7 @@ class Booking(models.Model):
             locked = Booking.objects.select_for_update().get(pk=self.pk)
             locked.status = new_status
             locked.save(update_fields=["status", "updated_at"])
-            BookingEvent.objects.create(
-                booking=locked, from_status=current, to_status=new_status
-            )
+            BookingEvent.objects.create(booking=locked, from_status=current, to_status=new_status)
         self.status = new_status
         return self
 
@@ -105,9 +101,7 @@ class BookingSlot(models.Model):
     class Meta:
         verbose_name = "franja de reserva"
         verbose_name_plural = "franjas de reserva"
-        constraints = [
-            models.UniqueConstraint(fields=("slot",), name="uniq_slot_booked_once")
-        ]
+        constraints = [models.UniqueConstraint(fields=("slot",), name="uniq_slot_booked_once")]
 
 
 class BookingEvent(models.Model):

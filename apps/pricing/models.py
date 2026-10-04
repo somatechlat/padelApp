@@ -6,9 +6,7 @@ class PriceRule(models.Model):
         VALLE = "valle", "Valle"
         PICO = "pico", "Pico"
 
-    venue = models.ForeignKey(
-        "courts.Venue", on_delete=models.CASCADE, related_name="price_rules"
-    )
+    venue = models.ForeignKey("courts.Venue", on_delete=models.CASCADE, related_name="price_rules")
     name = models.CharField(max_length=120)
     zone = models.CharField(max_length=8, choices=Zone.choices, default=Zone.VALLE)
     day_of_week = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -31,9 +29,7 @@ class PriceRule(models.Model):
 
 
 class Holiday(models.Model):
-    venue = models.ForeignKey(
-        "courts.Venue", on_delete=models.CASCADE, related_name="holidays"
-    )
+    venue = models.ForeignKey("courts.Venue", on_delete=models.CASCADE, related_name="holidays")
     date = models.DateField()
     name = models.CharField(max_length=120)
 

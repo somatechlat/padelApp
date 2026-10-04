@@ -219,7 +219,9 @@ class Command(BaseCommand):
                 if not s_created and not schedule.is_active:
                     schedule.is_active = True
                     schedule.save(update_fields=["is_active"])
-            self.stdout.write(f"         schedules 7/7 weekdays {OPEN_TIME:%H:%M}-{CLOSE_TIME:%H:%M}")
+            self.stdout.write(
+                f"         schedules 7/7 weekdays {OPEN_TIME:%H:%M}-{CLOSE_TIME:%H:%M}"
+            )
 
         # Generate slots through SlotService so seeded data is byte-identical
         # to what the booking flow reads at runtime.

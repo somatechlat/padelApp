@@ -20,14 +20,29 @@ class UserAdmin(DjangoUserAdmin):
     readonly_fields = ("last_login", "date_joined", "email_verified")
     fieldsets = (
         (None, {"fields": ("email", "password")}),
-        ("Perfil", {"fields": ("first_name", "last_name", "full_name", "birth_date", "skill_level", "phone", "avatar", "language_code")}),
+        (
+            "Perfil",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "full_name",
+                    "birth_date",
+                    "skill_level",
+                    "phone",
+                    "avatar",
+                    "language_code",
+                )
+            },
+        ),
         ("Roles", {"fields": ("role", "status")}),
-        ("Permisos", {
-            "fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"),
-        }),
+        (
+            "Permisos",
+            {
+                "fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions"),
+            },
+        ),
         ("Consentimiento", {"fields": ("email_verified", "consent_version", "consent_ts")}),
         ("Fechas", {"fields": ("last_login", "date_joined")}),
     )
-    add_fieldsets = (
-        (None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),
-    )
+    add_fieldsets = ((None, {"classes": ("wide",), "fields": ("email", "password1", "password2")}),)

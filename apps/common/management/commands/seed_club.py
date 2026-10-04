@@ -91,9 +91,7 @@ class Command(BaseCommand):
                 user.is_active = True
                 user.save()
                 created_users += 1
-            self.stdout.write(
-                f"{'created' if created else 'exists '} {role:14s} {email}"
-            )
+            self.stdout.write(f"{'created' if created else 'exists '} {role:14s} {email}")
         self.stdout.write(f"accounts: {User.objects.count()} total ({created_users} new)")
 
         defaults = {k: v for k, v in VENUE.items() if k != "name"}

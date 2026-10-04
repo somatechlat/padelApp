@@ -21,7 +21,9 @@ class BookingService:
 
     @staticmethod
     def hold(user, court, day, start_time, duration_minutes, players=4):
-        start_time = time.fromisoformat(str(start_time)) if isinstance(start_time, str) else start_time
+        start_time = (
+            time.fromisoformat(str(start_time)) if isinstance(start_time, str) else start_time
+        )
         now = timezone.localtime()
         start_dt = timezone.make_aware(
             datetime.combine(day, start_time), timezone.get_current_timezone()
@@ -35,9 +37,7 @@ class BookingService:
             # trip "Limite de reservas temporales superado" immediately.
             hold_minutes, max_holds = BookingService._hold_settings()
             active_holds = (
-                BookingHold.objects.filter(
-                    user=user, expires_at__gt=timezone.now()
-                )
+                BookingHold.objects.filter(user=user, expires_at__gt=timezone.now())
                 .values("slot__bookings__booking_id")
                 .distinct()
                 .count()
@@ -63,14 +63,14 @@ class BookingService:
                 court=court,
                 date=day,
                 start_time=start_time,
-                end_time=(datetime.combine(day, start_time) + timedelta(minutes=duration_minutes)).time(),
+                end_time=(
+                    datetime.combine(day, start_time) + timedelta(minutes=duration_minutes)
+                ).time(),
                 duration_minutes=duration_minutes,
                 players=players,
                 price=price,
             )
-            BookingSlot.objects.bulk_create(
-                [BookingSlot(booking=booking, slot=s) for s in locked]
-            )
+            BookingSlot.objects.bulk_create([BookingSlot(booking=booking, slot=s) for s in locked])
             TimeSlot.objects.filter(id__in=[s.id for s in locked]).update(
                 status=TimeSlot.Status.HELD
             )
@@ -91,9 +91,7 @@ class BookingService:
         """(hold_minutes, max_holds_per_user) from the active policy, with defaults."""
         from apps.policies.models import CancellationPolicy
 
-        policy = (
-            CancellationPolicy.objects.filter(active=True).order_by("-id").first()
-        )
+        policy = CancellationPolicy.objects.filter(active=True).order_by("-id").first()
         if policy is None:
             return HOLD_MINUTES, MAX_HOLDS_PER_USER
         hold_minutes = policy.hold_minutes or HOLD_MINUTES
@@ -176,9 +174,11 @@ class BookingService:
     def mark_no_show(booking):
         booking.transition_to(Booking.Status.NO_SHOW)
         from apps.security.services import log_event
+
         log_event(booking.user, "booking.no_show", "Booking", booking.id)
         from apps.common.timefmt import fmt_date, fmt_time
         from apps.notifications.tasks import notify_task
+
         notify_task.delay(
             booking.user_id,
             "no_show_penalty",

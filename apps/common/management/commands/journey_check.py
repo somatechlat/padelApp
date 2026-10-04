@@ -74,9 +74,7 @@ class Command(BaseCommand):
         # journey runner at file:// and have it read local files.
         scheme = urlsplit(self.base).scheme
         if scheme not in ("http", "https"):
-            raise CommandError(
-                f"--base must be an http:// or https:// URL, got {scheme!r}"
-            )
+            raise CommandError(f"--base must be an http:// or https:// URL, got {scheme!r}")
         self.rep = _Reporter(self.stdout)
         stamp = timezone.now().strftime("%Y%m%d%H%M%S")
         self.email = f"journey_{stamp}@andespadelclub.com"
@@ -121,9 +119,7 @@ class Command(BaseCommand):
                     parts.append(b"\r\n")
                 else:
                     parts.append(f"--{boundary}\r\n".encode())
-                    parts.append(
-                        f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode()
-                    )
+                    parts.append(f'Content-Disposition: form-data; name="{key}"\r\n\r\n'.encode())
                     parts.append(str(value).encode() + b"\r\n")
             parts.append(f"--{boundary}--\r\n".encode())
             data = b"".join(parts)
@@ -131,9 +127,7 @@ class Command(BaseCommand):
         elif body is not None:
             data = json.dumps(body).encode()
             headers["Content-Type"] = "application/json"
-        req = urllib.request.Request(
-            self.base + path, data=data, headers=headers, method=method
-        )
+        req = urllib.request.Request(self.base + path, data=data, headers=headers, method=method)
         try:
             with urllib.request.urlopen(req, timeout=30) as resp:  # nosec B310
                 raw, status = resp.read(), resp.status
@@ -290,7 +284,10 @@ class Command(BaseCommand):
             "POST",
             f"/api/bookings/{booking_id}/payments/",
             token=self.token,
-            body={"method": "transfer", "reference": "JRN" + self.email.split("@")[0].split("_")[-1]},
+            body={
+                "method": "transfer",
+                "reference": "JRN" + self.email.split("@")[0].split("_")[-1],
+            },
         )
         ok = status == 201
         self.rep.check("create transfer payment", ok, f"http {status} {pay if not ok else ''}")
@@ -298,8 +295,11 @@ class Command(BaseCommand):
             return
 
         payment_id = pay.get("id")
-        self.rep.check("transfer payment pending", pay.get("status") == "pending_transfer",
-                       f"status={pay.get('status')}")
+        self.rep.check(
+            "transfer payment pending",
+            pay.get("status") == "pending_transfer",
+            f"status={pay.get('status')}",
+        )
 
         # Upload the receipt — the journey the app's transfer-proof screen runs.
         # The endpoint reads request.FILES["proof_image"] and only accepts
@@ -326,9 +326,13 @@ class Command(BaseCommand):
         self.rep.check("events list", status == 200 and bool(events), f"{len(events or [])} events")
 
         if events:
-            status, data = self.call("POST", f"/api/events/{events[0]['id']}/join/", token=self.token, body={})
+            status, data = self.call(
+                "POST", f"/api/events/{events[0]['id']}/join/", token=self.token, body={}
+            )
             self.rep.check("join event", status in (200, 201, 204), f"http {status}")
-            status, data = self.call("POST", f"/api/events/{events[0]['id']}/leave/", token=self.token, body={})
+            status, data = self.call(
+                "POST", f"/api/events/{events[0]['id']}/leave/", token=self.token, body={}
+            )
             self.rep.check("leave event", status in (200, 201, 204), f"http {status}")
 
         status, data = self.call("GET", "/api/tournaments/", token=self.token)
@@ -337,12 +341,12 @@ class Command(BaseCommand):
 
         status, data = self.call("GET", "/api/open-matches/", token=self.token)
         matches = data.get("results", data) if isinstance(data, dict) else data
-        self.rep.check("open matches list", status == 200 and bool(matches), f"{len(matches or [])} quedadas")
+        self.rep.check(
+            "open matches list", status == 200 and bool(matches), f"{len(matches or [])} quedadas"
+        )
 
     def journey_password_reset(self):
-        status, data = self.call(
-            "POST", "/api/auth/password-reset/", body={"email": self.email}
-        )
+        status, data = self.call("POST", "/api/auth/password-reset/", body={"email": self.email})
         self.rep.check("password reset requested", status in (200, 201, 202), f"http {status}")
 
         row = (

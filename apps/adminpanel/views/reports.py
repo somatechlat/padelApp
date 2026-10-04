@@ -36,16 +36,21 @@ class ReportsAdminView(ManagerRequiredMixin, TemplateView):
         can_see_revenue = user_role(self.request.user) in FINANCIAL_ROLES
         ctx["can_see_revenue"] = can_see_revenue
         if can_see_revenue:
-            ctx["month_revenue"] = Payment.objects.filter(
-                status__in=("captured", "confirmed"),
-                created_at__date__gte=start_month,
-            ).aggregate(total=Sum("amount"))["total"] or 0
-            ctx["revenue_by_court"] = Payment.objects.filter(
-                status__in=("captured", "confirmed")
-            ).values("booking__court__name").annotate(total=Sum("amount"))
-            ctx["top_customers"] = User.objects.annotate(
-                booking_count=Count("bookings")
-            ).order_by("-booking_count")[:10]
+            ctx["month_revenue"] = (
+                Payment.objects.filter(
+                    status__in=("captured", "confirmed"),
+                    created_at__date__gte=start_month,
+                ).aggregate(total=Sum("amount"))["total"]
+                or 0
+            )
+            ctx["revenue_by_court"] = (
+                Payment.objects.filter(status__in=("captured", "confirmed"))
+                .values("booking__court__name")
+                .annotate(total=Sum("amount"))
+            )
+            ctx["top_customers"] = User.objects.annotate(booking_count=Count("bookings")).order_by(
+                "-booking_count"
+            )[:10]
 
         return ctx
 

@@ -47,7 +47,9 @@ class AdminLoginView(TemplateView):
                 auth_login(request, user)
                 next_url = request.GET.get("next") or ""
                 if not url_has_allowed_host_and_scheme(
-                    url=next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+                    url=next_url,
+                    allowed_hosts={request.get_host()},
+                    require_https=request.is_secure(),
                 ):
                     next_url = reverse("adminpanel:dashboard")
                 log_event(user, "admin.login", "User", user.id)
@@ -58,7 +60,9 @@ class AdminLoginView(TemplateView):
                 messages.error(request, "Acceso denegado: tu cuenta no tiene rol administrativo.")
         else:
             cache.set(cache_key, cache.get(cache_key, 0) + 1, 900)
-            messages.error(request, "Credenciales invalidas. Por favor verifica tu email y contrasena.")
+            messages.error(
+                request, "Credenciales invalidas. Por favor verifica tu email y contrasena."
+            )
         return self.get(request, *args, **kwargs)
 
 
@@ -80,30 +84,35 @@ class DashboardView(StaffRequiredMixin, TemplateView):
         active = ("pending_payment", "confirmed", "in_progress")
         bookings_today = Booking.objects.filter(date=today, status__in=active)
         ctx["bookings_today"] = bookings_today.count()
-        ctx["bookings_list"] = bookings_today.select_related("court", "user").order_by("start_time")[:10]
+        ctx["bookings_list"] = bookings_today.select_related("court", "user").order_by(
+            "start_time"
+        )[:10]
 
         slots = TimeSlot.objects.filter(date=today)
         total = slots.count()
         used = slots.filter(status__in=("booked", "held", "blocked")).count()
         ctx["occupancy_pct"] = round(used * 100 / total, 1) if total else 0
 
-        revenue = Payment.objects.filter(
-            status__in=("captured", "confirmed"),
-            created_at__date=today,
-        ).aggregate(total=Sum("amount"))["total"] or 0
+        revenue = (
+            Payment.objects.filter(
+                status__in=("captured", "confirmed"),
+                created_at__date=today,
+            ).aggregate(total=Sum("amount"))["total"]
+            or 0
+        )
         ctx["revenue_today"] = revenue
 
         ctx["alerts"] = {
             "mantenimiento_hoy": MaintenanceWindow.objects.filter(start__date=today).count(),
-            "transferencias_pendientes": Payment.objects.filter(
-                status="pending_transfer"
-            ).count(),
+            "transferencias_pendientes": Payment.objects.filter(status="pending_transfer").count(),
             "reservas_sin_pagar": Booking.objects.filter(
                 status="pending_payment", date__gte=today
             ).count(),
         }
 
-        ctx["recent_payments"] = Payment.objects.select_related("booking__user").order_by("-created_at")[:5]
+        ctx["recent_payments"] = Payment.objects.select_related("booking__user").order_by(
+            "-created_at"
+        )[:5]
         ctx["total_users"] = User.objects.count()
         ctx["total_courts"] = Court.objects.count()
 

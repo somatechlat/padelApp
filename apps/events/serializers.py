@@ -20,10 +20,23 @@ class EventSerializer(serializers.ModelSerializer):
     class Meta:
         model = Event
         fields = (
-            "id", "title", "title_es", "title_localized",
-            "description", "description_es", "description_localized",
-            "start_at", "end_at", "location", "category", "status",
-            "capacity", "allow_registration", "attendee_count", "is_full", "joined",
+            "id",
+            "title",
+            "title_es",
+            "title_localized",
+            "description",
+            "description_es",
+            "description_localized",
+            "start_at",
+            "end_at",
+            "location",
+            "category",
+            "status",
+            "capacity",
+            "allow_registration",
+            "attendee_count",
+            "is_full",
+            "joined",
             "created_at",
         )
         read_only_fields = ("created_at",)
@@ -44,8 +57,16 @@ class NewsPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = NewsPost
         fields = (
-            "id", "title", "title_es", "title_localized",
-            "body", "body_es", "body_localized", "status", "published_at", "created_at",
+            "id",
+            "title",
+            "title_es",
+            "title_localized",
+            "body",
+            "body_es",
+            "body_localized",
+            "status",
+            "published_at",
+            "created_at",
         )
         read_only_fields = ("published_at", "created_at")
 
@@ -57,9 +78,20 @@ class TournamentSerializer(serializers.ModelSerializer):
     class Meta:
         model = Tournament
         fields = (
-            "id", "name", "name_es", "name_localized", "description", "description_es",
-            "start_date", "end_date", "capacity", "price", "registration_deadline",
-            "status", "confirmed_count", "created_at",
+            "id",
+            "name",
+            "name_es",
+            "name_localized",
+            "description",
+            "description_es",
+            "start_date",
+            "end_date",
+            "capacity",
+            "price",
+            "registration_deadline",
+            "status",
+            "confirmed_count",
+            "created_at",
         )
         read_only_fields = ("created_at",)
 
@@ -74,15 +106,28 @@ class TournamentRegistrationSerializer(serializers.ModelSerializer):
 class OpenMatchSerializer(serializers.ModelSerializer):
     players_count = serializers.IntegerField(read_only=True)
     created_by_name = serializers.CharField(source="created_by.full_name", read_only=True)
-    skill_level_name = serializers.CharField(source="skill_level.name", read_only=True, default=None)
+    skill_level_name = serializers.CharField(
+        source="skill_level.name", read_only=True, default=None
+    )
     joined = serializers.SerializerMethodField()
 
     class Meta:
         model = OpenMatch
         fields = (
-            "id", "created_by", "created_by_name", "skill_level", "skill_level_name",
-            "date", "start_time", "duration_minutes", "max_players", "notes",
-            "status", "players_count", "joined", "created_at",
+            "id",
+            "created_by",
+            "created_by_name",
+            "skill_level",
+            "skill_level_name",
+            "date",
+            "start_time",
+            "duration_minutes",
+            "max_players",
+            "notes",
+            "status",
+            "players_count",
+            "joined",
+            "created_at",
         )
         read_only_fields = ("created_by", "status", "created_at")
 

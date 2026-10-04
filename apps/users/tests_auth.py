@@ -11,9 +11,7 @@ User = get_user_model()
 
 @pytest.fixture
 def user(db):
-    u = User.objects.create_user(
-        email="ana@test.com", password="pass12345", full_name="Ana Paz"
-    )
+    u = User.objects.create_user(email="ana@test.com", password="pass12345", full_name="Ana Paz")
     u.status = "active"
     u.email_verified = True
     u.save()
@@ -93,9 +91,7 @@ class TestRegister:
 
 class TestVerify:
     def test_verify_code_activates_account(self, api_client, user):
-        code = VerificationCode.objects.create(
-            user=user, purpose="email_verify"
-        )
+        code = VerificationCode.objects.create(user=user, purpose="email_verify")
         resp = api_client.post("/api/auth/verify/", {"email": user.email, "code": code.code})
         assert resp.status_code == status.HTTP_200_OK
         user.refresh_from_db()
@@ -118,33 +114,25 @@ class TestVerify:
 
 class TestLogin:
     def test_login_returns_access_and_refresh(self, api_client, user):
-        resp = api_client.post(
-            "/api/auth/login/", {"email": user.email, "password": "pass12345"}
-        )
+        resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "pass12345"})
         assert resp.status_code == status.HTTP_200_OK
         assert "access" in resp.data
         assert "refresh" in resp.data
 
     def test_login_wrong_password_401(self, api_client, user):
-        resp = api_client.post(
-            "/api/auth/login/", {"email": user.email, "password": "wrongpass"}
-        )
+        resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "wrongpass"})
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_login_unverified_email_blocked(self, api_client, user):
         user.email_verified = False
         user.save()
-        resp = api_client.post(
-            "/api/auth/login/", {"email": user.email, "password": "pass12345"}
-        )
+        resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "pass12345"})
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
 
     def test_login_locked_after_5_failures(self, api_client, user):
         for _ in range(5):
             api_client.post("/api/auth/login/", {"email": user.email, "password": "bad"})
-        resp = api_client.post(
-            "/api/auth/login/", {"email": user.email, "password": "pass12345"}
-        )
+        resp = api_client.post("/api/auth/login/", {"email": user.email, "password": "pass12345"})
         assert resp.status_code == status.HTTP_401_UNAUTHORIZED
         assert "bloqueada" in resp.data.get("detail", "").lower()
 

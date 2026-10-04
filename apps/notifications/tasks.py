@@ -41,11 +41,14 @@ def _notify_booking_window(bookings, event_type, dedup=False):
 
     sent = 0
     for booking in bookings:
-        if dedup and Notification.objects.filter(
-            user=booking.user,
-            event_type=event_type,
-            data__booking_id=booking.id,
-        ).exists():
+        if (
+            dedup
+            and Notification.objects.filter(
+                user=booking.user,
+                event_type=event_type,
+                data__booking_id=booking.id,
+            ).exists()
+        ):
             continue
         try:
             NotificationService.notify(
@@ -59,9 +62,7 @@ def _notify_booking_window(bookings, event_type, dedup=False):
             )
             sent += 1
         except Exception:
-            logger.exception(
-                "Failed to send %s for booking %s", event_type, booking.id
-            )
+            logger.exception("Failed to send %s for booking %s", event_type, booking.id)
     return sent
 
 

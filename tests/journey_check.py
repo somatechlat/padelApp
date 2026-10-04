@@ -33,7 +33,7 @@ def report(name, ok, detail=""):
     print(f"{mark} {PASS if ok else FAIL}  {name}" + (f"  — {detail}" if detail else ""))
 
 
-def call(method, path, token=None, body=None, form=None):
+def call(method, path, token=None, body=None, form=None) -> tuple[int, dict]:
     url = API + path
     headers = {"Accept": "application/json"}
     if token:
@@ -76,13 +76,17 @@ def main():
     print(f"\nAPI: {API}\naccount: {email}\n")
 
     # --- 1. Registration -------------------------------------------------
-    status, data = call("POST", "/auth/register/", body={
-        "email": email,
-        "password": password,
-        "first_name": "Journey",
-        "last_name": "Test",
-        "consent_version": "1.0",
-    })
+    status, data = call(
+        "POST",
+        "/auth/register/",
+        body={
+            "email": email,
+            "password": password,
+            "first_name": "Journey",
+            "last_name": "Test",
+            "consent_version": "1.0",
+        },
+    )
     report("register", status == 201, f"http {status} {data if status != 201 else ''}")
 
     # --- 2. Login is refused before verification ------------------------
@@ -129,11 +133,15 @@ def main():
     # --- 6. Courts -----------------------------------------------------
     status, data = call("GET", "/courts/", token=token)
     courts = data.get("results", data) if isinstance(data, dict) else data
-    report("list courts", status == 200 and isinstance(courts, list) and courts,
-           f"http {status}, {len(courts) if isinstance(courts, list) else 0} courts")
+    report(
+        "list courts",
+        status == 200 and isinstance(courts, list) and courts,
+        f"http {status}, {len(courts) if isinstance(courts, list) else 0} courts",
+    )
 
     # --- 7. Availability ------------------------------------------------
     from datetime import date, timedelta
+
     day = (date.today() + timedelta(days=1)).isoformat()
     slots_ok, slot_count = False, 0
     court_id = None
@@ -148,14 +156,21 @@ def main():
     # --- 8. Events -----------------------------------------------------
     status, data = call("GET", "/events/", token=token)
     events = data.get("results", data) if isinstance(data, dict) else data
-    report("list events", status == 200 and isinstance(events, list) and events,
-           f"http {status}, {len(events) if isinstance(events, list) else 0} events")
+    report(
+        "list events",
+        status == 200 and isinstance(events, list) and events,
+        f"http {status}, {len(events) if isinstance(events, list) else 0} events",
+    )
 
     # --- 9. Join + leave an event --------------------------------------
     if isinstance(events, list) and events:
         ev = events[0]
         status, data = call("POST", f"/events/{ev['id']}/join/", token=token, body={})
-        report("join event", status in (200, 201, 204), f"http {status} {data if status not in (200,201,204) else ''}")
+        report(
+            "join event",
+            status in (200, 201, 204),
+            f"http {status} {data if status not in (200, 201, 204) else ''}",
+        )
         status, data = call("POST", f"/events/{ev['id']}/leave/", token=token, body={})
         report("leave event", status in (200, 201, 204), f"http {status}")
     else:
@@ -164,15 +179,27 @@ def main():
     # --- 10. Tournaments ------------------------------------------------
     status, data = call("GET", "/tournaments/", token=token)
     tours = data.get("results", data) if isinstance(data, dict) else data
-    report("list tournaments", status == 200, f"http {status}, {len(tours) if isinstance(tours, list) else 0}")
+    report(
+        "list tournaments",
+        status == 200,
+        f"http {status}, {len(tours) if isinstance(tours, list) else 0}",
+    )
 
     # --- 11. Open matches (quedadas) ------------------------------------
     status, data = call("GET", "/open-matches/", token=token)
     oms = data.get("results", data) if isinstance(data, dict) else data
-    report("list open matches", status == 200, f"http {status}, {len(oms) if isinstance(oms, list) else 0}")
+    report(
+        "list open matches",
+        status == 200,
+        f"http {status}, {len(oms) if isinstance(oms, list) else 0}",
+    )
     if isinstance(oms, list) and oms:
         status, data = call("POST", f"/open-matches/{oms[0]['id']}/join/", token=token, body={})
-        report("join open match", status in (200, 201, 204), f"http {status} {data if status not in (200,201,204) else ''}")
+        report(
+            "join open match",
+            status in (200, 201, 204),
+            f"http {status} {data if status not in (200, 201, 204) else ''}",
+        )
 
     # --- 12. Banners + club ---------------------------------------------
     status, data = call("GET", "/banners/?lang=es", token=token)
@@ -187,13 +214,22 @@ def main():
     # --- 14. Booking hold ------------------------------------------------
     if court_id:
         start = "18:00"
-        status, data = call("POST", "/bookings/", token=token, body={
-            "court": court_id,
-            "date": day,
-            "start_time": start,
-            "duration_minutes": 60,
-        })
-        report("create booking", status in (200, 201), f"http {status} {data if status not in (200,201) else ''}")
+        status, data = call(
+            "POST",
+            "/bookings/",
+            token=token,
+            body={
+                "court": court_id,
+                "date": day,
+                "start_time": start,
+                "duration_minutes": 60,
+            },
+        )
+        report(
+            "create booking",
+            status in (200, 201),
+            f"http {status} {data if status not in (200, 201) else ''}",
+        )
 
     summarize()
 
@@ -201,7 +237,7 @@ def main():
 def summarize():
     ok = sum(1 for _, o, _ in results if o)
     total = len(results)
-    print(f"\n{'='*60}\nJOURNEYS PASSED: {ok}/{total}")
+    print(f"\n{'=' * 60}\nJOURNEYS PASSED: {ok}/{total}")
     for name, o, detail in results:
         if not o:
             print(f"  FAILED  {name}  {detail}")

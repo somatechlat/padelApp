@@ -23,9 +23,7 @@ from apps.bookings.services import SLOT_MINUTES, BookingService
 from apps.users.permissions import IsOwnerOrStaff
 
 
-class BookingViewSet(
-    GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin
-):
+class BookingViewSet(GenericViewSet, CreateModelMixin, ListModelMixin, RetrieveModelMixin):
     serializer_class = BookingSerializer
 
     def get_queryset(self):
@@ -115,10 +113,7 @@ class BookingViewSet(
         free_counts: dict[str, int] = {}
         for court in courts:
             SlotService.generate_day(court, day)
-            free = {
-                fmt_time(s.start)
-                for s in SlotService.available_slots(court, day)
-            }
+            free = {fmt_time(s.start) for s in SlotService.available_slots(court, day)}
             # Walk every possible start in 30-min steps that fits `needed` free slots.
             for start_s in sorted(free):
                 hh, mm = map(int, start_s.split(":"))
@@ -132,11 +127,7 @@ class BookingViewSet(
                 if ok:
                     free_counts[start_s] = free_counts.get(start_s, 0) + 1
 
-        starts = [
-            {"start": s, "courts_free": n}
-            for s, n in sorted(free_counts.items())
-            if n > 0
-        ]
+        starts = [{"start": s, "courts_free": n} for s, n in sorted(free_counts.items()) if n > 0]
         return Response({"date": date_str, "duration_minutes": duration, "starts": starts})
 
 

@@ -65,7 +65,9 @@ class UsersAdminView(StaffRequiredMixin, ListView):
             return
         target_user.role = new_role
         target_user.save(update_fields=["role"])
-        messages.success(request, f"Rol de {target_user.email} actualizado a {target_user.get_role_display()}.")
+        messages.success(
+            request, f"Rol de {target_user.email} actualizado a {target_user.get_role_display()}."
+        )
         log_event(request.user, "admin.user_role_change", "User", target_user.id)
 
     def _action_change_status(self, request):
@@ -80,6 +82,7 @@ class UsersAdminView(StaffRequiredMixin, ListView):
         target_user.status = new_status
         target_user.save(update_fields=["status"])
         messages.success(
-            request, f"Estado de {target_user.email} actualizado a {target_user.get_status_display()}."
+            request,
+            f"Estado de {target_user.email} actualizado a {target_user.get_status_display()}.",
         )
         log_event(request.user, "admin.user_status_change", "User", target_user.id)

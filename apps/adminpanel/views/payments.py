@@ -15,7 +15,9 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
     model = Payment
 
     def get_queryset(self):
-        qs = Payment.objects.select_related("booking__user", "booking__court").order_by("-created_at")
+        qs = Payment.objects.select_related("booking__user", "booking__court").order_by(
+            "-created_at"
+        )
         status_val = self.request.GET.get("status", "")
         method = self.request.GET.get("method", "")
         if status_val:
@@ -38,7 +40,9 @@ class PaymentsAdminView(StaffRequiredMixin, ListView):
         require_roles(request, STAFF_ROLES)
         payment = get_object_or_404(Payment, id=request.POST.get("payment_id"))
         PaymentService.confirm_transfer(payment)
-        messages.success(request, f"Comprobante de transferencia verificado para pago #{payment.id}.")
+        messages.success(
+            request, f"Comprobante de transferencia verificado para pago #{payment.id}."
+        )
 
     def _action_reject_transfer(self, request):
         require_roles(request, STAFF_ROLES)

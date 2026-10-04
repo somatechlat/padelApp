@@ -64,7 +64,9 @@ MESSAGE_TEMPLATES = {
     ),
     "no_show_penalty": (
         gettext_noop("No-show penalty"),
-        gettext_noop("You did not attend your booking for {court}. A penalty of {amount} has been applied."),
+        gettext_noop(
+            "You did not attend your booking for {court}. A penalty of {amount} has been applied."
+        ),
     ),
     "payment_success": (
         gettext_noop("Payment received"),
@@ -88,7 +90,9 @@ MESSAGE_TEMPLATES = {
     ),
     "payment_failed": (
         gettext_noop("Payment failed"),
-        gettext_noop("Your payment of {amount} could not be processed. Please try again or contact support."),
+        gettext_noop(
+            "Your payment of {amount} could not be processed. Please try again or contact support."
+        ),
     ),
     "payment_refunded": (
         gettext_noop("Payment refunded"),
@@ -132,7 +136,9 @@ MESSAGE_TEMPLATES = {
     ),
     "admin_cash_booking": (
         gettext_noop("Reserva pago en el establecimiento"),
-        gettext_noop("{user} reservó {court} el {date} a las {time} y pagará en el establecimiento."),
+        gettext_noop(
+            "{user} reservó {court} el {date} a las {time} y pagará en el establecimiento."
+        ),
     ),
     "open_match_created": (
         gettext_noop("Nuevo partido en tu categoría"),
@@ -193,7 +199,8 @@ class NotificationService:
             except Exception:
                 logging.getLogger(__name__).exception(
                     "Failed to send email notification to %s for event %s",
-                    user.email, event_type,
+                    user.email,
+                    event_type,
                 )
         if "push" in channels:
             NotificationService._send_push(user, title, body, data)
@@ -223,7 +230,8 @@ class NotificationService:
             messaging.send_each_for_multicast(message)
         except Exception:
             logging.getLogger(__name__).exception(
-                "Failed to send push notification to user %s", user.id,
+                "Failed to send push notification to user %s",
+                user.id,
             )
 
     @staticmethod

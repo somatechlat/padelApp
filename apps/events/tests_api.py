@@ -120,9 +120,7 @@ class TestEventsAPI:
 
     def test_client_cannot_create_event(self, api_client, client_user):
         api_client.force_authenticate(client_user)
-        resp = api_client.post(
-            "/api/events/", {"title": "X"}, format="json"
-        )
+        resp = api_client.post("/api/events/", {"title": "X"}, format="json")
         assert resp.status_code == 403
 
 
@@ -210,9 +208,7 @@ class TestNewsAPI:
     def test_news_feed(self, api_client, client_user):
         from apps.events.models import NewsPost
 
-        NewsPost.objects.create(
-            title="Noticia", body="Body", status=NewsPost.Status.PUBLISHED
-        )
+        NewsPost.objects.create(title="Noticia", body="Body", status=NewsPost.Status.PUBLISHED)
         api_client.force_authenticate(client_user)
         resp = api_client.get("/api/news/")
         assert resp.status_code == 200

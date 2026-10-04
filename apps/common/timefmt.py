@@ -1,4 +1,5 @@
 """Venue-local date/time formatting (America/Guayaquil wall clock)."""
+
 from __future__ import annotations
 
 from datetime import date, datetime, time

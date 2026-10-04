@@ -32,6 +32,7 @@ def _rate_limit_delay():
 @pytest.fixture
 def unique_email():
     import uuid
+
     return f"e2e_{uuid.uuid4().hex[:8]}@test.com"
 
 
@@ -39,79 +40,106 @@ class TestRegistrationFlow:
     """Test the complete registration -> verification -> login flow."""
 
     def test_register_returns_201(self, unique_email):
-        resp = requests.post(f"{BASE}/auth/register/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-            "full_name": "E2E Test User",
-            "phone": "0991234567",
-            "consent_version": "1.0",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+                "full_name": "E2E Test User",
+                "phone": "0991234567",
+                "consent_version": "1.0",
+            },
+        )
         assert resp.status_code == 201
         data = resp.json()
         assert data["email"] == unique_email
 
     def test_register_duplicate_returns_409(self, unique_email):
-        requests.post(f"{BASE}/auth/register/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-            "full_name": "E2E Test User",
-            "consent_version": "1.0",
-        })
-        resp = requests.post(f"{BASE}/auth/register/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-            "full_name": "Duplicate",
-            "consent_version": "1.0",
-        })
+        requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+                "full_name": "E2E Test User",
+                "consent_version": "1.0",
+            },
+        )
+        resp = requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+                "full_name": "Duplicate",
+                "consent_version": "1.0",
+            },
+        )
         assert resp.status_code == 409
 
     def test_register_weak_password_returns_400(self):
-        resp = requests.post(f"{BASE}/auth/register/", json={
-            "email": "weak@test.com",
-            "password": "123",
-            "full_name": "Weak",
-            "consent_version": "1.0",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": "weak@test.com",
+                "password": "123",
+                "full_name": "Weak",
+                "consent_version": "1.0",
+            },
+        )
         assert resp.status_code == 400
 
     def test_register_without_consent_returns_400(self):
-        resp = requests.post(f"{BASE}/auth/register/", json={
-            "email": "noconsent@test.com",
-            "password": "SecurePass123!",
-            "full_name": "No Consent",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": "noconsent@test.com",
+                "password": "SecurePass123!",
+                "full_name": "No Consent",
+            },
+        )
         assert resp.status_code == 400
 
     def test_register_then_verify_then_login(self, unique_email):
         # Step 1: Register
-        reg = requests.post(f"{BASE}/auth/register/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-            "full_name": "Full Flow User",
-            "consent_version": "1.0",
-        })
+        reg = requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+                "full_name": "Full Flow User",
+                "consent_version": "1.0",
+            },
+        )
         assert reg.status_code == 201
 
         # Step 2: Verify (need to get code from DB -- in real E2E we'd check email)
         # For testing, we use the admin to get the code
         # This test validates the API accepts the verify endpoint
-        verify = requests.post(f"{BASE}/auth/verify/", json={
-            "email": unique_email,
-            "code": "000000",  # Wrong code -- should fail
-        })
+        verify = requests.post(
+            f"{BASE}/auth/verify/",
+            json={
+                "email": unique_email,
+                "code": "000000",  # Wrong code -- should fail
+            },
+        )
         assert verify.status_code == 400  # Expected: invalid code
 
     def test_login_before_verify_returns_401(self, unique_email):
-        requests.post(f"{BASE}/auth/register/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-            "full_name": "Unverified User",
-            "consent_version": "1.0",
-        })
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": unique_email,
-            "password": "SecurePass123!",
-        })
+        requests.post(
+            f"{BASE}/auth/register/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+                "full_name": "Unverified User",
+                "consent_version": "1.0",
+            },
+        )
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": unique_email,
+                "password": "SecurePass123!",
+            },
+        )
         assert resp.status_code == 401
         assert "verifica" in resp.json().get("detail", "").lower()
 
@@ -120,10 +148,13 @@ class TestLoginFlow:
     """Test login with existing demo users."""
 
     def test_login_admin_returns_tokens(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert "access" in data
@@ -132,42 +163,57 @@ class TestLoginFlow:
         assert data["user"]["role"] == "superadmin"
 
     def test_login_cliente_returns_tokens(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "cliente@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "cliente@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert resp.status_code == 200
         data = resp.json()
         assert data["user"]["role"] == "cliente"
 
     def test_login_gerente_returns_tokens(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "gerente@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "gerente@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert resp.status_code == 200
         assert resp.json()["user"]["role"] == "gerente"
 
     def test_login_recepcion_returns_tokens(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "recepcion@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "recepcion@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert resp.status_code == 200
         assert resp.json()["user"]["role"] == "recepcionista"
 
     def test_login_wrong_password_returns_401(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "wrongpassword",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "wrongpassword",
+            },
+        )
         assert resp.status_code == 401
 
     def test_login_nonexistent_user_returns_401(self):
-        resp = requests.post(f"{BASE}/auth/login/", json={
-            "email": "nobody@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "nobody@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert resp.status_code == 401
 
     def test_login_locked_after_5_failures(self):
@@ -176,10 +222,13 @@ class TestLoginFlow:
         email = "locktest@andespadelclub.com"
         got_lockout = False
         for _ in range(6):
-            resp = requests.post(f"{BASE}/auth/login/", json={
-                "email": email,
-                "password": "wrong",
-            })
+            resp = requests.post(
+                f"{BASE}/auth/login/",
+                json={
+                    "email": email,
+                    "password": "wrong",
+                },
+            )
             if resp.status_code == 401 and "bloqueada" in resp.json().get("detail", "").lower():
                 got_lockout = True
                 break
@@ -195,16 +244,22 @@ class TestTokenRefreshFlow:
 
     def test_refresh_returns_new_tokens(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         refresh_token = login.json()["refresh"]
 
-        resp = s.post(f"{BASE}/auth/refresh/", json={
-            "refresh": refresh_token,
-        })
+        resp = s.post(
+            f"{BASE}/auth/refresh/",
+            json={
+                "refresh": refresh_token,
+            },
+        )
         assert resp.status_code == 200
         assert "access" in resp.json()
         assert "refresh" in resp.json()
@@ -212,10 +267,13 @@ class TestTokenRefreshFlow:
 
     def test_reused_refresh_is_revoked(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         refresh_token = login.json()["refresh"]
 
@@ -232,22 +290,31 @@ class TestLogoutFlow:
 
     def test_logout_blacklists_token(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         refresh_token = login.json()["refresh"]
 
-        resp = s.post(f"{BASE}/auth/logout/", json={
-            "refresh": refresh_token,
-        })
+        resp = s.post(
+            f"{BASE}/auth/logout/",
+            json={
+                "refresh": refresh_token,
+            },
+        )
         assert resp.status_code == 205
 
         # Token should now be blacklisted
-        resp2 = s.post(f"{BASE}/auth/refresh/", json={
-            "refresh": refresh_token,
-        })
+        resp2 = s.post(
+            f"{BASE}/auth/refresh/",
+            json={
+                "refresh": refresh_token,
+            },
+        )
         assert resp2.status_code in (400, 401)
 
 
@@ -255,23 +322,32 @@ class TestPasswordResetFlow:
     """Test password reset -> confirm -> login with new password."""
 
     def test_password_reset_sends_code(self):
-        resp = requests.post(f"{BASE}/auth/password-reset/", json={
-            "email": "cliente@andespadelclub.com",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/password-reset/",
+            json={
+                "email": "cliente@andespadelclub.com",
+            },
+        )
         assert resp.status_code == 200
 
     def test_password_reset_no_enumeration(self):
-        resp = requests.post(f"{BASE}/auth/password-reset/", json={
-            "email": "nonexistent@andespadelclub.com",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/password-reset/",
+            json={
+                "email": "nonexistent@andespadelclub.com",
+            },
+        )
         assert resp.status_code == 200  # Same response for existing/non-existing
 
     def test_password_reset_confirm_wrong_code_returns_400(self):
-        resp = requests.post(f"{BASE}/auth/password-reset/confirm/", json={
-            "email": "cliente@andespadelclub.com",
-            "code": "000000",
-            "password": "NewPass123!",
-        })
+        resp = requests.post(
+            f"{BASE}/auth/password-reset/confirm/",
+            json={
+                "email": "cliente@andespadelclub.com",
+                "code": "000000",
+                "password": "NewPass123!",
+            },
+        )
         assert resp.status_code == 400
 
 
@@ -280,38 +356,55 @@ class TestMeEndpoint:
 
     def test_me_returns_profile(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         token = login.json()["access"]
 
-        resp = s.get(f"{BASE}/auth/me/", headers={
-            "Authorization": f"Bearer {token}",
-        })
+        resp = s.get(
+            f"{BASE}/auth/me/",
+            headers={
+                "Authorization": f"Bearer {token}",
+            },
+        )
         assert resp.status_code == 200
         assert resp.json()["email"] == "admin@andespadelclub.com"
 
     def test_me_update_language(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         token = login.json()["access"]
 
-        resp = s.patch(f"{BASE}/auth/me/", json={
-            "language_code": "en",
-        }, headers={"Authorization": f"Bearer {token}"})
+        resp = s.patch(
+            f"{BASE}/auth/me/",
+            json={
+                "language_code": "en",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == 200
         assert resp.json()["language_code"] == "en"
 
         # Reset back to Spanish
-        s.patch(f"{BASE}/auth/me/", json={
-            "language_code": "es",
-        }, headers={"Authorization": f"Bearer {token}"})
+        s.patch(
+            f"{BASE}/auth/me/",
+            json={
+                "language_code": "es",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
 
     def test_me_without_auth_returns_401(self):
         resp = requests.get(f"{BASE}/auth/me/")
@@ -323,17 +416,24 @@ class TestPasswordChangeFlow:
 
     def test_change_password_wrong_old_returns_400(self):
         s = requests.Session()
-        login = s.post(f"{BASE}/auth/login/", json={
-            "email": "admin@andespadelclub.com",
-            "password": "Andes12345!",
-        })
+        login = s.post(
+            f"{BASE}/auth/login/",
+            json={
+                "email": "admin@andespadelclub.com",
+                "password": "Andes12345!",
+            },
+        )
         assert login.status_code == 200, f"Login failed: {login.text}"
         token = login.json()["access"]
 
-        resp = s.post(f"{BASE}/auth/password/change/", json={
-            "old_password": "wrongold",
-            "new_password": "NewSecure123!",
-        }, headers={"Authorization": f"Bearer {token}"})
+        resp = s.post(
+            f"{BASE}/auth/password/change/",
+            json={
+                "old_password": "wrongold",
+                "new_password": "NewSecure123!",
+            },
+            headers={"Authorization": f"Bearer {token}"},
+        )
         assert resp.status_code == 400
 
 

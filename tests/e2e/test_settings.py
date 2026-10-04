@@ -7,9 +7,7 @@ pytestmark = pytest.mark.e2e
 
 
 def _named(page: Page, name: str):
-    return page.locator(
-        f'input[name="{name}"], textarea[name="{name}"], select[name="{name}"]'
-    )
+    return page.locator(f'input[name="{name}"], textarea[name="{name}"], select[name="{name}"]')
 
 
 def _require(page: Page, *names: str):
@@ -28,12 +26,18 @@ class TestSettings:
     def test_settings_shows_cancellation_policies(self, admin_page: Page):
         admin_page.goto("/adminpanel/settings/")
         content = admin_page.content()
-        assert "cancelaci" in content.lower() or "política" in content.lower() or "policy" in content.lower()
+        assert (
+            "cancelaci" in content.lower()
+            or "política" in content.lower()
+            or "policy" in content.lower()
+        )
 
     def test_settings_shows_price_rules(self, admin_page: Page):
         admin_page.goto("/adminpanel/settings/")
         content = admin_page.content()
-        assert "precio" in content.lower() or "price" in content.lower() or "tarifa" in content.lower()
+        assert (
+            "precio" in content.lower() or "price" in content.lower() or "tarifa" in content.lower()
+        )
 
     def test_settings_read_only(self, admin_page: Page):
         """Settings is editable: club contact form fields must exist as inputs.

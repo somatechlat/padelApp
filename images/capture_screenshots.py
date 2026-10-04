@@ -138,9 +138,13 @@ def main():
             if lock_btn.is_visible():
                 lock_btn.click()
                 time.sleep(1)
-                token_input = page.locator(".auth-container textarea, .auth-container input[type=text]").first
+                token_input = page.locator(
+                    ".auth-container textarea, .auth-container input[type=text]"
+                ).first
                 token_input.fill(token)
-                page.locator(".auth-container .btn.btn-done, .auth-container button.btn").first.click()
+                page.locator(
+                    ".auth-container .btn.btn-done, .auth-container button.btn"
+                ).first.click()
                 time.sleep(2)
         except Exception as e:
             print(f"    Auth note: {e}")

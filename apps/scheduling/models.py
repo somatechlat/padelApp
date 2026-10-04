@@ -10,15 +10,11 @@ class TimeSlot(models.Model):
         HELD = "held", "En espera"
         BLOCKED = "blocked", "Bloqueado"
 
-    court = models.ForeignKey(
-        "courts.Court", on_delete=models.CASCADE, related_name="slots"
-    )
+    court = models.ForeignKey("courts.Court", on_delete=models.CASCADE, related_name="slots")
     date = models.DateField()
     start = models.TimeField()
     end = models.TimeField()
-    status = models.CharField(
-        max_length=12, choices=Status.choices, default=Status.AVAILABLE
-    )
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.AVAILABLE)
 
     class Meta:
         verbose_name = "franja"

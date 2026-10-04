@@ -47,8 +47,11 @@ class TestRevenueReports:
         today = timezone.localdate()
         b1 = _make_booking(user, court, today, "20.00")
         Payment.objects.create(
-            booking=b1, user=user, method=Payment.Method.CASH,
-            amount="20.00", status=Payment.Status.CAPTURED,
+            booking=b1,
+            user=user,
+            method=Payment.Method.CASH,
+            amount="20.00",
+            status=Payment.Status.CAPTURED,
         )
         rows = ReportService.revenue_by_period(today, today, period="day")
         assert sum(float(r["total"]) for r in rows) == 20.0
@@ -58,12 +61,18 @@ class TestRevenueReports:
         b1 = _make_booking(user, court, today, "10.00")
         b2 = _make_booking(user, court, today, "15.00")
         Payment.objects.create(
-            booking=b1, user=user, method=Payment.Method.CASH,
-            amount="10.00", status=Payment.Status.REFUNDED,
+            booking=b1,
+            user=user,
+            method=Payment.Method.CASH,
+            amount="10.00",
+            status=Payment.Status.REFUNDED,
         )
         Payment.objects.create(
-            booking=b2, user=user, method=Payment.Method.TRANSFER,
-            amount="15.00", status=Payment.Status.PENDING_TRANSFER,
+            booking=b2,
+            user=user,
+            method=Payment.Method.TRANSFER,
+            amount="15.00",
+            status=Payment.Status.PENDING_TRANSFER,
         )
         rows = ReportService.revenue_by_period(today, today, period="day")
         assert sum(float(r["total"]) for r in rows) == 0.0
@@ -72,8 +81,11 @@ class TestRevenueReports:
         today = timezone.localdate()
         b1 = _make_booking(user, court, today, "20.00")
         Payment.objects.create(
-            booking=b1, user=user, method=Payment.Method.STRIPE,
-            amount="20.00", status=Payment.Status.CAPTURED,
+            booking=b1,
+            user=user,
+            method=Payment.Method.STRIPE,
+            amount="20.00",
+            status=Payment.Status.CAPTURED,
         )
         by_court = ReportService.revenue_by_court(today, today)
         assert by_court[0]["court"] == "Cancha 1"
@@ -87,18 +99,18 @@ class TestOperationalReports:
         today = timezone.localdate()
 
         from apps.scheduling.models import TimeSlot
+
         for t in ("10:00", "10:30", "11:00", "11:30"):
             start = datetime.strptime(t, "%H:%M")
             end = start + timedelta(minutes=30)
             TimeSlot.objects.create(
-                court=court, date=today,
+                court=court,
+                date=today,
                 start=start.time(),
                 end=end.time(),
                 status=TimeSlot.Status.AVAILABLE,
             )
-        TimeSlot.objects.filter(start__in=("10:00", "10:30")).update(
-            status=TimeSlot.Status.BOOKED
-        )
+        TimeSlot.objects.filter(start__in=("10:00", "10:30")).update(status=TimeSlot.Status.BOOKED)
         result = ReportService.occupancy_percentage(today, today)
         assert result["booked"] == 2
         assert result["total"] == 4
@@ -108,8 +120,11 @@ class TestOperationalReports:
         today = timezone.localdate()
         b1 = _make_booking(user, court, today, "20.00")
         Payment.objects.create(
-            booking=b1, user=user, method=Payment.Method.CASH,
-            amount="20.00", status=Payment.Status.CAPTURED,
+            booking=b1,
+            user=user,
+            method=Payment.Method.CASH,
+            amount="20.00",
+            status=Payment.Status.CAPTURED,
         )
         top = ReportService.top_customers(today, today)
         assert top[0]["email"] == "c@test.com"

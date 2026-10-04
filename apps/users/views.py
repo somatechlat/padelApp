@@ -81,9 +81,7 @@ class RegisterView(generics.CreateAPIView):
                 fail_silently=False,
             )
         except Exception:
-            logger.exception(
-                "Failed to send verification email to %s", user.email
-            )
+            logger.exception("Failed to send verification email to %s", user.email)
         return Response(
             {"email": user.email, "detail": _("Revisa tu email para verificar la cuenta")},
             status=status.HTTP_201_CREATED,
@@ -171,9 +169,7 @@ class PasswordResetView(APIView):
                 fail_silently=False,
             )
         except Exception:
-            logger.exception(
-                "Failed to send password reset email to %s", user.email
-            )
+            logger.exception("Failed to send password reset email to %s", user.email)
         return Response({"detail": _("Si el email existe, recibira un codigo")})
 
 

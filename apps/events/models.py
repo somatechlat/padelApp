@@ -33,7 +33,10 @@ class Event(models.Model):
     capacity = models.PositiveIntegerField(default=0)
     allow_registration = models.BooleanField(default=True)
     created_by = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="events_created"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name="events_created",
     )
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -82,9 +85,7 @@ class EventRegistration(models.Model):
     class Meta:
         verbose_name = "inscripcion a evento"
         verbose_name_plural = "inscripciones a eventos"
-        constraints = [
-            models.UniqueConstraint(fields=("event", "user"), name="uniq_event_user")
-        ]
+        constraints = [models.UniqueConstraint(fields=("event", "user"), name="uniq_event_user")]
 
     def __str__(self):
         return f"{self.user.email} -> {self.event} [{self.status}]"
@@ -146,10 +147,7 @@ class Tournament(models.Model):
         ).count()
 
     def close_if_deadline_passed(self):
-        if (
-            self.status == Tournament.Status.OPEN
-            and timezone.now() > self.registration_deadline
-        ):
+        if self.status == Tournament.Status.OPEN and timezone.now() > self.registration_deadline:
             self.status = Tournament.Status.CLOSED
             self.save(update_fields=["status"])
             return True
@@ -165,23 +163,21 @@ class TournamentRegistration(models.Model):
         CONFIRMED = "confirmed", "Confirmado"
         CANCELLED = "cancelled", "Cancelado"
 
-    tournament = models.ForeignKey(Tournament, on_delete=models.CASCADE, related_name="registrations")
+    tournament = models.ForeignKey(
+        Tournament, on_delete=models.CASCADE, related_name="registrations"
+    )
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="tournament_registrations"
     )
     partner_name = models.CharField(max_length=100, blank=True)
-    status = models.CharField(
-        max_length=20, choices=Status.choices, default=Status.PENDING_PAYMENT
-    )
+    status = models.CharField(max_length=20, choices=Status.choices, default=Status.PENDING_PAYMENT)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
         verbose_name = "inscripcion a torneo"
         verbose_name_plural = "inscripciones a torneos"
         constraints = [
-            models.UniqueConstraint(
-                fields=("tournament", "user"), name="uniq_tournament_user"
-            )
+            models.UniqueConstraint(fields=("tournament", "user"), name="uniq_tournament_user")
         ]
 
     def __str__(self):
@@ -213,9 +209,7 @@ class OpenMatch(models.Model):
     duration_minutes = models.PositiveIntegerField(default=90)
     max_players = models.PositiveIntegerField(default=4)
     notes = models.CharField(max_length=280, blank=True)
-    status = models.CharField(
-        max_length=12, choices=Status.choices, default=Status.OPEN
-    )
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.OPEN)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -257,9 +251,7 @@ class OpenMatch(models.Model):
 
 
 class OpenMatchPlayer(models.Model):
-    match = models.ForeignKey(
-        OpenMatch, on_delete=models.CASCADE, related_name="players"
-    )
+    match = models.ForeignKey(OpenMatch, on_delete=models.CASCADE, related_name="players")
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
@@ -271,9 +263,7 @@ class OpenMatchPlayer(models.Model):
         verbose_name = "jugador de partido"
         verbose_name_plural = "jugadores de partido"
         constraints = [
-            models.UniqueConstraint(
-                fields=("match", "user"), name="uniq_openmatch_user"
-            )
+            models.UniqueConstraint(fields=("match", "user"), name="uniq_openmatch_user")
         ]
 
     def __str__(self):

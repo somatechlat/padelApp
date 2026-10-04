@@ -58,8 +58,7 @@ class PaymentService:
     def fail(payment, reason=""):
         payment.status = Payment.Status.FAILED
         payment.save(update_fields=["status", "updated_at"])
-        log_event(payment.user, "payment.failed", "Payment", payment.id,
-                  after={"reason": reason})
+        log_event(payment.user, "payment.failed", "Payment", payment.id, after={"reason": reason})
         NotificationService.notify(
             payment.user,
             "payment_failed",
@@ -114,15 +113,16 @@ class PaymentService:
             Payment.Status.PENDING_TRANSFER,
         ):
             raise ValueError(
-                gettext("El pago #{payment_id} ya fue procesado.").format(
-                    payment_id=payment.id
-                )
+                gettext("El pago #{payment_id} ya fue procesado.").format(payment_id=payment.id)
             )
         payment.status = Payment.Status.FAILED
         payment.rejection_reason = reason
         payment.save(update_fields=["status", "rejection_reason", "updated_at"])
         log_event(
-            payment.user, "payment.transfer_rejected", "Payment", payment.id,
+            payment.user,
+            "payment.transfer_rejected",
+            "Payment",
+            payment.id,
             after={"rejection_reason": reason},
         )
         NotificationService.notify(
@@ -257,9 +257,7 @@ class PaymentService:
         payment.refresh_from_db()
         if payment.status == Payment.Status.REFUNDED:
             raise ValueError(
-                gettext("El pago #{payment_id} ya fue reembolsado.").format(
-                    payment_id=payment.id
-                )
+                gettext("El pago #{payment_id} ya fue reembolsado.").format(payment_id=payment.id)
             )
         try:
             amount = Decimal(str(amount))

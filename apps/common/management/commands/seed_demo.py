@@ -62,7 +62,11 @@ class Command(BaseCommand):
             return user
 
         admin = get_or_create_user(
-            "admin@andespadelclub.com", "superadmin", "Administrador Andes Padel", is_staff=True, is_superuser=True
+            "admin@andespadelclub.com",
+            "superadmin",
+            "Administrador Andes Padel",
+            is_staff=True,
+            is_superuser=True,
         )
         get_or_create_user("gerente@andespadelclub.com", "gerente", "Gerente Demo")
         get_or_create_user("recepcion@andespadelclub.com", "recepcionista", "Recepcion Demo")
@@ -191,16 +195,12 @@ class Command(BaseCommand):
             if Booking.objects.filter(court=court, date=day, start_time=start).exists():
                 continue
             try:
-                booking = BookingService.hold(
-                    cliente, court, day, start, 60, players=4
-                )
+                booking = BookingService.hold(cliente, court, day, start, 60, players=4)
                 BookingService.confirm(booking)
                 created["bookings"] += 1
             except Exception:
                 booking_failures += 1
-                logger.exception(
-                    "Failed to seed demo booking on %s at %s", day, start
-                )
+                logger.exception("Failed to seed demo booking on %s at %s", day, start)
 
         self.stdout.write(
             self.style.SUCCESS(

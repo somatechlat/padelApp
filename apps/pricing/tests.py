@@ -96,12 +96,22 @@ class TestTariffService:
         from apps.pricing.services import TariffService
 
         PriceRule.objects.create(
-            venue=court.venue, name="Low prio", zone="valle",
-            day_of_week=None, court_type=None, multiplier="1.10", priority=1,
+            venue=court.venue,
+            name="Low prio",
+            zone="valle",
+            day_of_week=None,
+            court_type=None,
+            multiplier="1.10",
+            priority=1,
         )
         PriceRule.objects.create(
-            venue=court.venue, name="High prio", zone="valle",
-            day_of_week=None, court_type=None, multiplier="1.90", priority=99,
+            venue=court.venue,
+            name="High prio",
+            zone="valle",
+            day_of_week=None,
+            court_type=None,
+            multiplier="1.90",
+            priority=99,
         )
         day = timezone.localdate() + timedelta(days=1)
         assert TariffService.compute(court, day, 60) == Decimal("22.80")  # 12 x 1.90

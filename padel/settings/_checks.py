@@ -15,7 +15,9 @@ def validate_production_secrets(values):
     """Fail fast on blank or dev-only production secrets (constraint C2/C3, NFR-0008)."""
     missing = [k for k in REQUIRED_PROD_SECRETS if not values.get(k)]
     if missing:
-        raise RuntimeError(f"Missing required secrets in docker/backend/secrets.py (via runsecrets): {', '.join(missing)}")
+        raise RuntimeError(
+            f"Missing required secrets in docker/backend/secrets.py (via runsecrets): {', '.join(missing)}"
+        )
     if str(values.get("SECRET_KEY")).startswith("dev-only-"):
         raise RuntimeError("Production SECRET_KEY must not be the dev placeholder (constraint C2).")
 
@@ -40,21 +42,20 @@ def validate_production_host(domain):
         raise RuntimeError(
             "PROD_DOMAIN is not set. Put the production hostname in "
             "docker/backend/secrets.py (via runsecrets) as PROD_DOMAIN before deploying — for "
-            "example PROD_DOMAIN = \"andespadelclub.com\". Do not reuse a "
+            'example PROD_DOMAIN = "andespadelclub.com". Do not reuse a '
             "retired hostname."
         )
     value = str(domain).strip().lower()
     for scheme in ("https://", "http://"):
         if value.startswith(scheme):
-            value = value[len(scheme):]
+            value = value[len(scheme) :]
     # Host only: drop any path, query, fragment and port the operator pasted.
     value = value.split("/")[0].split("?")[0].split("#")[0].split(":")[0]
     if value.startswith("www."):
         value = value[4:]
     if not value or "." not in value or " " in value or value.startswith("."):
         raise RuntimeError(
-            "PROD_DOMAIN must be a hostname such as andespadelclub.com "
-            f"(got {domain!r})."
+            f"PROD_DOMAIN must be a hostname such as andespadelclub.com (got {domain!r})."
         )
     return value
 

@@ -54,9 +54,7 @@ class TestUserRolesAndStates:
         assert user.is_active_account is True
 
     def test_suspended_account_not_active(self):
-        user = User.objects.create_user(
-            email="r@b.com", password="pass12345", status="suspended"
-        )
+        user = User.objects.create_user(email="r@b.com", password="pass12345", status="suspended")
         assert user.is_active_account is False
 
     def test_full_name_and_phone_fields(self):

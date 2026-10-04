@@ -44,7 +44,9 @@ class TestUsers:
     def test_users_filter_by_role(self, admin_page: Page):
         admin_page.goto("/adminpanel/users/")
         # The filter select is the first one (not the inline per-row ones)
-        filter_form = admin_page.locator('form:has(select[name="role"]):not(:has(input[name="user_id"]))')
+        filter_form = admin_page.locator(
+            'form:has(select[name="role"]):not(:has(input[name="user_id"]))'
+        )
         if filter_form.count() > 0:
             role_select = filter_form.first.locator('select[name="role"]')
             role_select.select_option("cliente")

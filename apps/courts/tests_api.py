@@ -190,13 +190,21 @@ class TestCourtList:
         assert resp.data["price_base"] == "12.00"
 
     def test_client_cannot_create_court(self, client, court):
-        resp = client.post("/api/courts/", {"name": "X", "court_type": "abierta", "price_base": "10.00", "venue": court.venue_id})
+        resp = client.post(
+            "/api/courts/",
+            {"name": "X", "court_type": "abierta", "price_base": "10.00", "venue": court.venue_id},
+        )
         assert resp.status_code == status.HTTP_403_FORBIDDEN
 
     def test_staff_can_create_court(self, staff_client, court):
         resp = staff_client.post(
             "/api/courts/",
-            {"name": "Cancha 2", "court_type": "abierta", "price_base": "10.00", "venue": court.venue_id},
+            {
+                "name": "Cancha 2",
+                "court_type": "abierta",
+                "price_base": "10.00",
+                "venue": court.venue_id,
+            },
         )
         assert resp.status_code == status.HTTP_201_CREATED
 
@@ -212,7 +220,9 @@ class TestAvailabilityAPI:
         from apps.courts.models import CourtSchedule
 
         for wd in range(7):
-            CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
+            CourtSchedule.objects.create(
+                court=court, weekday=wd, open_time="08:00", close_time="22:00"
+            )
         day = timezone.localdate() + timedelta(days=2)
         resp = api_client.get(f"/api/courts/{court.id}/availability/", {"date": day.isoformat()})
         assert resp.status_code == status.HTTP_200_OK
@@ -223,7 +233,9 @@ class TestAvailabilityAPI:
         from apps.courts.models import CourtSchedule
 
         for wd in range(7):
-            CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
+            CourtSchedule.objects.create(
+                court=court, weekday=wd, open_time="08:00", close_time="22:00"
+            )
         day = timezone.localdate() + timedelta(days=2)
         BookingService.hold(client_user, court, day, "10:00", 60)
         resp = api_client.get(f"/api/courts/{court.id}/availability/", {"date": day.isoformat()})

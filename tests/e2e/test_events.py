@@ -38,10 +38,18 @@ class TestEvents:
         admin_page.goto("/adminpanel/events/")
         content = admin_page.content()
         # Check that tournament statuses are displayed
-        assert any(s in content.lower() for s in [
-            "abierto", "cerrado", "en curso", "finalizado",
-            "borrador", "publicado", "inscripciones"
-        ])
+        assert any(
+            s in content.lower()
+            for s in [
+                "abierto",
+                "cerrado",
+                "en curso",
+                "finalizado",
+                "borrador",
+                "publicado",
+                "inscripciones",
+            ]
+        )
 
     def test_events_tournament_details_visible(self, admin_page: Page):
         admin_page.goto("/adminpanel/events/")

@@ -24,14 +24,22 @@ class BookingPaymentView(APIView):
 
     def post(self, request, booking_id=None):
         booking = get_object_or_404(
-            Booking.objects.filter(user=request.user) if request.user.role == "cliente" else Booking.objects.all(),
+            (
+                Booking.objects.filter(user=request.user)
+                if request.user.role == "cliente"
+                else Booking.objects.all()
+            ),
             pk=booking_id,
         )
         method = request.data.get("method", "stripe")
         valid_methods = {c[0] for c in Payment.Method.choices}
         if method not in valid_methods:
             return Response(
-                {"detail": _("Metodo de pago invalido. Opciones: {methods}").format(methods=", ".join(valid_methods))},
+                {
+                    "detail": _("Metodo de pago invalido. Opciones: {methods}").format(
+                        methods=", ".join(valid_methods)
+                    )
+                },
                 status=status.HTTP_400_BAD_REQUEST,
             )
         if method == "cash":
@@ -42,9 +50,7 @@ class BookingPaymentView(APIView):
             else:
                 payment = PaymentService.record_cash(booking, booking.price)
         elif method == "transfer":
-            payment = PaymentService.record_transfer(
-                booking, request.data.get("reference", "")
-            )
+            payment = PaymentService.record_transfer(booking, request.data.get("reference", ""))
         else:
             try:
                 payment = PaymentService.create_intent(booking)
@@ -60,7 +66,11 @@ class PaymentProofUploadView(APIView):
 
     def post(self, request, pk=None):
         payment = get_object_or_404(
-            Payment.objects.filter(user=request.user) if request.user.role == "cliente" else Payment.objects.all(),
+            (
+                Payment.objects.filter(user=request.user)
+                if request.user.role == "cliente"
+                else Payment.objects.all()
+            ),
             pk=pk,
             method=Payment.Method.TRANSFER,
             status=Payment.Status.PENDING_TRANSFER,
@@ -124,7 +134,9 @@ class PaymentRejectTransferView(APIView):
 
     def post(self, request, pk=None):
         payment = get_object_or_404(
-            Payment, pk=pk, method=Payment.Method.TRANSFER,
+            Payment,
+            pk=pk,
+            method=Payment.Method.TRANSFER,
             status=Payment.Status.PENDING_TRANSFER,
         )
         reason = request.data.get("reason", "").strip()
@@ -166,9 +178,7 @@ def stripe_webhook(request):
 
     if event["type"] == "payment_intent.payment_failed":
         intent = event["data"]["object"]
-        payment = Payment.objects.filter(
-            stripe_payment_intent_id=intent["id"]
-        ).first()
+        payment = Payment.objects.filter(stripe_payment_intent_id=intent["id"]).first()
         if payment and payment.status != Payment.Status.FAILED:
             reason = ""
             if "last_payment_error" in intent:
@@ -176,9 +186,7 @@ def stripe_webhook(request):
             PaymentService.fail(payment, reason)
     elif event["type"] == "payment_intent.succeeded":
         intent = event["data"]["object"]
-        payment = Payment.objects.filter(
-            stripe_payment_intent_id=intent["id"]
-        ).first()
+        payment = Payment.objects.filter(stripe_payment_intent_id=intent["id"]).first()
         if payment and payment.status not in (Payment.Status.CAPTURED, Payment.Status.CONFIRMED):
             PaymentService.confirm(payment)
 

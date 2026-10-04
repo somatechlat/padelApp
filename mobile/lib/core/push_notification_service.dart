@@ -15,16 +15,9 @@ import '../firebase_options.dart';
 // project credentials supplied out-of-band; run `flutterfire configure` on a
 // fresh clone to regenerate them.
 
-/// Handles Firebase Cloud Messaging (FCM) push notifications.
-///
-/// Responsibilities:
-/// - Initialize Firebase and request notification permissions
-/// - Register the FCM device token with the backend on login
-/// - Display incoming push notifications when the app is in foreground
-/// - Handle notification tap navigation
-///
-/// When Firebase is not configured (see comment above), [initialize] logs at
-/// info that push is disabled and the registration/token calls become no-ops.
+/// Firebase Cloud Messaging: init, permission, device-token registration,
+/// foreground display and tap navigation. All methods are no-ops when
+/// Firebase is not configured.
 class PushNotificationService {
   PushNotificationService(
       {required ApiClient api, GlobalKey<NavigatorState>? navigatorKey})
@@ -53,11 +46,8 @@ class PushNotificationService {
   /// Initialize Firebase, request permissions, and set up message handlers.
   /// Call this once at app startup (before runApp or in main).
   Future<void> initialize() async {
-    // SKIP_PUSH is for automated screenshot / UI-test runs only. In the iOS
-    // simulator there is no APNS token, so FirebaseMessaging.getToken() blocks
-    // for a minute and the parallel Dio calls starve — every tab then paints
-    // "Error de conexión" while the API itself answers in ~0.3s. Production
-    // builds never set this and always push.
+    // SKIP_PUSH is capture-only. The simulator has no APNS token, so getToken()
+    // blocks for a minute and starves the parallel Dio calls. Never in release.
     const skipPush = bool.fromEnvironment('SKIP_PUSH', defaultValue: false);
     if (skipPush) {
       _firebaseReady = false;
@@ -65,10 +55,8 @@ class PushNotificationService {
       return;
     }
 
-    // Explicit options from firebase_options.dart (project andespadel-21f1e).
-    // A bare initializeApp() relies on the native plist being discovered and
-    // logged "No app has been configured yet" before FCM came up; passing the
-    // options makes init deterministic on both platforms.
+    // Pass options explicitly; a bare initializeApp() depends on native plist
+    // discovery and can fail after FCM has already come up.
     try {
       await Firebase.initializeApp(
         options: DefaultFirebaseOptions.currentPlatform,
@@ -81,10 +69,8 @@ class PushNotificationService {
       return;
     }
 
-    // Create the Android channel and wire the foreground/notification-tap
-    // handlers BEFORE the permission prompt. Registering handlers is what makes
-    // delivery work; it must not be skipped if the user is slow to answer the
-    // system permission sheet (or if it is denied).
+    // Wire handlers before the permission prompt — delivery needs them even if
+    // the prompt is denied or ignored.
     await _localNotifications
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
@@ -107,15 +93,10 @@ class PushNotificationService {
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    // Request permission last (iOS shows a system sheet; Android auto-grants).
-    // Do not return early on denial — handlers above stay registered so a later
-    // grant in Settings starts delivering without an app restart.
-    //
-    // SKIP_PUSH_PROMPT is for automated screenshot / UI-test runs only: the
-    // iOS system sheet is not a Flutter widget, so it blocks every tap and
-    // cannot be dismissed from a test. Handlers stay registered above either
-    // way, so turning the prompt off does not disable delivery on a real
-    // install. Production builds never set this and always prompt.
+    // Permission last (iOS shows a system sheet). Do not return early on denial:
+    // handlers stay registered so a later grant in Settings works.
+    // SKIP_PROMPT is capture-only — the iOS sheet is not a Flutter widget and
+    // blocks every tap. Handlers stay registered either way.
     const skipPushPrompt =
         bool.fromEnvironment('SKIP_PUSH_PROMPT', defaultValue: false);
     if (skipPushPrompt) {

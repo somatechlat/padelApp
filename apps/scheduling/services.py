@@ -53,8 +53,9 @@ class SlotService:
         ).order_by("start")
         now = timezone.localtime()
         windows = list(
-            MaintenanceWindow.objects.filter(court=court)
-            .filter(start__date__lte=day, end__date__gte=day)
+            MaintenanceWindow.objects.filter(court=court).filter(
+                start__date__lte=day, end__date__gte=day
+            )
         )
         result = []
         tz = timezone.get_current_timezone()

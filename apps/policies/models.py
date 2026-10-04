@@ -18,9 +18,7 @@ class CancellationPolicy(models.Model):
         verbose_name = "politica de cancelacion"
         verbose_name_plural = "politicas de cancelacion"
         constraints = [
-            models.UniqueConstraint(
-                fields=("venue",), name="uniq_venue_cancellation_policy"
-            ),
+            models.UniqueConstraint(fields=("venue",), name="uniq_venue_cancellation_policy"),
         ]
 
     def __str__(self):

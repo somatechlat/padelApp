@@ -34,7 +34,5 @@ def release_expired_holds(self):
             BookingService.cancel(booking)
             released += 1
         except Exception:
-            logger.exception(
-                "Failed to release expired hold for booking %s", booking.id
-            )
+            logger.exception("Failed to release expired hold for booking %s", booking.id)
     return released

@@ -33,21 +33,34 @@ def export_user_data(user):
     }
     return {
         "profile": profile,
-        "bookings": list(Booking.objects.filter(user=user).values(
-            "id", "court__name", "date", "start_time", "end_time", "price", "status", "created_at"
-        )),
-        "payments": list(Payment.objects.filter(user=user).values(
-            "id", "method", "amount", "currency", "status", "created_at"
-        )),
-        "notifications": list(Notification.objects.filter(user=user).values(
-            "id", "event_type", "title", "created_at"
-        )),
-        "consent_records": list(ConsentRecord.objects.filter(user=user).values(
-            "version", "granted", "source", "created_at"
-        )),
-        "audit_logs": list(AuditLog.objects.filter(user=user).values(
-            "action", "entity", "entity_id", "created_at"
-        )),
+        "bookings": list(
+            Booking.objects.filter(user=user).values(
+                "id",
+                "court__name",
+                "date",
+                "start_time",
+                "end_time",
+                "price",
+                "status",
+                "created_at",
+            )
+        ),
+        "payments": list(
+            Payment.objects.filter(user=user).values(
+                "id", "method", "amount", "currency", "status", "created_at"
+            )
+        ),
+        "notifications": list(
+            Notification.objects.filter(user=user).values("id", "event_type", "title", "created_at")
+        ),
+        "consent_records": list(
+            ConsentRecord.objects.filter(user=user).values(
+                "version", "granted", "source", "created_at"
+            )
+        ),
+        "audit_logs": list(
+            AuditLog.objects.filter(user=user).values("action", "entity", "entity_id", "created_at")
+        ),
     }
 
 

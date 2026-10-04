@@ -13,9 +13,7 @@ def confirmed_booking(court, user):
     from apps.courts.models import CourtSchedule
 
     for wd in range(7):
-        CourtSchedule.objects.create(
-            court=court, weekday=wd, open_time="08:00", close_time="22:00"
-        )
+        CourtSchedule.objects.create(court=court, weekday=wd, open_time="08:00", close_time="22:00")
     day = timezone.localdate() + timedelta(days=2)
     booking = BookingService.hold(user, court, day, "10:00", 60)
     BookingService.confirm(booking)
@@ -163,7 +161,9 @@ class TestPaymentSafetyBounds:
         # The race the atomic block guards: the booking cannot be confirmed
         # (cancelled underneath us, illegal transition, lock timeout, ...).
         before = Payment.objects.count()
-        with mock.patch.object(Booking, "transition_to", side_effect=ValueError("Transicion ilegal")):
+        with mock.patch.object(
+            Booking, "transition_to", side_effect=ValueError("Transicion ilegal")
+        ):
             with pytest.raises(ValueError):
                 PaymentService.record_cash_on_arrival(booking, booking.price)
         assert Payment.objects.count() == before

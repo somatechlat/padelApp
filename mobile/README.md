@@ -152,9 +152,7 @@ Two defines exist only for this:
 | `SKIP_PUSH_PROMPT` | The iOS permission sheet is not a Flutter widget and swallows every tap. |
 | `SKIP_PUSH` | In the simulator there is no APNS token, so `getToken()` blocks for a minute and starves the parallel Dio calls. Production builds never set either. |
 
-The harness is fussy for a reason — see `AGENTS.md` §8 for the traps
-(`IndexedStack` keeping tabs mounted, `NavigationBar` keeping both icons,
-`pageBack` looking for an English tooltip, and so on).
+See `AGENTS.md` §8 for the traps this harness encodes.
 
 ## Account deletion
 

@@ -13,6 +13,8 @@ CORS_ALLOW_ALL_ORIGINS = True
 CELERY_TASK_ALWAYS_EAGER = True
 CELERY_TASK_EAGER_PROPAGATES = True
 
-INTERNAL_IPS = ["127.0.0.1", "0.0.0.0"]
+# 0.0.0.0 here is a debug-toolbar client address, not a socket bind.
+# bandit reads it as one (B104); it is not.
+INTERNAL_IPS = ["127.0.0.1", "0.0.0.0"]  # nosec B104
 
 MEDIA_ROOT = BASE_DIR / "media"

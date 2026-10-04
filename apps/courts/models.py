@@ -98,9 +98,7 @@ class PromoBanner(models.Model):
     subtitle_i18n = models.JSONField(default=dict, blank=True)
     image = models.ImageField(upload_to="banners/%Y/%m/")
     link_url = models.URLField(max_length=500, blank=True, default="")
-    link_type = models.CharField(
-        max_length=12, choices=LinkType.choices, default=LinkType.NONE
-    )
+    link_type = models.CharField(max_length=12, choices=LinkType.choices, default=LinkType.NONE)
     active = models.BooleanField(default=True)
     sort_order = models.IntegerField(default=0)
     starts_at = models.DateTimeField(null=True, blank=True)
@@ -164,11 +162,17 @@ class Court(models.Model):
 
     venue = models.ForeignKey(Venue, on_delete=models.CASCADE, related_name="courts")
     name = models.CharField(max_length=80)
-    description = models.TextField(blank=True, default="", help_text="Descripcion de la cancha visible para los clientes")
-    court_type = models.CharField(max_length=10, choices=CourtType.choices, default=CourtType.TECHADA)
+    description = models.TextField(
+        blank=True, default="", help_text="Descripcion de la cancha visible para los clientes"
+    )
+    court_type = models.CharField(
+        max_length=10, choices=CourtType.choices, default=CourtType.TECHADA
+    )
     has_lighting = models.BooleanField(default=False)
     price_base = models.DecimalField(max_digits=8, decimal_places=2)
-    image = models.ImageField(upload_to="courts/%Y/%m/", blank=True, null=True, help_text="Foto de la cancha")
+    image = models.ImageField(
+        upload_to="courts/%Y/%m/", blank=True, null=True, help_text="Foto de la cancha"
+    )
     status = models.CharField(max_length=15, choices=Status.choices, default=Status.ACTIVE)
 
     class Meta:
@@ -193,9 +197,7 @@ class CourtSchedule(models.Model):
         verbose_name = "horario"
         verbose_name_plural = "horarios"
         constraints = [
-            models.UniqueConstraint(
-                fields=("court", "weekday"), name="uniq_court_weekday"
-            ),
+            models.UniqueConstraint(fields=("court", "weekday"), name="uniq_court_weekday"),
             models.CheckConstraint(
                 condition=models.Q(weekday__gte=0) & models.Q(weekday__lte=6),
                 name="chk_weekday_range",

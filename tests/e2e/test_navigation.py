@@ -79,7 +79,7 @@ class TestNavigation:
 
     def test_active_link_highlighted(self, admin_page: Page):
         admin_page.goto("/adminpanel/calendar/")
-        active_link = admin_page.locator('aside nav a.active')
+        active_link = admin_page.locator("aside nav a.active")
         assert active_link.is_visible()
         assert "Calendario" in active_link.inner_text()
 

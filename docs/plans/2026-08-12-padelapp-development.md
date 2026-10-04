@@ -141,7 +141,7 @@ DB_PASSWORD = "padel_dev"
 DB_HOST = "db"
 DB_PORT = 5432
 REDIS_URL = "redis://redis:6379/0"
-STRIPE_SECRET_KEY = "sk_test_..."     # test key
+STRIPE_SECRET_KEY = "sk_test_..."  # test key
 STRIPE_PUBLISHABLE_KEY = "pk_test_..."
 ```
 - `base.py` imports DB/REDIS/STRIPE from `runsecrets.secrets`; `prod.py` adds a boot-time check that fails fast if `SECRET_KEY` starts with `dev-only-` or any value is blank (SRS NFR-0008).

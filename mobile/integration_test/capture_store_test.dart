@@ -6,49 +6,32 @@ import 'package:padel_app/core/widgets/password_field.dart';
 import 'package:padel_app/features/home/home_screen.dart';
 import 'package:padel_app/main.dart' as app;
 
-/// Captures the authenticated screens the store listings need.
+/// Captures the screens the store listings need.
 ///
-///   SCREENSHOT_DIR=/tmp/shots-store flutter drive \
-///     --driver=test_driver/integration_test.dart \
-///     --target=integration_test/capture_store_test.dart \
-///     --dart-define=API_BASE_URL=https://app.andespadelclub.com/api \
-///     --dart-define=SKIP_PUSH_PROMPT=true \
-///     --dart-define=SHOT_EMAIL=... --dart-define=SHOT_PASSWORD=... \
-///     -d "iPhone 17 Pro Max"
+///     SCREENSHOT_DIR=/tmp/shots flutter drive \
+///       --driver=test_driver/integration_test.dart \
+///       --target=integration_test/capture_store_test.dart \
+///       --dart-define=API_BASE_URL=http://localhost:28002/api \
+///       --dart-define=SKIP_PUSH_PROMPT=true --dart-define=SKIP_PUSH=true \
+///       --dart-define=SHOT_EMAIL=... --dart-define=SHOT_PASSWORD=... \
+///       -d "iPhone 17 Pro Max"
 ///
-/// Traps this file exists to avoid:
-///   1. SKIP_PUSH_PROMPT — the iOS notification sheet is not a Flutter widget
-///      and swallows every tap.
-///   2. Never pumpAndSettle: loading indicators are indefinite animations.
-///   3. find.byType(NavigationBar) is NOT a login-success signal — the shell
-///      is mounted behind the opaque login route and matches the whole time.
-///      Wait for the login form to leave the tree instead.
-///   4. tryTap must re-check the finder immediately before tapping; a widget
-///      can vanish between evaluate() and tap() and finder.first then throws
-///      StateError, killing the whole run for one missing button.
+/// SKIP_PUSH_PROMPT: the iOS permission sheet is not a Flutter widget and
+/// swallows taps. Never pumpAndSettle: spinners are indefinite animations.
+/// Readiness is a hit-testable marker unique to the screen — see AGENTS.md §8.
 void main() {
   final binding = IntegrationTestWidgetsFlutterBinding.ensureInitialized();
 
-  /// Waits [seconds] of REAL time, then pumps.
-  ///
-  /// `tester.pump(Duration(...))` only advances the fake test clock and
-  /// returns immediately — it does not wait for a live HTTP response. Every
-  /// wait in this file must go through here or the capture snaps a loading
-  /// frame and the retry taps fire before the error state even exists.
+  /// Waits [seconds] of real time. `tester.pump(Duration)` advances the fake
+  /// clock only and returns immediately — it never waits for live HTTP.
   Future<void> settle(WidgetTester tester, {int seconds = 2}) async {
     await Future<void>.delayed(Duration(seconds: seconds));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 500));
   }
 
-  /// Take a shot of whatever is on screen NOW.
-  ///
-  /// Earlier runs blamed takeScreenshot for files landing under the wrong
-  /// name. It was the finders: IndexedStack keeps every tab mounted, so the
-  /// test believed it was on screen X while screen Y was showing, and the PNG
-  /// was a correct capture of Y under X's name. With hit-testable markers the
-  /// capture is trustworthy again — and it is atomic, unlike a host-side
-  /// screenshot racing a block-buffered stdout.
+  /// Captures the current frame. Wrong filenames come from wrong readiness
+  /// signals, not from takeScreenshot — IndexedStack keeps every tab mounted.
   Future<void> snap(WidgetTester tester, String name) async {
     await tester.pump(const Duration(seconds: 1));
     await binding.takeScreenshot(name);
@@ -110,8 +93,7 @@ void main() {
     return finder.evaluate().isNotEmpty;
   }
 
-  /// A slot chip label is an HH:MM or HH:MM:SS time. Used as the signal that
-  /// the availability grid has finished loading.
+  /// Slot chips are HH:MM labels; their presence means the grid has loaded.
   final slotChip = find.byWidgetPredicate(
     (w) =>
         w is Text &&
@@ -119,12 +101,8 @@ void main() {
         RegExp(r'^\d{1,2}:\d{2}(:\d{2})?$').hasMatch(w.data!.trim()),
   );
 
-  // IndexedStack keeps all five tabs mounted, and NavigationBar keeps both
-  // the outline and the filled icon in the tree (unselected one at opacity
-  // 0). find.byIcon / hitTestable therefore lie about which tab is up.
-  //
-  // Tap NavigationDestination by INDEX using the destination's own center —
-  // the tappable box is the destination, not the icon inside it.
+  // IndexedStack mounts all five tabs and NavigationBar keeps both icons in
+  // the tree, so neither is a readiness signal. Tap the destination box itself.
   Future<void> goTab(WidgetTester tester, int index) async {
     final dests = find.byType(NavigationDestination);
     if (dests.evaluate().length <= index) return;
@@ -135,20 +113,17 @@ void main() {
 
   testWidgets('capture authenticated store screens', (tester) async {
     app.main();
-    // Warm-up: let the first wave of HTTP finish before any finder runs. The
-    // cold-start race is what fills the frame with spinners.
+    // Let the first HTTP wave finish; the cold-start race fills frames with spinners.
     await settle(tester, seconds: 12);
 
-    // ── log in (skipped when a session is already in secure storage) ──────
+    // ── log in ──
     const shotEmail = String.fromEnvironment('SHOT_EMAIL', defaultValue: '');
     const shotPassword =
         String.fromEnvironment('SHOT_PASSWORD', defaultValue: '');
     // ignore: avoid_print
     print('SHOT_EMAIL len=${shotEmail.length} value=$shotEmail');
 
-    // Detect the login screen by its submit button, not by an Email-field
-    // finder: if that finder misses, the run silently skips login and every
-    // later "tab" shot is the login screen under a new name.
+    // Key off "Entrar", not the Email field: a missed field skips login silently.
     final loginButton = find.text('Entrar');
     final emailField = find.widgetWithText(TextField, 'Email');
     var alreadyIn = loginButton.evaluate().isEmpty;
@@ -156,9 +131,7 @@ void main() {
     print('alreadyIn=$alreadyIn loginButton=${loginButton.evaluate().length} '
         'emailField=${emailField.evaluate().length}');
 
-    // A restored session skips login, but AuthState.user is then never
-    // populated (/auth/me is not called) and the greeting falls back to bare
-    // "Hola". Log out first so the run always goes through the login form.
+    // A restored session leaves AuthState.user empty and the greeting bare. Log out first.
     if (alreadyIn && shotEmail.isNotEmpty) {
       await goTab(tester, 4); // profile
       final logoutRow = find.text('Cerrar sesión').hitTestable();
@@ -206,20 +179,9 @@ void main() {
       await settle(tester, seconds: 2);
     }
 
-    // Home is three parallel loads. The first attempt races the connection and
-    // each section can land in its error state; the retry buttons are the only
-    // way back. Keep tapping them until the screen is actually full — otherwise
-    // the shot is "Hola" + empty events + a spinner.
-    // Land on the Home tab explicitly. Tap NavigationDestination by INDEX:
-    // tapping the icon widget is unreliable (Tooltip wrapper, and the selected
-    // tab swaps outline->filled so the finder disappears under the tap).
-    // Do NOT tap anything before the home shot. The shell already starts on
-    // index 0 (Home), and a mis-targeted tapAt on NavigationDestination lands
-    // on a different tab — 03-inicio then becomes Eventos under a new name.
+    // Shell already starts on Home; do not tap anything before this shot.
 
-    // Scope every check to HomeScreen: AppShell uses IndexedStack, so the
-    // Events tab's "Quedada del Sábado" titles are still in the tree while
-    // Home is on screen.
+    // Scope to HomeScreen: IndexedStack keeps the Events tab's titles in the tree.
     Finder inHome(Finder f) => find.descendant(
           of: find.byType(HomeScreen),
           matching: f,
@@ -231,9 +193,7 @@ void main() {
     final homeContent = [greeting, quedadas, clubName];
     final homeRetry = inHome(find.text('Reintentar'));
 
-    // Wait for all three sections. "No spinner" is NOT a readiness signal:
-    // a failed load renders an empty state with no spinner at all, so an
-    // empty-spinner break snaps a half-built home every time.
+    // Absence of a spinner is not readiness — a failed load renders an empty state.
     for (var i = 0; i < 45; i++) {
       if (homeContent.every((f) => f.evaluate().isNotEmpty)) break;
       if (homeRetry.evaluate().isNotEmpty) {
@@ -244,9 +204,6 @@ void main() {
       await Future<void>.delayed(const Duration(seconds: 1));
       await tester.pump();
     }
-    // IndexedStack keeps every tab mounted, so inHome() finders match hidden
-    // Home content even when another tab is on screen. Require the selected
-    // (filled) home icon before trusting any of it.
     final reallyHome = true; // content check below is authoritative
     // ignore: avoid_print
     print(
@@ -258,11 +215,8 @@ void main() {
 
     await snap(tester, '03-inicio');
 
-    // Only enter the wizard from a real home; otherwise the shots that follow
-    // are the wizard failing over an empty shell.
-    // RESERVA AHORA sits below the fold — scroll until it is hit-testable
-    // rather than dragUntilVisible, which throws when the first match is
-    // already the destination and kills the rest of the run.
+    // RESERVA AHORA is below the fold. dragUntilVisible throws if it is already
+    // the destination, which aborts the run — scroll instead.
     for (var i = 0; i < 8; i++) {
       if (find.text('RESERVA AHORA').hitTestable().evaluate().isNotEmpty) {
         break;
@@ -273,19 +227,9 @@ void main() {
       );
       await settle(tester, seconds: 1);
     }
-    // ── the five tabs ────────────────────────────────────────────────────
-    // Each tab is only snapped once ITS OWN title is on screen. Tapping the
-    // icon and sleeping is not enough: the shell is mounted behind the wizard
-    // route, so a tap that "succeeds" can still be hitting the wizard, and the
-    // shot that follows is the previous screen under a new name.
-    // Readiness is the SELECTED (filled) nav icon. A title string is not:
-    // AppShell uses IndexedStack, so every tab's AppBar title is still in the
-    // tree while another tab is showing. "Mis reservas" is therefore visible
-    // even on Home, and a title check reports success over the wrong screen.
-    // Readiness = that tab's unique text is HIT-TESTABLE. IndexedStack keeps
-    // every tab mounted, so find.text finds hidden AppBars, and the nav bar
-    // keeps both outline and filled icons in the tree. Only a hit-testable
-    // finder means "this tab is actually on screen".
+    // ── the five tabs ──
+    // Readiness is that tab's unique text being hit-testable: find.text matches
+    // hidden AppBars on the other four tabs.
     Future<void> tab(
       int index,
       String marker,

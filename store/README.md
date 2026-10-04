@@ -52,7 +52,7 @@ Apple and Google legally require the account holder — no tool can do these:
 
 1. **Paid agreements** — Apple Developer Program ($99/yr) and Google Play Console ($25 once) must be **paid and active**.
 2. **Banking / tax info** — App Store Connect → Business and Paying; Play Console → Payments.
-3. **Content rating questionnaire** — legal answers; I drafted the privacy/data ones above.
+3. **Content rating questionnaire** — legal answers. Drafts are in `apple-app-store/metadata/app_privacy.txt` and `google-play/data-safety.txt`.
 4. **Privacy policy URL must be live.** Served from `landing/privacy.html` at
    `https://app.andespadelclub.com/privacy` — verified answering. Note the
    apex/`www` of `andespadelclub.com` is a different machine that does not

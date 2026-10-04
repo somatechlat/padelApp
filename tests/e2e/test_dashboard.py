@@ -30,14 +30,18 @@ class TestDashboard:
     def test_dashboard_shows_alerts(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")
         # Alerts section should exist (even if empty)
-        assert admin_page.locator("text=Alertas").is_visible() or \
-               admin_page.locator("text=alertas").is_visible() or \
-               admin_page.locator("text=Mantenimiento").is_visible()
+        assert (
+            admin_page.locator("text=Alertas").is_visible()
+            or admin_page.locator("text=alertas").is_visible()
+            or admin_page.locator("text=Mantenimiento").is_visible()
+        )
 
     def test_dashboard_shows_recent_payments(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")
-        assert admin_page.locator("text=Pagos recientes").is_visible() or \
-               admin_page.locator("text=pagos").is_visible()
+        assert (
+            admin_page.locator("text=Pagos recientes").is_visible()
+            or admin_page.locator("text=pagos").is_visible()
+        )
 
     def test_dashboard_sidebar_visible(self, admin_page: Page):
         admin_page.goto("/adminpanel/dashboard/")

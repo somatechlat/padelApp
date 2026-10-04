@@ -27,7 +27,14 @@ class BookingEventInline(admin.TabularInline):
 @admin.register(Booking)
 class BookingAdmin(RoleGatedAdmin):
     list_display = (
-        "user", "court", "date", "start_time", "end_time", "duration_minutes", "price", "status",
+        "user",
+        "court",
+        "date",
+        "start_time",
+        "end_time",
+        "duration_minutes",
+        "price",
+        "status",
     )
     list_filter = ("status", "date", "court")
     search_fields = ("user__email", "user__full_name", "court__name")
@@ -47,9 +54,7 @@ class BookingAdmin(RoleGatedAdmin):
                 continue
         self.message_user(
             request,
-            ngettext(
-                "%d reserva confirmada.", "%d reservas confirmadas.", updated
-            ) % updated,
+            ngettext("%d reserva confirmada.", "%d reservas confirmadas.", updated) % updated,
             messages.SUCCESS,
         )
 
@@ -64,9 +69,7 @@ class BookingAdmin(RoleGatedAdmin):
                 continue
         self.message_user(
             request,
-            ngettext(
-                "%d reserva cancelada.", "%d reservas canceladas.", updated
-            ) % updated,
+            ngettext("%d reserva cancelada.", "%d reservas canceladas.", updated) % updated,
             messages.SUCCESS,
         )
 

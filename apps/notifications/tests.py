@@ -165,17 +165,11 @@ class TestLocalizedMessages:
         target_day = frozen_now.date() + timedelta(days=1)  # 2026-10-29
         self._make_booking(user, target_day, "01:00")
 
-        with mock.patch(
-            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
-        ):
+        with mock.patch("apps.notifications.tasks.timezone.localtime", return_value=frozen_now):
             sent = send_booking_reminders_2h()
 
-        assert sent == 1, (
-            "2h reminder missed a booking 75 minutes out across midnight"
-        )
-        assert Notification.objects.filter(
-            user=user, event_type="booking_reminder_2h"
-        ).exists()
+        assert sent == 1, "2h reminder missed a booking 75 minutes out across midnight"
+        assert Notification.objects.filter(user=user, event_type="booking_reminder_2h").exists()
 
     def test_2h_reminder_same_day_window_still_matches(self, user, mailoutbox):
         from datetime import datetime as dt
@@ -190,9 +184,7 @@ class TestLocalizedMessages:
         frozen_now = make_aware(dt(2026, 10, 28, 10, 0), tz)
         self._make_booking(user, frozen_now.date(), "11:00")  # 1h out
 
-        with mock.patch(
-            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
-        ):
+        with mock.patch("apps.notifications.tasks.timezone.localtime", return_value=frozen_now):
             sent = send_booking_reminders_2h()
 
         assert sent == 1
@@ -210,9 +202,7 @@ class TestLocalizedMessages:
         frozen_now = make_aware(dt(2026, 10, 28, 10, 0), tz)
         self._make_booking(user, frozen_now.date(), "18:00")  # 8h out
 
-        with mock.patch(
-            "apps.notifications.tasks.timezone.localtime", return_value=frozen_now
-        ):
+        with mock.patch("apps.notifications.tasks.timezone.localtime", return_value=frozen_now):
             sent = send_booking_reminders_2h()
 
         assert sent == 0

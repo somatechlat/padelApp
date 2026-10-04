@@ -43,6 +43,4 @@ class EraseView(APIView):
         _blacklist_all_user_tokens(request.user)
         ip = request.META.get("REMOTE_ADDR")
         erase_user(request.user, ip=ip)
-        return Response(
-            {"detail": _("Tus datos fueron anonimizados (derecho al olvido)")}
-        )
+        return Response({"detail": _("Tus datos fueron anonimizados (derecho al olvido)")})

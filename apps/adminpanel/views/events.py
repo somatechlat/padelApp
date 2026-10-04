@@ -31,10 +31,9 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             .order_by("-created_at")[:50]
         )
         ctx["news"] = NewsPost.objects.all().order_by("-published_at")
-        ctx["registrations"] = (
-            TournamentRegistration.objects.select_related("tournament", "user")
-            .order_by("-created_at")[:50]
-        )
+        ctx["registrations"] = TournamentRegistration.objects.select_related(
+            "tournament", "user"
+        ).order_by("-created_at")[:50]
         return ctx
 
     def post(self, request, *args, **kwargs):

@@ -63,19 +63,13 @@ class TestAvailability:
 
         day = timezone.localdate() + timedelta(days=1)
         tz = timezone.get_current_timezone()
-        start = datetime.combine(
-            day, datetime.strptime("09:00", "%H:%M").time(), tzinfo=tz
-        )
-        end = datetime.combine(
-            day, datetime.strptime("11:00", "%H:%M").time(), tzinfo=tz
-        )
+        start = datetime.combine(day, datetime.strptime("09:00", "%H:%M").time(), tzinfo=tz)
+        end = datetime.combine(day, datetime.strptime("11:00", "%H:%M").time(), tzinfo=tz)
         MaintenanceWindow.objects.create(court=schedule, start=start, end=end)
         SlotService.generate_day(schedule, day)
         avail = SlotService.available_slots(schedule, day)
         blocked = ("09:00", "09:30", "10:00", "10:30")
-        morning = [
-            s for s in avail if str(s.start.strftime("%H:%M")) in blocked
-        ]
+        morning = [s for s in avail if str(s.start.strftime("%H:%M")) in blocked]
         assert morning == []
 
 
@@ -87,7 +81,9 @@ class TestBookingHold:
         day = timezone.localdate() + timedelta(days=1)
         slots = SlotService.generate_day(schedule, day)
         hold = BookingHold.objects.create(
-            court=schedule, slot=slots[0], user=user,
+            court=schedule,
+            slot=slots[0],
+            user=user,
             expires_at=timezone.now() + timedelta(minutes=10),
         )
         assert hold.is_expired is False
@@ -102,10 +98,10 @@ class TestBookingHold:
         slots = SlotService.generate_day(schedule, day)
         for i in range(3):
             BookingHold.objects.create(
-                court=schedule, slot=slots[i], user=user,
+                court=schedule,
+                slot=slots[i],
+                user=user,
                 expires_at=timezone.now() + timedelta(minutes=10),
             )
-        active = BookingHold.objects.filter(
-            user=user, expires_at__gt=timezone.now()
-        ).count()
+        active = BookingHold.objects.filter(user=user, expires_at__gt=timezone.now()).count()
         assert active <= 3

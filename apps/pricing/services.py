@@ -8,9 +8,7 @@ class TariffService:
     def compute(court, day, duration_minutes, start_time=None):
         base = Decimal(court.price_base)
         rules = (
-            PriceRule.objects.filter(
-                venue=court.venue, active=True
-            )
+            PriceRule.objects.filter(venue=court.venue, active=True)
             .filter(
                 models_day_or_none(day),
                 models_type_or_none(court),

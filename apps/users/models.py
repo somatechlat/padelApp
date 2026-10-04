@@ -54,15 +54,9 @@ class User(AbstractUser):
     )
     phone = models.CharField(max_length=20, blank=True)
     avatar = models.ImageField(upload_to="avatars/", null=True, blank=True)
-    language_code = models.CharField(
-        max_length=8, default="es", choices=settings.LANGUAGES
-    )
-    role = models.CharField(
-        max_length=20, choices=Role.choices, default=Role.CLIENTE
-    )
-    status = models.CharField(
-        max_length=12, choices=Status.choices, default=Status.ACTIVE
-    )
+    language_code = models.CharField(max_length=8, default="es", choices=settings.LANGUAGES)
+    role = models.CharField(max_length=20, choices=Role.choices, default=Role.CLIENTE)
+    status = models.CharField(max_length=12, choices=Status.choices, default=Status.ACTIVE)
     email_verified = models.BooleanField(default=False)
     consent_version = models.CharField(max_length=16, null=True, blank=True)
     consent_ts = models.DateTimeField(null=True, blank=True)

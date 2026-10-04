@@ -17,11 +17,18 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         ctx["courts"] = Court.objects.prefetch_related("schedules").order_by("name")
-        ctx["maintenances"] = MaintenanceWindow.objects.select_related("court").order_by("-start")[:20]
+        ctx["maintenances"] = MaintenanceWindow.objects.select_related("court").order_by("-start")[
+            :20
+        ]
         ctx["venues"] = Venue.objects.all()
         ctx["weekdays"] = [
-            (0, "Lunes"), (1, "Martes"), (2, "Miercoles"), (3, "Jueves"),
-            (4, "Viernes"), (5, "Sabado"), (6, "Domingo"),
+            (0, "Lunes"),
+            (1, "Martes"),
+            (2, "Miercoles"),
+            (3, "Jueves"),
+            (4, "Viernes"),
+            (5, "Sabado"),
+            (6, "Domingo"),
         ]
         return ctx
 

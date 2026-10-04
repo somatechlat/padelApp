@@ -426,20 +426,20 @@ fallback; device locale is deliberately ignored.
 | `apps/common/timefmt.py` | Was untracked while imported in 5 places. Commit files before pushing work that depends on them. |
 | SRS (`docs/srs/`) | Requirements baseline, partially superseded. It says `/api/v1/`, 10-char passwords, partner-matching is v2 — none of which match the code. Treat as historical contract, not ground truth. |
 | Password policy | SRS says 10+ with complexity; code is `min_length: 8`, no complexity validator. |
-| `tester.pump(Duration(...))` | Advances the **fake** test clock and returns immediately. It never waits for a live HTTP response. Use `Future.delayed` + `pump()` in integration tests. |
-| `find.text(...)` in a tabbed `IndexedStack` | `AppShell` keeps all five tabs mounted, so every tab's AppBar title is still in the tree. A title check reports success over the wrong screen. Use `.hitTestable()` on a marker unique to the screen, or capture via `binding.takeScreenshot` after verifying that marker. |
-| `find.byIcon(Icons.x)` on `NavigationBar` | The bar keeps **both** the outline and the filled icon in the tree (unselected at opacity 0). "Selected icon found" is not a readiness signal. |
+| `tester.pump(Duration(...))` | Advances the **fake** clock and returns at once. Use `Future.delayed` + `pump()`. |
+| `find.text(...)` in a tabbed `IndexedStack` | All five tabs stay mounted, so every AppBar title is in the tree. Use `.hitTestable()` on a marker unique to the screen. |
+| `find.byIcon(Icons.x)` on `NavigationBar` | Both outline and filled icons stay in the tree. Not a readiness signal. |
 | `tester.pageBack()` | Looks for the tooltip "Back". The app is Spanish, so the tooltip is "Atrás" and the tap never happens. Tap `find.byType(BackButton)` instead. |
-| iOS `takeScreenshot` / `simctl io screenshot` | Either can land a PNG under the *next* step's name if the preceding finders lied about which screen was up. The file is usually fine — the label is wrong. Fix the readiness signal, not the capture. |
-| iOS keychain survives app uninstall | `simctl uninstall` leaves secure storage. A stale token then auto-signs-in and every request 401s against a different API. `simctl erase` to clear. |
+| iOS `takeScreenshot` / `simctl io screenshot` | A PNG under the wrong name means the readiness signal lied, not the capture. |
+| iOS keychain survives app uninstall | `simctl uninstall` leaves secure storage. Use `simctl erase` to clear a stale token. |
 | `NSExceptionDomains` with an IP address | ATS ignores IP-address exception domains. `NSAllowsLocalNetworking` is what actually permits `http://127.0.0.1` / `http://localhost`. |
 | Release `API_BASE_URL` | A release binary that falls back to `http://127.0.0.1:28002/api` installs fine and cannot reach anything on a device. `baseUrlFor()` now throws in release for an unset or loopback host. Pass `--dart-define`. |
-| `--dart-define` on `flutter drive` | Reaches the app. But `ASC_USER=x ASC_PASSWORD=y xcrun ... -u "$ASC_USER"` does **not** — the shell expands `$ASC_USER` before the assignment applies. `export` first. |
+| `VAR=x cmd -u "$VAR"` | The shell expands `$VAR` before the assignment applies. `export` first. |
 | JWT ES256 for App Store Connect | Requires the **raw** 64-byte `r||s` signature. `openssl dgst -sign` emits DER; convert it. Also `aud` must be `appstoreconnect-v1`. |
-| App Store Connect `uploadOperations` URLs | Pre-signed S3 with `X-Amz-SignedHeaders=host`. Adding `Authorization` breaks the signature. Send only the headers given. |
-| `whatsNew` in `PREPARE_FOR_SUBMISSION` | Apple rejects it: "cannot be edited at this time". Locked until the first release. |
-| App Privacy questionnaire | Not in the App Store Connect API at all. No `es-EC` locale either — use `es-MX` for Ecuador. |
-| Google Play AAB vs APK | Play rejects APKs for new apps. `make ship-android` builds the AAB. A debug-signed bundle looks release-shaped and uploads once, permanently. |
+| App Store Connect `uploadOperations` | Pre-signed S3. Send only the given headers — `Authorization` breaks the signature. |
+| `whatsNew` in `PREPARE_FOR_SUBMISSION` | Locked until the first release. Not a submission blocker. |
+| App Privacy questionnaire | Not in the App Store Connect API. No `es-EC` locale — use `es-MX` for Ecuador. |
+| Google Play AAB vs APK | Play rejects APKs for new apps. `make ship-android` builds the AAB. |
 | Google Play personal accounts | A **personal** (not organization) dev account needs a 14-day closed test with ~12 testers before production. |
 | `images/generate_manual.py` | Regenerates `Manual_Usuario_AndesPadel.docx`. RBAC wording in it must match `apps/adminpanel/admin_base.py`. |
 
@@ -461,7 +461,7 @@ Store it as the **bare apex** — `validate_production_host()` normalizes a
 pasted `https://www.andespadelclub.com` and `prod.py` derives `www.` from
 there, so `www.www.` cannot happen.
 
-**A production server exists and is live.** Measured 2026-10-03, not assumed:
+**Production is live.** Verified 2026-10-03:
 
 | Fact | Evidence |
 |---|---|
