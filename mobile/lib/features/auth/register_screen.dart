@@ -7,6 +7,7 @@ import 'package:padel_app/core/form_validation.dart';
 import 'package:padel_app/core/widgets/password_field.dart';
 import '../../core/api_client.dart';
 import 'auth_state.dart';
+import 'reset_screen.dart';
 import 'verify_screen.dart';
 import 'widgets/auth_scaffold.dart';
 
@@ -130,7 +131,27 @@ class _RegisterScreenState extends State<RegisterScreen> {
     );
     if (!mounted) return;
     if (auth.hasError) {
-      _toast(friendlyErrorMessage(auth.lastError!, l10n));
+      final msg = friendlyErrorMessage(auth.lastError!, l10n);
+      final isDup = msg.contains('ya está registrado') ||
+          msg.contains('already registered') ||
+          msg.contains('ja està registrat') ||
+          msg.contains('já está registrado') ||
+          msg.contains('emailAlreadyExists');
+      if (isDup) {
+        // Existing account: send them to password recovery instead of a dead end.
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(l10n.emailAlreadyExists)),
+        );
+        Navigator.of(context).push(
+          MaterialPageRoute<void>(
+            builder: (_) => ResetScreen(
+              initialEmail: _email.text.trim().toLowerCase(),
+            ),
+          ),
+        );
+        return;
+      }
+      _toast(msg);
       return;
     }
     _toast(l10n.codeSent);

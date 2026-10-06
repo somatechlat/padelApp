@@ -384,6 +384,12 @@ abstract class AppLocalizations {
   /// **'Email no válido'**
   String get emailInvalid;
 
+  /// No description provided for @emailAlreadyExists.
+  ///
+  /// In es, this message translates to:
+  /// **'Este email ya está registrado. Te llevamos a recuperar tu contraseña.'**
+  String get emailAlreadyExists;
+
   /// No description provided for @passwordRequired.
   ///
   /// In es, this message translates to:
@@ -762,6 +768,48 @@ abstract class AppLocalizations {
   /// **'Tu cuenta fue borrada.'**
   String get deleteAccountDone;
 
+  /// No description provided for @changePassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Cambiar contraseña'**
+  String get changePassword;
+
+  /// No description provided for @changePasswordSubtitle.
+  ///
+  /// In es, this message translates to:
+  /// **'Indica tu contraseña actual y elige una nueva'**
+  String get changePasswordSubtitle;
+
+  /// No description provided for @currentPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña actual'**
+  String get currentPassword;
+
+  /// No description provided for @currentPasswordRequired.
+  ///
+  /// In es, this message translates to:
+  /// **'Ingresa tu contraseña actual'**
+  String get currentPasswordRequired;
+
+  /// No description provided for @newPassword.
+  ///
+  /// In es, this message translates to:
+  /// **'Nueva contraseña'**
+  String get newPassword;
+
+  /// No description provided for @passwordsDontMatch.
+  ///
+  /// In es, this message translates to:
+  /// **'Las contraseñas no coinciden'**
+  String get passwordsDontMatch;
+
+  /// No description provided for @passwordChanged.
+  ///
+  /// In es, this message translates to:
+  /// **'Contraseña actualizada. Inicia sesión de nuevo.'**
+  String get passwordChanged;
+
   /// No description provided for @cancel.
   ///
   /// In es, this message translates to:
@@ -845,6 +893,12 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'Enviamos un código a tu email'**
   String get codeSent;
+
+  /// No description provided for @emailVerified.
+  ///
+  /// In es, this message translates to:
+  /// **'Email verificado. Ya puedes iniciar sesión.'**
+  String get emailVerified;
 
   /// No description provided for @success.
   ///

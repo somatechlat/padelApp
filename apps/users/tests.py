@@ -70,3 +70,34 @@ class TestUserRolesAndStates:
 
     def test_uses_email_as_username_field(self):
         assert User.USERNAME_FIELD == "email"
+
+
+@pytest.mark.django_db
+class TestSetUserStatus:
+    def test_suspend_sets_is_active_false(self):
+        from apps.users.services import set_user_status
+
+        user = User.objects.create_user(email="s@b.com", password="pass12345")
+        assert user.is_active is True
+        set_user_status(user, "suspended")
+        user.refresh_from_db()
+        assert user.status == "suspended"
+        assert user.is_active is False
+
+    def test_activate_sets_is_active_true(self):
+        from apps.users.services import set_user_status
+
+        user = User.objects.create_user(
+            email="s@b.com", password="pass12345", status="suspended", is_active=False
+        )
+        set_user_status(user, "active")
+        user.refresh_from_db()
+        assert user.status == "active"
+        assert user.is_active is True
+
+    def test_invalid_status_rejected(self):
+        from apps.users.services import set_user_status
+
+        user = User.objects.create_user(email="s@b.com", password="pass12345")
+        with pytest.raises(ValueError):
+            set_user_status(user, "nobody")

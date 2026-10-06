@@ -71,9 +71,13 @@ class VerificationCodeService:
         if instance.is_expired:
             return False
         if hmac.compare_digest(instance.code, code):
-            instance.verified_at = timezone.now()
-            instance.save(update_fields=["verified_at"])
-            return True
-        instance.attempts += 1
-        instance.save(update_fields=["attempts"])
+            # Conditional update: only the first concurrent request wins.
+            updated = VerificationCode.objects.filter(
+                pk=instance.pk, verified_at__isnull=True
+            ).update(verified_at=timezone.now())
+            return updated == 1
+        # F() keeps the increment correct under concurrent attempts.
+        VerificationCode.objects.filter(pk=instance.pk).update(
+            attempts=models.F("attempts") + 1
+        )
         return False

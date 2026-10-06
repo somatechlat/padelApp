@@ -44,7 +44,11 @@ EMAIL_USE_TLS = EMAIL_PORT == 587
 EMAIL_HOST_USER = secrets.EMAIL_HOST_USER
 EMAIL_HOST_PASSWORD = secrets.EMAIL_HOST_PASSWORD
 EMAIL_TIMEOUT = 30
-DEFAULT_FROM_EMAIL = getattr(secrets, "EMAIL_FROM", EMAIL_HOST_USER)
+# Display name matters in the inbox: "Andes Pádel <reservas@...>" not bare reservas.
+_raw_from = getattr(secrets, "EMAIL_FROM", EMAIL_HOST_USER)
+DEFAULT_FROM_EMAIL = _raw_from if "<" in _raw_from else f"Andes Pádel <{_raw_from}>"
+# One-click verification / reset links in transactional email.
+SITE_BASE_URL = f"https://app.{PROD_DOMAIN}"
 
 # --- Fail-fast secret check (constraint C2/C3, NFR-0008) --------------------
 validate_production_secrets(

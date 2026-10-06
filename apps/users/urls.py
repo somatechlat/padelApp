@@ -8,10 +8,13 @@ from apps.users.views import (
     MeView,
     PasswordChangeView,
     PasswordResetConfirmView,
+    PasswordResetLinkPageView,
     PasswordResetView,
     RegisterView,
+    ResendVerificationView,
     SkillLevelListView,
     VerifyEmailView,
+    VerifyLinkView,
 )
 
 app_name = "users"
@@ -20,6 +23,14 @@ urlpatterns = [
     path("skill-levels/", SkillLevelListView.as_view(), name="skill-levels"),
     path("register/", RegisterView.as_view(), name="register"),
     path("verify/", VerifyEmailView.as_view(), name="verify"),
+    path("verify/resend/", ResendVerificationView.as_view(), name="verify-resend"),
+    # One-click GET from the HTML email button (no auth, no body).
+    path("verify/link/", VerifyLinkView.as_view(), name="verify-link"),
+    path(
+        "password-reset/link/",
+        PasswordResetLinkPageView.as_view(),
+        name="password-reset-confirm-page",
+    ),
     path("login/", LoginView.as_view(), name="login"),
     path("refresh/", TokenRefreshView.as_view(), name="refresh"),
     path("logout/", LogoutView.as_view(), name="logout"),

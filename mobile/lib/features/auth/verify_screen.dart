@@ -37,8 +37,22 @@ class _VerifyScreenState extends State<VerifyScreen> {
     }
     final auth = context.read<AuthState>();
     await auth.verify(widget.email, _code.text.trim());
-    if (mounted && auth.authenticated) {
+    if (!mounted) return;
+    if (auth.hasError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyErrorMessage(auth.lastError!, l10n))),
+      );
+      return;
+    }
+    // Success path: verified. If the API did not return tokens, send to login
+    // rather than dead-ending on this screen with no error.
+    if (auth.authenticated) {
       Navigator.of(context).pushNamedAndRemoveUntil('/shell', (route) => false);
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(l10n.emailVerified)),
+      );
+      Navigator.of(context).pushNamedAndRemoveUntil('/login', (route) => false);
     }
   }
 

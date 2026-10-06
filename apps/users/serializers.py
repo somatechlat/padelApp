@@ -77,7 +77,8 @@ class VerifySerializer(serializers.Serializer):
         try:
             user = User.objects.get(email=attrs["email"].lower())
         except User.DoesNotExist:
-            raise serializers.ValidationError(_("Codigo invalido")) from None
+            # Same message as a wrong code — no user enumeration via verify.
+            raise serializers.ValidationError(_("Codigo invalido o expirado")) from None
         attrs["_user"] = user
         return attrs
 

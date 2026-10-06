@@ -645,6 +645,23 @@ class TestAdminPanelRoleScoping:
         assert resp.status_code == 302
         target.refresh_from_db()
         assert target.status == "suspended"
+        # Suspending must also flip is_active so outstanding JWTs die.
+        assert target.is_active is False
+
+    def test_reactivate_restores_is_active(self, client, staff_users):
+        from apps.users.services import set_user_status
+
+        client.force_login(staff_users["gerente"])
+        target = staff_users["cliente"]
+        set_user_status(target, "suspended")
+        resp = client.post(
+            "/adminpanel/users/",
+            {"action": "change_status", "user_id": str(target.id), "status": "active"},
+        )
+        assert resp.status_code == 302
+        target.refresh_from_db()
+        assert target.status == "active"
+        assert target.is_active is True
 
     def test_last_superadmin_cannot_be_demoted(self, client, staff_users):
         client.force_login(staff_users["superadmin"])

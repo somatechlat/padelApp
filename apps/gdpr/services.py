@@ -71,10 +71,18 @@ def erase_user(user, ip=None):
 
     with transaction.atomic():
         DeviceToken.objects.filter(user=user).delete()
+        # Delete the avatar file from storage — emptying the field alone
+        # would leave the PII sitting on disk under MEDIA_ROOT.
+        if user.avatar:
+            user.avatar.delete(save=False)
         user.email = f"erased-{user.id}@example.com"
+        user.first_name = ""
+        user.last_name = ""
         user.full_name = "Usuario eliminado"
+        user.birth_date = None
+        user.skill_level = None
         user.phone = ""
-        user.avatar = ""
+        user.avatar = None
         user.status = UserStatus.DELETED
         user.is_active = False
         user.email_verified = False

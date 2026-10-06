@@ -152,6 +152,10 @@ class AppLocalizationsEs extends AppLocalizations {
   String get emailInvalid => 'Email no válido';
 
   @override
+  String get emailAlreadyExists =>
+      'Este email ya está registrado. Te llevamos a recuperar tu contraseña.';
+
+  @override
   String get passwordRequired => 'Ingresa tu contraseña';
 
   @override
@@ -344,6 +348,29 @@ class AppLocalizationsEs extends AppLocalizations {
   String get deleteAccountDone => 'Tu cuenta fue borrada.';
 
   @override
+  String get changePassword => 'Cambiar contraseña';
+
+  @override
+  String get changePasswordSubtitle =>
+      'Indica tu contraseña actual y elige una nueva';
+
+  @override
+  String get currentPassword => 'Contraseña actual';
+
+  @override
+  String get currentPasswordRequired => 'Ingresa tu contraseña actual';
+
+  @override
+  String get newPassword => 'Nueva contraseña';
+
+  @override
+  String get passwordsDontMatch => 'Las contraseñas no coinciden';
+
+  @override
+  String get passwordChanged =>
+      'Contraseña actualizada. Inicia sesión de nuevo.';
+
+  @override
   String get cancel => 'Cancelar';
 
   @override
@@ -384,6 +411,9 @@ class AppLocalizationsEs extends AppLocalizations {
 
   @override
   String get codeSent => 'Enviamos un código a tu email';
+
+  @override
+  String get emailVerified => 'Email verificado. Ya puedes iniciar sesión.';
 
   @override
   String get success => 'Operación exitosa';

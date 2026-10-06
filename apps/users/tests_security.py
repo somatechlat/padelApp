@@ -170,3 +170,55 @@ class TestAuditTrail:
         )
         assert resp.status_code == 201
         assert AuditLog.objects.filter(action="booking.hold").exists()
+
+
+class TestVerifyEmailThrottle:
+    """Repeated bad codes must hit the auth throttle, not brute-force the OTP."""
+
+    def test_verify_rate_limited_429_after_bad_codes(self, api_client, user):
+        from django.core.cache import cache
+
+        from apps.verification.models import VerificationCode
+
+        cache.clear()
+        try:
+            VerificationCode.objects.create(user=user, purpose="email_verify")
+            got_429 = False
+            for _ in range(15):
+                resp = api_client.post(
+                    "/api/auth/verify/", {"email": user.email, "code": "000000"}
+                )
+                if resp.status_code == 429:
+                    got_429 = True
+                    break
+                assert resp.status_code == 400
+            assert got_429, (
+                "VerifyEmailView must carry AuthThrottle — 15 bad codes in a "
+                "row should end in 429, not keep accepting guesses"
+            )
+        finally:
+            cache.clear()
+
+
+class TestPasswordResetStatusGate:
+    """Password reset confirm must refuse any account that is not active."""
+
+    @pytest.mark.parametrize("bad_status", ["suspended", "blocked", "deleted"])
+    def test_reset_confirm_refused_for_non_active_status(self, api_client, bad_status):
+        from django.contrib.auth import get_user_model
+
+        from apps.users.services import set_user_status
+        from apps.verification.models import VerificationCode
+
+        account = get_user_model().objects.create_user(
+            email=f"gate-{bad_status}@test.com", password="pass12345"
+        )
+        code = VerificationCode.objects.create(user=account, purpose="password_reset")
+        set_user_status(account, bad_status)
+        resp = api_client.post(
+            "/api/auth/password-reset/confirm/",
+            {"email": account.email, "code": code.code, "password": "nuevapass99"},
+        )
+        assert resp.status_code == 400
+        account.refresh_from_db()
+        assert account.check_password("nuevapass99") is False

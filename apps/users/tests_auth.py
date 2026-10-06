@@ -102,6 +102,16 @@ class TestVerify:
         resp = api_client.post("/api/auth/verify/", {"email": user.email, "code": "000000"})
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
 
+    def test_verify_missing_user_same_message_as_bad_code(self, api_client, user):
+        """No enumeration: unknown email and wrong code must be indistinguishable."""
+        VerificationCode.objects.create(user=user, purpose="email_verify")
+        bad_code = api_client.post("/api/auth/verify/", {"email": user.email, "code": "000000"})
+        missing = api_client.post(
+            "/api/auth/verify/", {"email": "ghost@test.com", "code": "000000"}
+        )
+        assert bad_code.status_code == missing.status_code == status.HTTP_400_BAD_REQUEST
+        assert bad_code.data.get("detail") == missing.data.get("detail")
+
     def test_verify_expires_after_5_attempts(self, api_client, user):
         VerificationCode.objects.create(user=user, purpose="email_verify")
         for _ in range(5):
@@ -110,6 +120,68 @@ class TestVerify:
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
         code = VerificationCode.objects.get(user=user, purpose="email_verify")
         assert code.is_expired or code.attempts >= 5
+
+
+class TestVerifyLink:
+    def test_get_does_not_verify(self, api_client, user):
+        from apps.users.emails import make_token
+
+        code = VerificationCode.objects.create(user=user, purpose="email_verify")
+        token = make_token(user.id, code.code, "email_verify")
+        resp = api_client.get(f"/api/auth/verify/link/?token={token}")
+        # GET renders the confirm form only — mail scanners must not verify.
+        assert resp.status_code == status.HTTP_200_OK
+        assert b"Verificar mi cuenta" in resp.content
+        user.refresh_from_db()
+        assert user.email_verified is False
+        code.refresh_from_db()
+        assert code.verified_at is None
+
+    def test_post_verifies(self, api_client, user):
+        from apps.users.emails import make_token
+
+        code = VerificationCode.objects.create(user=user, purpose="email_verify")
+        token = make_token(user.id, code.code, "email_verify")
+        resp = api_client.post("/api/auth/verify/link/", {"token": token})
+        assert resp.status_code == status.HTTP_200_OK
+        user.refresh_from_db()
+        assert user.email_verified is True
+
+    def test_invalid_token_get_shows_error(self, api_client):
+        resp = api_client.get("/api/auth/verify/link/?token=garbage")
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+
+class TestTokenMaxAge:
+    def test_read_token_max_age_is_code_ttl_and_rejects_expired(self, user):
+        """Signed links live exactly as long as CODE_TTL (15 minutes)."""
+        from datetime import timedelta
+        from unittest import mock
+
+        from django.utils import timezone
+
+        from apps.users import emails
+        from apps.users.emails import read_token
+        from apps.verification.models import CODE_TTL
+
+        assert CODE_TTL == timedelta(minutes=15)
+
+        # Token stamped 16 minutes ago — past CODE_TTL — must be refused.
+        past = timezone.now() - timedelta(minutes=16)
+        with mock.patch("time.time", return_value=past.timestamp()):
+            expired_token = emails.make_token(user.id, "123456", "email_verify")
+        assert read_token(expired_token, "email_verify") is None
+
+        # A fresh token still validates and carries the expected payload.
+        token = emails.make_token(user.id, "123456", "email_verify")
+        data = read_token(token, "email_verify")
+        assert data == {"u": user.id, "c": "123456", "p": "email_verify"}
+
+    def test_read_token_rejects_wrong_purpose(self, user):
+        from apps.users.emails import make_token, read_token
+
+        token = make_token(user.id, "123456", "email_verify")
+        assert read_token(token, "password_reset") is None
 
 
 class TestLogin:
@@ -199,6 +271,21 @@ class TestPassword:
             {"email": user.email, "code": code.code, "password": "otrapass99"},
         )
         assert resp.status_code == status.HTTP_400_BAD_REQUEST
+
+    def test_password_reset_confirm_refused_for_suspended(self, api_client, user):
+        from apps.users.services import set_user_status
+
+        code = VerificationCode.objects.create(user=user, purpose="password_reset")
+        set_user_status(user, "suspended")
+        resp = api_client.post(
+            "/api/auth/password-reset/confirm/",
+            {"email": user.email, "code": code.code, "password": "nuevapass99"},
+        )
+        assert resp.status_code == status.HTTP_400_BAD_REQUEST
+        user.refresh_from_db()
+        assert user.check_password("nuevapass99") is False
+        # Same detail as an invalid code: no hint that the account exists.
+        assert resp.data.get("detail") == "Codigo invalido o expirado"
 
     def test_change_password_revokes_tokens(self, auth_client, user):
         resp = auth_client.post(

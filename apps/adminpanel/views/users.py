@@ -11,6 +11,7 @@ from apps.adminpanel.mixins import StaffRequiredMixin, require_roles, role_level
 from apps.security.services import log_event
 from apps.users.models import Role as UserRole
 from apps.users.models import Status as UserStatus
+from apps.users.services import set_user_status
 
 User = get_user_model()
 
@@ -79,8 +80,9 @@ class UsersAdminView(StaffRequiredMixin, ListView):
         if new_status not in UserStatus.values:
             messages.error(request, "Estado invalido.")
             return
-        target_user.status = new_status
-        target_user.save(update_fields=["status"])
+        # set_user_status keeps is_active in sync so a suspended account
+        # cannot keep using outstanding JWTs.
+        set_user_status(target_user, new_status)
         messages.success(
             request,
             f"Estado de {target_user.email} actualizado a {target_user.get_status_display()}.",

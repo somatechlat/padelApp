@@ -199,7 +199,9 @@ SPECTACULAR_SETTINGS = {
 # --- Email -------------------------------------------------------------------
 # Real SMTP config belongs in dev/prod; tests use the locmem backend.
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-DEFAULT_FROM_EMAIL = "no-reply@andespadelclub.com"
+DEFAULT_FROM_EMAIL = "Andes Pádel <no-reply@andespadelclub.com>"
+# Public origin used to build one-click verification / reset links in emails.
+SITE_BASE_URL = "http://127.0.0.1:28003"
 
 # --- Media / static ------------------------------------------------------------
 MEDIA_URL = "/media/"

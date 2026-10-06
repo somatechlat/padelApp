@@ -43,6 +43,45 @@ class TestErase:
         assert user.is_active is False
         assert "me@test.com" not in user.email
 
+    def test_erase_scrubs_names_and_birth_date(self, user):
+        from datetime import date
+
+        from apps.users.models import SkillLevel
+
+        skill = SkillLevel.objects.create(name="Intermedio", order=1)
+        user.first_name = "Ana"
+        user.last_name = "Paz"
+        user.full_name = "Ana Paz"
+        user.birth_date = date(1990, 5, 4)
+        user.skill_level = skill
+        user.phone = "0991112222"
+        user.save()
+        erase_user(user)
+        user.refresh_from_db()
+        assert user.first_name == ""
+        assert user.last_name == ""
+        assert user.full_name == "Usuario eliminado"
+        assert user.birth_date is None
+        assert user.skill_level is None
+        assert user.phone == ""
+        assert user.consent_version is None
+        assert user.consent_ts is None
+
+    def test_erase_deletes_avatar_file(self, user, tmp_path, settings):
+        from django.core.files.base import ContentFile
+
+        settings.MEDIA_ROOT = tmp_path
+        user.avatar.save("me.png", ContentFile(b"fake-image-bytes"), save=True)
+        avatar_path = user.avatar.path
+        assert avatar_path
+        from pathlib import Path
+
+        assert Path(avatar_path).exists()
+        erase_user(user)
+        user.refresh_from_db()
+        assert not user.avatar
+        assert not Path(avatar_path).exists()
+
     def test_erase_logs_audit_event(self, user):
         erase_user(user)
         assert AuditLog.objects.filter(action="gdpr.erase", user=user).exists()

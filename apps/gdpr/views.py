@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.gdpr.services import erase_user, export_user_data, record_consent
-from apps.users.views import _blacklist_all_user_tokens
+from apps.users.views import AuthThrottle, _blacklist_all_user_tokens
 
 
 class ConsentSerializer(serializers.Serializer):
@@ -38,6 +38,7 @@ class ExportView(APIView):
 
 class EraseView(APIView):
     permission_classes = [IsAuthenticated]
+    throttle_classes = [AuthThrottle]
 
     def post(self, request):
         _blacklist_all_user_tokens(request.user)

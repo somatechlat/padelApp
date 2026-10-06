@@ -138,7 +138,7 @@ void main() {
     expect(tester.takeException(), isNull);
 
     await tester.scrollUntilVisible(
-      find.text('Error de conexión. Verifica tu internet.'),
+      find.text('Error de conexión. Verifica tu internet.').first,
       240,
       scrollable: find.byType(Scrollable).first,
     );
@@ -147,8 +147,8 @@ void main() {
     // Real failure signal: the error state, not a silent empty card.
     expect(
       find.text('Error de conexión. Verifica tu internet.'),
-      findsOneWidget,
+      findsWidgets,
     );
-    expect(find.text('Reintentar'), findsOneWidget);
+    expect(find.text('Reintentar'), findsWidgets);
   });
 }

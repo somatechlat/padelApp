@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 
 import '../../core/api_client.dart';
@@ -47,6 +48,11 @@ class AuthState extends ChangeNotifier {
       final access = await _storage.read(SecureTokenStorage.accessKey);
       if (access != null && access.isNotEmpty) {
         _authenticated = true;
+        _initialized = true;
+        notifyListeners();
+        // Validate the token; a dead token must not leave a zombie session.
+        await loadMe();
+        return;
       }
     } catch (_) {
       // Storage error — treat as not authenticated
@@ -123,7 +129,7 @@ class AuthState extends ChangeNotifier {
 
   Future<void> resendVerification(String email) {
     return _run(() async {
-      await _api.post('/auth/register/', data: {
+      await _api.post('/auth/verify/resend/', data: {
         'email': email.trim().toLowerCase(),
       });
     });
@@ -167,8 +173,15 @@ class AuthState extends ChangeNotifier {
       final data = await _api.get('/auth/me/');
       _user = data as Map<String, dynamic>?;
       notifyListeners();
-    } catch (_) {
-      // Ignore: user stays logged in with cached session.
+    } catch (e) {
+      final is401 = e is DioException && e.response?.statusCode == 401;
+      if (is401) {
+        await _storage.clearTokens();
+        _user = null;
+        _authenticated = false;
+        notifyListeners();
+      }
+      // Other errors: keep cached session.
     }
   }
 

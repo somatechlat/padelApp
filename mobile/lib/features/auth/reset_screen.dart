@@ -9,14 +9,17 @@ import 'reset_confirm_screen.dart';
 import 'widgets/auth_scaffold.dart';
 
 class ResetScreen extends StatefulWidget {
-  const ResetScreen({super.key});
+  const ResetScreen({super.key, this.initialEmail});
+
+  final String? initialEmail;
 
   @override
   State<ResetScreen> createState() => _ResetScreenState();
 }
 
 class _ResetScreenState extends State<ResetScreen> {
-  final _email = TextEditingController();
+  late final TextEditingController _email =
+      TextEditingController(text: widget.initialEmail ?? '');
   String? _emailError;
 
   @override

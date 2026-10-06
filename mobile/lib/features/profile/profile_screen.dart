@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
 import 'package:padel_app/core/l10n/app_localizations.dart';
+import 'package:padel_app/core/friendly_error.dart';
 import '../../core/api_client.dart';
 import '../../core/locale_controller.dart';
 import '../../core/theme/app_theme.dart';
 import '../auth/auth_state.dart';
+import '../auth/change_password_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -45,9 +47,8 @@ class ProfileScreen extends StatelessWidget {
     }
   }
 
-  /// Apple Guideline 5.1.1(v): an app that supports account creation must
-  /// offer account deletion from inside the app. The backend already has
-  /// POST /api/gdpr/me/erase/; this wires it to a button the user can reach.
+  /// Apple Guideline 5.1.1(v): account creation must offer in-app deletion.
+  /// Backend route is POST /api/auth/me/erase/ (gdpr urls mount under /api/auth/).
   Future<void> _confirmDeleteAccount(BuildContext context) async {
     final l10n = AppLocalizations.of(context);
     final confirmed = await showDialog<bool>(
@@ -74,10 +75,14 @@ class ProfileScreen extends StatelessWidget {
     final auth = context.read<AuthState>();
     final nav = Navigator.of(context);
     try {
-      await api.post('/gdpr/me/erase/');
-    } catch (_) {
-      // Even if the request fails the session is not something to keep
-      // hanging around after the user asked to be erased; log out either way.
+      await api.post('/auth/me/erase/');
+    } catch (e) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(friendlyErrorMessage(e, l10n))),
+      );
+      // Keep the session: the account was NOT deleted.
+      return;
     }
     if (!context.mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -179,6 +184,17 @@ class ProfileScreen extends StatelessWidget {
                         .$2,
                   ),
                   onTap: () => _pickLanguage(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.lock_outline),
+                  title: Text(l10n.changePassword),
+                  onTap: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute<void>(
+                        builder: (_) => const ChangePasswordScreen(),
+                      ),
+                    );
+                  },
                 ),
                 const Divider(),
                 ListTile(

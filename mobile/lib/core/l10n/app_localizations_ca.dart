@@ -154,6 +154,10 @@ class AppLocalizationsCa extends AppLocalizations {
   String get emailInvalid => 'Email no vàlid';
 
   @override
+  String get emailAlreadyExists =>
+      'Aquest email ja està registrat. Et portem a recuperar la contrasenya.';
+
+  @override
   String get passwordRequired => 'Introdueix la teva contrasenya';
 
   @override
@@ -346,6 +350,29 @@ class AppLocalizationsCa extends AppLocalizations {
   String get deleteAccountDone => 'El teu compte ha estat esborrat.';
 
   @override
+  String get changePassword => 'Canviar contrasenya';
+
+  @override
+  String get changePasswordSubtitle =>
+      'Indica la contrasenya actual i tria una de nova';
+
+  @override
+  String get currentPassword => 'Contrasenya actual';
+
+  @override
+  String get currentPasswordRequired => 'Introdueix la contrasenya actual';
+
+  @override
+  String get newPassword => 'Contrasenya nova';
+
+  @override
+  String get passwordsDontMatch => 'Les contrasenyes no coincideixen';
+
+  @override
+  String get passwordChanged =>
+      'Contrasenya actualitzada. Torna a iniciar sessió.';
+
+  @override
   String get cancel => 'Cancel·lar';
 
   @override
@@ -387,6 +414,9 @@ class AppLocalizationsCa extends AppLocalizations {
 
   @override
   String get codeSent => 'T\'hem enviat un codi al teu email';
+
+  @override
+  String get emailVerified => 'Email verificat. Ja pots iniciar sessió.';
 
   @override
   String get success => 'Operació correcta';
