@@ -8,12 +8,11 @@ from apps.events.models import Event
 
 logger = logging.getLogger(__name__)
 
-# Unsplash source URLs — stable, no API key needed, redirect to actual photos.
-# Using specific photo IDs for deterministic results.
+# Unsplash padel photos — people playing padel on outdoor/indoor courts.
 PADEL_IMAGES = {
-    "Clinica de verano": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-    "Torneo social mensual": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
-    "Padel y amigos": "https://images.unsplash.com/photo-1558618666-fcd25c85f82e?w=800&q=80",
+    "Clinica de verano": "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
+    "Torneo social mensual": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
+    "Padel y amigos": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
 }
 
 
