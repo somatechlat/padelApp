@@ -1,39 +1,27 @@
 import logging
-from urllib.request import urlopen
 
-from django.core.files.base import ContentFile
 from django.core.management.base import BaseCommand
 
 from apps.events.models import Event
 
 logger = logging.getLogger(__name__)
 
-# Unsplash padel photos — people playing padel on outdoor/indoor courts.
-PADEL_IMAGES = {
-    "Clinica de verano": "https://images.unsplash.com/photo-1626224583764-f87db24ac4ea?w=800&q=80",
-    "Torneo social mensual": "https://images.unsplash.com/photo-1554068865-24cecd4e34b8?w=800&q=80",
-    "Padel y amigos": "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=800&q=80",
-}
-
 
 class Command(BaseCommand):
-    help = "Download Unsplash padel images for demo events (idempotent — skips events that already have an image)."
+    help = (
+        "Report which events have images and which do not. "
+        "Images are uploaded by staff through the admin panel — nothing is hardcoded."
+    )
 
     def handle(self, *args, **options):
-        events = Event.objects.filter(image__isnull=True)
-        updated = 0
-        for event in events:
-            url = PADEL_IMAGES.get(event.title)
-            if not url:
-                continue
-            try:
-                resp = urlopen(url, timeout=15)
-                data = resp.read()
-                ext = "jpg"
-                filename = f"demo_{event.pk or event.title.lower().replace(' ', '_')}.{ext}"
-                event.image.save(filename, ContentFile(data), save=True)
-                updated += 1
-                self.stdout.write(f"  + {event.title} -> {filename}")
-            except Exception:
-                logger.warning("Could not download image for '%s'", event.title, exc_info=True)
-        self.stdout.write(self.style.SUCCESS(f"Seeded images: {updated} events updated."))
+        with_img = Event.objects.exclude(image="").exclude(image=None)
+        without_img = Event.objects.filter(image="") | Event.objects.filter(image=None)
+        for e in with_img:
+            self.stdout.write(f"  [OK] {e.title} -> {e.image.name}")
+        for e in without_img:
+            self.stdout.write(self.style.WARNING(f"  [--] {e.title} (no image — upload in admin)"))
+        self.stdout.write(
+            self.style.SUCCESS(
+                f"Events with image: {with_img.count()} / {Event.objects.count()}"
+            )
+        )
