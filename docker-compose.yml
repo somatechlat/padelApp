@@ -47,7 +47,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    mem_limit: 1g
+    mem_limit: 768m
     command: >
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"
@@ -72,7 +72,7 @@ services:
 
   worker:
     image: ${BACKEND_IMAGE:-andespadel-backend:dev}
-    mem_limit: 768m
+    mem_limit: 512m
     command: celery -A padel worker -l info --concurrency=2
     restart: unless-stopped
     volumes:
@@ -117,7 +117,7 @@ services:
 
   flutter:
     image: ghcr.io/cirruslabs/flutter:3.27.3
-    mem_limit: 2500m
+    mem_limit: 1024m
     working_dir: /mobile
     profiles: ["tools"]
     environment:
