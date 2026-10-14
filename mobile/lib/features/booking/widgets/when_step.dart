@@ -78,12 +78,6 @@ class BookingWhenStep extends StatelessWidget {
           style: theme.textTheme.titleMedium?.copyWith(
               fontSize: BookDim.sectionTitleSize, fontWeight: FontWeight.w800),
         ),
-        const SizedBox(height: AppSpacing.xs),
-        Text(
-          l10n.freeSlotsOnlyHint,
-          style: theme.textTheme.bodySmall?.copyWith(
-              color: theme.colorScheme.onSurface.withValues(alpha: 0.55)),
-        ),
         const SizedBox(height: AppSpacing.sm),
         if (loadingStarts)
           const Padding(

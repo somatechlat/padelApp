@@ -789,13 +789,13 @@ class AppLocalizationsPt extends AppLocalizations {
   String get extraInfo => 'Informações adicionais';
 
   @override
-  String get stepDate => '1. Escolha o dia';
+  String get stepDate => 'Escolha o dia';
 
   @override
-  String get stepDuration => '2. Duração';
+  String get stepDuration => 'Duração';
 
   @override
-  String get stepStartTime => '3. Hora de início';
+  String get stepStartTime => 'Hora de início';
 
   @override
   String get freeSlotsOnlyHint =>

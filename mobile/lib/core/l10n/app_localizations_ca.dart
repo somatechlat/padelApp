@@ -796,13 +796,13 @@ class AppLocalizationsCa extends AppLocalizations {
   String get extraInfo => 'Informació addicional';
 
   @override
-  String get stepDate => '1. Tria un dia';
+  String get stepDate => 'Tria un dia';
 
   @override
-  String get stepDuration => '2. Durada';
+  String get stepDuration => 'Durada';
 
   @override
-  String get stepStartTime => '3. Hora d’inici';
+  String get stepStartTime => 'Hora d’inici';
 
   @override
   String get freeSlotsOnlyHint =>

@@ -538,8 +538,8 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
 |---|---|
 | App Store Connect app | **AndesPadel**, id `6806321664` |
 | Bundle id | `com.andes.padel.padelApp` |
-| Version / build | 1.0 / **8** (`mobile/pubspec.yaml` `1.0.0+8`) |
-| Status | **Submitted for review** (2026-10-04) |
+| Version / build | 1.0 / **9** (`mobile/pubspec.yaml` `1.0.0+9`) |
+| Status | **1.0 / build 9 ready** — build attached 2026-10-07; click Submit for Review (API key cannot CREATE submissions) |
 | Age rating | 4+ (only `userGeneratedContent` flagged) |
 | Primary category | Sports (secondary: Health & Fitness) |
 | Price | Free — no Paid Apps agreement, no banking/tax needed |

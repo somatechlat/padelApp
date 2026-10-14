@@ -32,6 +32,7 @@ class Event(models.Model):
     # Quedadas RSVP: 0 = unlimited. Non-zero caps "Me apunto".
     capacity = models.PositiveIntegerField(default=0)
     allow_registration = models.BooleanField(default=True)
+    image = models.ImageField(upload_to="events/%Y/%m/", blank=True, null=True)
     created_by = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,

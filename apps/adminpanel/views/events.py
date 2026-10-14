@@ -65,6 +65,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             capacity = int(request.POST.get("capacity", 0) or 0)
         except (ValueError, TypeError):
             capacity = 0
+        image_file = request.FILES.get("image")
         e = Event.objects.create(
             title=title,
             title_es=title,
@@ -76,6 +77,7 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
             status="published",
             capacity=capacity,
             allow_registration=request.POST.get("allow_registration") == "on",
+            image=image_file if image_file else None,
             created_by=request.user,
         )
         messages.success(request, f"Evento '{e.title}' creado exitosamente.")
@@ -105,6 +107,11 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
         except (ValueError, TypeError):
             messages.error(request, "Fecha u hora invalida.")
             return
+        image_file = request.FILES.get("image")
+        if image_file:
+            if e.image:
+                e.image.delete(save=False)
+            e.image = image_file
         e.save()
         messages.success(request, f"Evento '{e.title}' actualizado.")
         log_event(request.user, "admin.event_edit", "Event", e.id)

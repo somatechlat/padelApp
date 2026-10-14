@@ -7,7 +7,7 @@ Generated 2026-09-23; screenshots and metadata updated 2026-10-04.
 
 | Store | Status |
 |---|---|
-| **Apple App Store** | Build 8 **submitted for review** (2026-10-04). Age rating 4+, category Sports, price Free, `es-MX` + `en-US` listings, all screenshot sets filled. |
+| **Apple App Store** | Version **1.0** prepared with **build 9** (2026-10-07; build 8 expired). Awaiting Submit for Review click in App Store Connect. Age rating 4+, category Sports, price Free, `es-MX` + `en-US` listings, all screenshot sets filled. |
 | **Google Play** | AAB built and signed. **Not uploaded** — needs the three Play Console forms (below). |
 
 See `AGENTS.md` §10b for the full release record.
@@ -26,7 +26,7 @@ See `AGENTS.md` §10b for the full release record.
 | App Privacy answers | `apple-app-store/metadata/app_privacy.txt` | Apple questionnaire |
 | Data safety answers | `google-play/data-safety.txt` | Play questionnaire |
 | Release AAB (signed) | `mobile/build/app/outputs/bundle/release/app-release.aab` | 56.6 MB, release keystore, alias `upload` |
-| Release IPA | built by `make ship-ios` | v1.0.0 (build 8), uploaded to TestFlight |
+| Release IPA | `mobile/build/ios/ipa/padel_app.ipa` | v1.0.0 (**build 9**), uploaded to TestFlight 2026-10-06 |
 
 ## Screenshots — DONE
 

@@ -787,13 +787,13 @@ class AppLocalizationsEn extends AppLocalizations {
   String get extraInfo => 'Additional information';
 
   @override
-  String get stepDate => '1. Pick a day';
+  String get stepDate => 'Pick a day';
 
   @override
-  String get stepDuration => '2. Duration';
+  String get stepDuration => 'Duration';
 
   @override
-  String get stepStartTime => '3. Start time';
+  String get stepStartTime => 'Start time';
 
   @override
   String get freeSlotsOnlyHint =>

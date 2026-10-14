@@ -208,5 +208,23 @@ class CourtSchedule(models.Model):
             ),
         ]
 
+    def clean(self):
+        from datetime import time as dtime
+
+        earliest = dtime(6, 0)
+        latest = dtime(22, 0)
+        if self.open_time < earliest:
+            raise ValidationError(
+                _("El horario no puede comenzar antes de las 06:00.")
+            )
+        if self.close_time > latest:
+            raise ValidationError(
+                _("El horario no puede terminar despues de las 22:00.")
+            )
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.court.name} [{self.weekday}] {self.open_time}-{self.close_time}"

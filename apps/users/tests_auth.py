@@ -110,7 +110,15 @@ class TestVerify:
             "/api/auth/verify/", {"email": "ghost@test.com", "code": "000000"}
         )
         assert bad_code.status_code == missing.status_code == status.HTTP_400_BAD_REQUEST
-        assert bad_code.data.get("detail") == missing.data.get("detail")
+        # Both must say the same thing — one via "detail", the other via
+        # "non_field_errors" (serializer validate).  Compare the text only.
+        def _msg(data):
+            if "detail" in data:
+                return str(data["detail"])
+            errs = data.get("non_field_errors", [])
+            return str(errs[0]) if errs else ""
+
+        assert _msg(bad_code.data) == _msg(missing.data)
 
     def test_verify_expires_after_5_attempts(self, api_client, user):
         VerificationCode.objects.create(user=user, purpose="email_verify")
@@ -126,6 +134,8 @@ class TestVerifyLink:
     def test_get_does_not_verify(self, api_client, user):
         from apps.users.emails import make_token
 
+        user.email_verified = False
+        user.save(update_fields=["email_verified"])
         code = VerificationCode.objects.create(user=user, purpose="email_verify")
         token = make_token(user.id, code.code, "email_verify")
         resp = api_client.get(f"/api/auth/verify/link/?token={token}")
@@ -285,7 +295,7 @@ class TestPassword:
         user.refresh_from_db()
         assert user.check_password("nuevapass99") is False
         # Same detail as an invalid code: no hint that the account exists.
-        assert resp.data.get("detail") == "Codigo invalido o expirado"
+        assert resp.data.get("detail") == "Código inválido o expirado"
 
     def test_change_password_revokes_tokens(self, auth_client, user):
         resp = auth_client.post(

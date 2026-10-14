@@ -93,20 +93,24 @@ class Command(BaseCommand):
                     CourtSchedule.objects.update_or_create(
                         court=court,
                         weekday=weekday,
-                        defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
+                        defaults={"open_time": "06:00", "close_time": "22:00", "is_active": True},
                     )
 
         now = timezone.now()
         today = timezone.localdate()
+        # ── 3 demo quedada events with categories ──
         Event.objects.get_or_create(
             title="Clinica de verano",
             defaults={
                 "title_es": "Clínica de verano",
-                "description_es": "Entrenamiento guiado para todos los niveles.",
+                "description_es": "Entrenamiento guiado para todos los niveles. Trae tu pala y ganas de mejorar.",
                 "start_at": now + timedelta(days=5),
                 "end_at": now + timedelta(days=5, hours=2),
                 "location": "Cancha Ambacar",
+                "category": Event.Category.QUEDADA,
                 "status": Event.Status.PUBLISHED,
+                "capacity": 16,
+                "allow_registration": True,
                 "created_by": admin,
             },
         )
@@ -114,11 +118,29 @@ class Command(BaseCommand):
             title="Torneo social mensual",
             defaults={
                 "title_es": "Torneo social mensual",
-                "description_es": "Dia de partidos informales entre socios.",
+                "description_es": "Día de partidos informales entre socios. Inscripción gratuita para todos los niveles.",
                 "start_at": now + timedelta(days=12),
                 "end_at": now + timedelta(days=12, hours=4),
                 "location": "Complejo Andes Padel",
+                "category": Event.Category.QUEDADA,
                 "status": Event.Status.PUBLISHED,
+                "capacity": 24,
+                "allow_registration": True,
+                "created_by": admin,
+            },
+        )
+        Event.objects.get_or_create(
+            title="Padel y amigos",
+            defaults={
+                "title_es": "Pádel y amigos",
+                "description_es": "Quedada abierta para conocer nuevos jugadores. Parejas mixtas, ambiente relajado y premios sorpresa.",
+                "start_at": now + timedelta(days=8, hours=2),
+                "end_at": now + timedelta(days=8, hours=4),
+                "location": "Cancha 2",
+                "category": Event.Category.QUEDADA,
+                "status": Event.Status.PUBLISHED,
+                "capacity": 12,
+                "allow_registration": True,
                 "created_by": admin,
             },
         )

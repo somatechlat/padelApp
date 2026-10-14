@@ -16,6 +16,7 @@ class EventSerializer(serializers.ModelSerializer):
     attendee_count = serializers.IntegerField(read_only=True)
     is_full = serializers.BooleanField(read_only=True)
     joined = serializers.SerializerMethodField()
+    image_url = serializers.SerializerMethodField()
 
     class Meta:
         model = Event
@@ -37,6 +38,8 @@ class EventSerializer(serializers.ModelSerializer):
             "attendee_count",
             "is_full",
             "joined",
+            "image",
+            "image_url",
             "created_at",
         )
         read_only_fields = ("created_at",)
@@ -48,6 +51,15 @@ class EventSerializer(serializers.ModelSerializer):
         return obj.registrations.filter(
             user=request.user, status=EventRegistration.Status.GOING
         ).exists()
+
+    def get_image_url(self, obj):
+        if not obj.image:
+            return ""
+        request = self.context.get("request")
+        url = obj.image.url
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
 
 
 class NewsPostSerializer(serializers.ModelSerializer):

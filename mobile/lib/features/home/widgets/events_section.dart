@@ -22,6 +22,37 @@ class HomeEventsSection extends StatelessWidget {
   final bool loadFailed;
   final VoidCallback? onRetry;
 
+  String _formatDate(String raw) {
+    if (raw.length < 10) return raw;
+    try {
+      final dt = DateTime.parse(raw);
+      final months = [
+        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
+        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+      ];
+      return '${dt.day} ${months[dt.month - 1]}';
+    } catch (_) {
+      return raw.substring(0, 10);
+    }
+  }
+
+  String _categoryLabel(String? cat) {
+    switch (cat) {
+      case 'quedada':
+        return 'Quedada';
+      case 'torneo':
+        return 'Torneo';
+      case 'liga':
+        return 'Liga';
+      case 'academia':
+        return 'Academia';
+      case 'noticia':
+        return 'Noticia';
+      default:
+        return 'Evento';
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -68,16 +99,21 @@ class HomeEventsSection extends StatelessWidget {
           )
         else
           SizedBox(
-            height: 132,
+            height: 200,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
               itemCount: events.length,
-              separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.sm),
+              separatorBuilder: (_, __) => const SizedBox(width: 12),
               itemBuilder: (context, i) {
                 final e = Map<String, dynamic>.from(events[i] as Map);
-                final title = '${e['title_es'] ?? e['title'] ?? ''}';
-                final when = '${e['start_at'] ?? ''}';
-                return _EventCard(scheme: scheme, title: title, when: when);
+                return _EventCard(
+                  scheme: scheme,
+                  title: '${e['title_es'] ?? e['title'] ?? ''}',
+                  date: _formatDate('${e['start_at'] ?? ''}'),
+                  category: _categoryLabel('${e['category'] ?? ''}'),
+                  imageUrl: '${e['image_url'] ?? ''}',
+                  location: '${e['location'] ?? ''}',
+                );
               },
             ),
           ),
@@ -90,48 +126,155 @@ class _EventCard extends StatelessWidget {
   const _EventCard({
     required this.scheme,
     required this.title,
-    required this.when,
+    required this.date,
+    required this.category,
+    required this.imageUrl,
+    required this.location,
   });
 
   final ColorScheme scheme;
   final String title;
-  final String when;
+  final String date;
+  final String category;
+  final String imageUrl;
+  final String location;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      width: 240,
-      padding: const EdgeInsets.all(AppSpacing.md),
+      width: 220,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-        color: scheme.surface,
         borderRadius: BorderRadius.circular(AppSpacing.radiusCard),
-        border: Border.all(color: scheme.outline),
+        color: scheme.surface,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(Icons.emoji_events_outlined,
-              color: AppColors.brandLight, size: 22),
-          const SizedBox(height: AppSpacing.xs),
-          Text(
-            title,
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: 15,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
+          // Image section (top 60%)
+          Expanded(
+            flex: 6,
+            child: Stack(
+              fit: StackFit.expand,
+              children: [
+                if (imageUrl.isNotEmpty)
+                  Image.network(
+                    imageUrl,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, __, ___) => _placeholderImage(),
+                  )
+                else
+                  _placeholderImage(),
+                // Category badge
+                Positioned(
+                  top: 8,
+                  left: 8,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.brandLight,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      category,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ),
-          const Spacer(),
-          Text(
-            when.length >= 10 ? when.substring(0, 10) : when,
-            style: TextStyle(
-              fontSize: 13,
-              color: scheme.onSurface.withValues(alpha: 0.55),
+          // Info section (bottom 40%)
+          Expanded(
+            flex: 4,
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                    ),
+                  ),
+                  const Spacer(),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.calendar_today,
+                        size: 12,
+                        color: scheme.onSurface.withValues(alpha: 0.5),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        date,
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      if (location.isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Icon(
+                          Icons.location_on,
+                          size: 12,
+                          color: scheme.onSurface.withValues(alpha: 0.5),
+                        ),
+                        const SizedBox(width: 2),
+                        Expanded(
+                          child: Text(
+                            location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: scheme.onSurface.withValues(alpha: 0.5),
+                              fontWeight: FontWeight.w500,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
+                ],
+              ),
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _placeholderImage() {
+    return Container(
+      color: AppColors.brandLight.withValues(alpha: 0.15),
+      child: Center(
+        child: Icon(
+          Icons.sports_tennis,
+          size: 40,
+          color: AppColors.brandLight.withValues(alpha: 0.4),
+        ),
       ),
     );
   }
