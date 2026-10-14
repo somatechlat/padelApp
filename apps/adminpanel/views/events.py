@@ -82,6 +82,20 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
         )
         messages.success(request, f"Evento '{e.title}' creado exitosamente.")
         log_event(request.user, "admin.event_create", "Event", e.id)
+        from django.contrib.auth import get_user_model
+
+        from apps.notifications.tasks import notify_task
+
+        for uid in get_user_model().objects.filter(
+            status="active", is_active=True
+        ).values_list("id", flat=True):
+            notify_task.delay(
+                uid,
+                "event_published",
+                "",
+                "",
+                {"title": e.title_localized, "event_id": e.id},
+            )
 
     def _action_edit_event(self, request):
         e = get_object_or_404(Event, id=request.POST.get("event_id"))
@@ -130,6 +144,21 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
         e.save()
         messages.success(request, f"Evento '{e.title}' ahora es {e.get_status_display()}.")
         log_event(request.user, "admin.event_toggle", "Event", e.id)
+        if e.status == "published":
+            from django.contrib.auth import get_user_model
+
+            from apps.notifications.tasks import notify_task
+
+            for uid in get_user_model().objects.filter(
+                status="active", is_active=True
+            ).values_list("id", flat=True):
+                notify_task.delay(
+                    uid,
+                    "event_published",
+                    "",
+                    "",
+                    {"title": e.title_localized, "event_id": e.id},
+                )
 
     def _action_toggle_tournament(self, request):
         t = get_object_or_404(Tournament, id=request.POST.get("tournament_id"))

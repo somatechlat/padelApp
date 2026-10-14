@@ -129,7 +129,7 @@ class TestLocalizedMessages:
         venue = Venue.objects.get_or_create(name="V", timezone="UTC", currency="USD")[0]
         court = Court.objects.get_or_create(venue=venue, name="C1", price_base="10.00")[0]
         CourtSchedule.objects.get_or_create(
-            court=court, weekday=day.weekday(), open_time="00:00", close_time="23:59"
+            court=court, weekday=day.weekday(), open_time="06:00", close_time="22:00"
         )
         return Booking.objects.create(
             user=user,

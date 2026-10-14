@@ -16,7 +16,15 @@ def set_user_status(user, status):
     """
     if status not in Status.values:
         raise ValueError(f"Estado invalido: {status}")
+    old_status = user.status
     user.status = status
     user.is_active = status == Status.ACTIVE
     user.save(update_fields=["status", "is_active"])
+    if old_status != status:
+        from apps.notifications.tasks import notify_task
+
+        if status == Status.SUSPENDED:
+            notify_task.delay(user.id, "account_suspended", "", "", {"email": user.email})
+        elif status == Status.ACTIVE and old_status != Status.ACTIVE:
+            notify_task.delay(user.id, "account_activated", "", "", {"email": user.email})
     return user

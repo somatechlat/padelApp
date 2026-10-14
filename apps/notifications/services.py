@@ -35,6 +35,9 @@ TRANSACTIONAL_EVENTS = {
     "admin_booking_created",
     "admin_cash_booking",
     "open_match_created",
+    "password_change",
+    "account_suspended",
+    "account_activated",
 }
 DEFAULT_CHANNELS = ("email", "push", "inapp")
 
@@ -143,6 +146,18 @@ MESSAGE_TEMPLATES = {
     "open_match_created": (
         gettext_noop("Nuevo partido en tu categoría"),
         gettext_noop("{title}"),
+    ),
+    "password_change": (
+        gettext_noop("Password changed"),
+        gettext_noop("Your password was changed. If this was not you, contact support immediately."),
+    ),
+    "account_suspended": (
+        gettext_noop("Account suspended"),
+        gettext_noop("Your account has been suspended. Contact the club for more information."),
+    ),
+    "account_activated": (
+        gettext_noop("Account activated"),
+        gettext_noop("Your account has been activated. You can now log in and book courts."),
     ),
 }
 

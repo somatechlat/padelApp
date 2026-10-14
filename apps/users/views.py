@@ -416,6 +416,9 @@ class PasswordChangeView(APIView):
         user.save()
         _blacklist_all_user_tokens(user)
         log_event(user, "auth.password_change", "User", user.id)
+        from apps.notifications.tasks import notify_task
+
+        notify_task.delay(user.id, "password_change", "", "", {"email": user.email})
         return Response({"detail": _("Contrasena cambiada")})
 
 
