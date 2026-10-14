@@ -23,6 +23,7 @@ TRANSACTIONAL_EVENTS = {
     "payment_cash_collected",
     "payment_failed",
     "payment_refunded",
+    "transfer_pending",
     "transfer_confirmed",
     "transfer_rejected",
     "password_reset",
@@ -100,6 +101,14 @@ MESSAGE_TEMPLATES = {
     "payment_refunded": (
         gettext_noop("Payment refunded"),
         gettext_noop("A refund of {amount} was processed."),
+    ),
+    "transfer_pending": (
+        gettext_noop("Reservation pending payment confirmation"),
+        gettext_noop(
+            "Your booking has been received. We are reviewing your transfer "
+            "receipt — you will get a confirmation once it is approved. "
+            "Amount: {amount}."
+        ),
     ),
     "transfer_confirmed": (
         gettext_noop("Transfer confirmed"),

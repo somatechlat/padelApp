@@ -78,6 +78,19 @@ class PaymentService:
             reference=reference,
         )
         log_event(booking.user, "payment.transfer_recorded", "Payment", payment.id)
+        from apps.notifications.tasks import notify_task
+
+        notify_task.delay(
+            booking.user_id,
+            "transfer_pending",
+            "",
+            "",
+            {
+                "amount": f"${booking.price}",
+                "booking_id": booking.id,
+                "reference": reference or "",
+            },
+        )
         return payment
 
     @staticmethod
