@@ -10,8 +10,8 @@ Three isolated deployments. Never mix ports, secrets, or data between them.
 
 Port map (same offsets in every env):
 
-| Offset | Service | dev | test | prod (no server provisioned yet) |
-|--------|---------|-----|------|------------------------------|
+| Offset | Service | dev | test | prod |
+|--------|---------|-----|------|------|
 | +0 | PostgreSQL | 28000 | 29000 | 34000 |
 | +1 | Redis | 28001 | 29001 | 34001 |
 | +2 | Django backend | 28002 | 29002 | 34002 |
@@ -52,10 +52,10 @@ make up-test
 make seeddemo-test
 make test-test
 
-# PROD (server ports 34000+, or local dry-run)
+# PROD (server ports 34000+)
 make up-prod
-# real prod: NO SERVER IS PROVISIONED YET. Do not run up-prod anywhere.
-# When one exists it lives under /opt/padelapp only (R18).
+# Production is LIVE at 140.82.15.48 — confirm with the operator before
+# deploying; it overwrites a running service. Deploy root: /opt/padelapp.
 ```
 
 Equivalent raw compose (always pass `-f` base + overlay):
@@ -137,14 +137,14 @@ than serving on a retired name.
 | Stripe | test keys | test keys | live or test keys |
 | Allowed hosts | `*` / localhost | test host | `PROD_DOMAIN` from `settings/secrets.py` (required) |
 | SSL | off | off | terminated by host nginx |
-| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://www.andespadelclub.com/api` |
+| Public API URL (mobile) | `http://127.0.0.1:28002/api` | `http://<test-host>:29002/api` | `https://app.andespadelclub.com/api` |
 
 Mobile builds select the API with:
 
 ```bash
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:28002/api   # dev
 flutter build apk --debug --dart-define=API_BASE_URL=http://127.0.0.1:29002/api   # test
-flutter build apk --release --dart-define=API_BASE_URL=https://www.andespadelclub.com/api  # prod
+flutter build apk --release --dart-define=API_BASE_URL=https://app.andespadelclub.com/api  # prod
 ```
 
 ---

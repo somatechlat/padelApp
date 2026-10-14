@@ -1,6 +1,6 @@
 # Build and Deploy
 
-Last verified against source: 2026-09-29.
+Last verified against source: 2026-10-14.
 
 Covers the three Docker Compose environments, backend images, mobile builds, and the TestFlight pipeline.
 
@@ -81,14 +81,14 @@ http://127.0.0.1:28002/api
 That is the dev API. Every release build must override it:
 
 ```bash
---dart-define=API_BASE_URL=https://www.andespadelclub.com/api
+--dart-define=API_BASE_URL=https://app.andespadelclub.com/api
 ```
 
 | Env | API base |
 |---|---|
 | dev | `http://127.0.0.1:28002/api` |
 | test | `http://127.0.0.1:29002/api` |
-| prod | `https://www.andespadelclub.com/api` |
+| prod | `https://app.andespadelclub.com/api` |
 
 Makefile `API_DEV` / `API_TEST` / `API_PROD` match these values.
 
@@ -164,17 +164,13 @@ docker compose -p andespadel-prod \
 
 Or simply `make up-prod` / `make down-prod` from a checkout with the Makefile.
 
-Prod backend runs gunicorn (see `docker-compose.prod.yml` command override). Public URL: the new production domain, supplied by the operator.
+Prod backend runs gunicorn (see `docker-compose.prod.yml` command override).
 
-### Server host IP — UNVERIFIED
+### Production server — LIVE
 
-This repo disagrees on the production server address:
+Production is live at `app.andespadelclub.com` (`140.82.15.48`), deploy root `/opt/padelapp`, compose project `andespadel-prod`. The apex/`www` of `andespadelclub.com` is a **different machine** (`190.92.174.243`) that does not serve `/api` or `/privacy` — never point release URLs there. See `DEPLOYMENTS.md` for the full host table.
 
-- Every previously documented server address is **retired**. Production is
-  moving to a new host and domain whose values the operator has not yet
-  supplied. Do not treat any address in these docs as a deploy target.
-
-**Every previously documented address is retired.** Production is moving to a new server and domain; the operator supplies both. Nothing in this tree names a production host on purpose.
+The same server also runs unrelated services (`loyallia-*`, `soma-agent-zero`). Confine changes to `/opt/padelapp` and the `andespadel-prod-*` containers.
 
 ### Server constraints (from ops notes)
 
@@ -188,6 +184,7 @@ This repo disagrees on the production server address:
 ```bash
 make flbuild            # debug APK against the dev API
 make flapk              # same, copies to ./padelapp-debug.apk
+make ship-android       # signed release AAB for Google Play
 ```
 
 Or on the host:
@@ -202,9 +199,19 @@ flutter build apk --debug \
 | Build | Output |
 |---|---|
 | Debug | `mobile/build/app/outputs/flutter-apk/app-debug.apk` |
-| Release | `mobile/build/app/outputs/flutter-apk/app-release.apk` |
+| Release APK | `mobile/build/app/outputs/flutter-apk/app-release.apk` |
+| Release AAB (Play) | `mobile/build/app/outputs/bundle/release/app-release.aab` |
 
-Release APK/AAB must pass `--dart-define=API_BASE_URL=https://www.andespadelclub.com/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
+Release APK/AAB must pass `--dart-define=API_BASE_URL=https://app.andespadelclub.com/api`. Signing for Play (keystore, `key.properties`) is documented in `store/README.md` and is gitignored.
+
+### Direct download (sideload)
+
+A signed release APK is served at `https://app.andespadelclub.com/padelapp.apk` from the server's `landing/` directory. After building a new release APK, upload it:
+
+```bash
+rsync -avz mobile/build/app/outputs/flutter-apk/app-release.apk \
+  root@140.82.15.48:/opt/padelapp/landing/padelapp.apk
+```
 
 `applicationId`: `com.andes.padel.padel_app`.
 

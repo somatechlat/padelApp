@@ -272,7 +272,7 @@ Port map within each env: `N000` db, `N001` redis, `N002` backend/API,
 
 - **API_DEV is `http://127.0.0.1:28002/api`** — this is also the default in
   `mobile/lib/core/api_client.dart`. Release builds must override with
-  `--dart-define=API_BASE_URL=https://www.andespadelclub.com/api`.
+  `--dart-define=API_BASE_URL=https://app.andespadelclub.com/api`.
 - `docker-compose.yml` must never be run alone; always pair with an env overlay
   and a `-p` project name.
 - `compose.prod.yml` / `compose.server.yml` (legacy, unused) were **deleted**
