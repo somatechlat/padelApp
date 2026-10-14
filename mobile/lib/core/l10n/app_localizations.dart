@@ -1623,19 +1623,19 @@ abstract class AppLocalizations {
   /// No description provided for @stepDate.
   ///
   /// In es, this message translates to:
-  /// **'1. Elige el día'**
+  /// **'Elige el día'**
   String get stepDate;
 
   /// No description provided for @stepDuration.
   ///
   /// In es, this message translates to:
-  /// **'2. Duración'**
+  /// **'Duración'**
   String get stepDuration;
 
   /// No description provided for @stepStartTime.
   ///
   /// In es, this message translates to:
-  /// **'3. Hora de inicio'**
+  /// **'Hora de inicio'**
   String get stepStartTime;
 
   /// No description provided for @freeSlotsOnlyHint.
@@ -1679,6 +1679,114 @@ abstract class AppLocalizations {
   /// In es, this message translates to:
   /// **'{count} libres'**
   String freeCourtsCountOther(num count);
+
+  /// No description provided for @category_quedada.
+  ///
+  /// In es, this message translates to:
+  /// **'Quedada'**
+  String get category_quedada;
+
+  /// No description provided for @category_torneo.
+  ///
+  /// In es, this message translates to:
+  /// **'Torneo'**
+  String get category_torneo;
+
+  /// No description provided for @category_liga.
+  ///
+  /// In es, this message translates to:
+  /// **'Liga'**
+  String get category_liga;
+
+  /// No description provided for @category_academia.
+  ///
+  /// In es, this message translates to:
+  /// **'Academia'**
+  String get category_academia;
+
+  /// No description provided for @category_noticia.
+  ///
+  /// In es, this message translates to:
+  /// **'Noticia'**
+  String get category_noticia;
+
+  /// No description provided for @category_evento.
+  ///
+  /// In es, this message translates to:
+  /// **'Evento'**
+  String get category_evento;
+
+  /// No description provided for @month_1.
+  ///
+  /// In es, this message translates to:
+  /// **'Ene'**
+  String get month_1;
+
+  /// No description provided for @month_2.
+  ///
+  /// In es, this message translates to:
+  /// **'Feb'**
+  String get month_2;
+
+  /// No description provided for @month_3.
+  ///
+  /// In es, this message translates to:
+  /// **'Mar'**
+  String get month_3;
+
+  /// No description provided for @month_4.
+  ///
+  /// In es, this message translates to:
+  /// **'Abr'**
+  String get month_4;
+
+  /// No description provided for @month_5.
+  ///
+  /// In es, this message translates to:
+  /// **'May'**
+  String get month_5;
+
+  /// No description provided for @month_6.
+  ///
+  /// In es, this message translates to:
+  /// **'Jun'**
+  String get month_6;
+
+  /// No description provided for @month_7.
+  ///
+  /// In es, this message translates to:
+  /// **'Jul'**
+  String get month_7;
+
+  /// No description provided for @month_8.
+  ///
+  /// In es, this message translates to:
+  /// **'Ago'**
+  String get month_8;
+
+  /// No description provided for @month_9.
+  ///
+  /// In es, this message translates to:
+  /// **'Sep'**
+  String get month_9;
+
+  /// No description provided for @month_10.
+  ///
+  /// In es, this message translates to:
+  /// **'Oct'**
+  String get month_10;
+
+  /// No description provided for @month_11.
+  ///
+  /// In es, this message translates to:
+  /// **'Nov'**
+  String get month_11;
+
+  /// No description provided for @month_12.
+  ///
+  /// In es, this message translates to:
+  /// **'Dic'**
+  String get month_12;
 }
 
 class _AppLocalizationsDelegate

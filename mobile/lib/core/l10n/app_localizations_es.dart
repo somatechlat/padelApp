@@ -823,4 +823,58 @@ class AppLocalizationsEs extends AppLocalizations {
   String freeCourtsCountOther(num count) {
     return '$count libres';
   }
+
+  @override
+  String get category_quedada => 'Quedada';
+
+  @override
+  String get category_torneo => 'Torneo';
+
+  @override
+  String get category_liga => 'Liga';
+
+  @override
+  String get category_academia => 'Academia';
+
+  @override
+  String get category_noticia => 'Noticia';
+
+  @override
+  String get category_evento => 'Evento';
+
+  @override
+  String get month_1 => 'Ene';
+
+  @override
+  String get month_2 => 'Feb';
+
+  @override
+  String get month_3 => 'Mar';
+
+  @override
+  String get month_4 => 'Abr';
+
+  @override
+  String get month_5 => 'May';
+
+  @override
+  String get month_6 => 'Jun';
+
+  @override
+  String get month_7 => 'Jul';
+
+  @override
+  String get month_8 => 'Ago';
+
+  @override
+  String get month_9 => 'Sep';
+
+  @override
+  String get month_10 => 'Oct';
+
+  @override
+  String get month_11 => 'Nov';
+
+  @override
+  String get month_12 => 'Dic';
 }

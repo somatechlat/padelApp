@@ -61,13 +61,15 @@ class _HomeEventsSectionState extends State<HomeEventsSection> {
     });
   }
 
-  String _formatDate(String raw) {
+  String _formatDate(String raw, AppLocalizations l10n) {
     if (raw.length < 10) return raw;
     try {
       final dt = DateTime.parse(raw);
-      const months = [
-        'Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun',
-        'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic',
+      final months = [
+        l10n.month_1, l10n.month_2, l10n.month_3,
+        l10n.month_4, l10n.month_5, l10n.month_6,
+        l10n.month_7, l10n.month_8, l10n.month_9,
+        l10n.month_10, l10n.month_11, l10n.month_12,
       ];
       return '${dt.day} ${months[dt.month - 1]}';
     } catch (_) {
@@ -75,20 +77,20 @@ class _HomeEventsSectionState extends State<HomeEventsSection> {
     }
   }
 
-  String _categoryLabel(String? cat) {
+  String _categoryLabel(String? cat, AppLocalizations l10n) {
     switch (cat) {
       case 'quedada':
-        return 'Quedada';
+        return l10n.category_quedada;
       case 'torneo':
-        return 'Torneo';
+        return l10n.category_torneo;
       case 'liga':
-        return 'Liga';
+        return l10n.category_liga;
       case 'academia':
-        return 'Academia';
+        return l10n.category_academia;
       case 'noticia':
-        return 'Noticia';
+        return l10n.category_noticia;
       default:
-        return 'Evento';
+        return l10n.category_evento;
     }
   }
 
@@ -155,8 +157,8 @@ class _HomeEventsSectionState extends State<HomeEventsSection> {
                   child: _EventSlideCard(
                     scheme: scheme,
                     title: '${e['title_es'] ?? e['title'] ?? ''}',
-                    date: _formatDate('${e['start_at'] ?? ''}'),
-                    category: _categoryLabel('${e['category'] ?? ''}'),
+                    date: _formatDate('${e['start_at'] ?? ''}', widget.l10n),
+                    category: _categoryLabel('${e['category'] ?? ''}', widget.l10n),
                     imageUrl: '${e['image_url'] ?? ''}',
                     location: '${e['location'] ?? ''}',
                     description: '${e['description_es'] ?? e['description'] ?? ''}',

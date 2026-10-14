@@ -295,16 +295,46 @@
   },
   "uploadProof": "Pujar comprovant",
   "uploadProofHint": "Fes una foto o selecciona de la galeria",
-    "stepDate": "Tria un dia",
-    "stepDuration": "Durada",
-    "stepStartTime": "Hora d’inici",
-    "freeSlotsOnlyHint": "Només horaris amb pista lliure (segons ocupació real).",
-    "noFreeSlotsForSelection": "No hi ha hores lliures per a aquest dia i durada. Prova un altre dia.",
-    "timeMorning": "Matí",
-    "timeAfternoon": "Tarda",
-    "timeEvening": "Nit",
-    "freeCourtsCountOne": "{count} lliure",
-    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
-    "freeCourtsCountOther": "{count} lliures",
-    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
+  "stepDate": "Tria un dia",
+  "stepDuration": "Durada",
+  "stepStartTime": "Hora d’inici",
+  "freeSlotsOnlyHint": "Només horaris amb pista lliure (segons ocupació real).",
+  "noFreeSlotsForSelection": "No hi ha hores lliures per a aquest dia i durada. Prova un altre dia.",
+  "timeMorning": "Matí",
+  "timeAfternoon": "Tarda",
+  "timeEvening": "Nit",
+  "freeCourtsCountOne": "{count} lliure",
+  "@freeCourtsCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "freeCourtsCountOther": "{count} lliures",
+  "@freeCourtsCountOther": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "category_quedada": "Trobada",
+  "category_torneo": "Torneig",
+  "category_liga": "Lliga",
+  "category_academia": "Academia",
+  "category_noticia": "Noticia",
+  "category_evento": "Esdeveniment",
+  "month_1": "Gen",
+  "month_2": "Feb",
+  "month_3": "Mar",
+  "month_4": "Abr",
+  "month_5": "Mai",
+  "month_6": "Jun",
+  "month_7": "Jul",
+  "month_8": "Ago",
+  "month_9": "Set",
+  "month_10": "Oct",
+  "month_11": "Nov",
+  "month_12": "Des"
 }

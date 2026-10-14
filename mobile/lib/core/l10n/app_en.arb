@@ -2,7 +2,6 @@
   "@@locale": "en",
   "appTitle": "Andes Pádel",
   "appTagline": "Book your padel court",
-
   "login": "Sign in",
   "loginSubtitle": "Sign in to book your court",
   "email": "Email",
@@ -11,7 +10,6 @@
   "noAccount": "Don't have an account?",
   "registerLink": "Sign up",
   "forgotPassword": "Forgot your password?",
-
   "register": "Create account",
   "registerSubtitle": "Fill in your details to register",
   "fullName": "Full name",
@@ -20,22 +18,18 @@
   "registerButton": "Create account",
   "alreadyHaveAccount": "Already have an account?",
   "loginLink": "Sign in",
-
   "verify": "Verify email",
   "verifySubtitle": "Enter the code we sent to your email",
   "code": "Verification code",
   "verifyButton": "Verify",
   "resendCode": "Resend code",
-
   "resetPassword": "Reset password",
   "resetSubtitle": "Enter your email and we'll send you a code",
   "resetButton": "Send code",
-
   "resetConfirm": "New password",
   "resetConfirmSubtitle": "Enter the code and your new password",
   "confirmPassword": "Confirm password",
   "saveButton": "Save",
-
   "home": "Home",
   "homeWelcome": "Hello",
   "eventsEmpty": "New meetups and events coming soon.",
@@ -82,7 +76,6 @@
   "bookNow": "Book now",
   "bookCourt": "Book a court",
   "upcomingEvents": "Upcoming events",
-
   "bookings": "My bookings",
   "navBookings": "Bookings",
   "navEvents": "Events",
@@ -92,7 +85,6 @@
   "bookingStatus_pending": "Pending",
   "bookingStatus_cancelled": "Cancelled",
   "bookingStatus_held": "On hold",
-
   "events": "Events",
   "tournaments": "Tournaments",
   "noEvents": "No published events",
@@ -112,14 +104,12 @@
   "tournamentStatus_closed": "Closed",
   "tournamentStatus_finished": "Finished",
   "tournamentStatus_draft": "Draft",
-
   "notifications": "Notifications",
   "noNotifications": "You have no notifications",
   "markRead": "Mark as read",
   "markAllRead": "Mark all as read",
   "unread": "Unread",
   "newBadge": "New",
-
   "profile": "Profile",
   "role": "Role",
   "language": "Language",
@@ -137,7 +127,6 @@
   "passwordChanged": "Password updated. Please sign in again.",
   "cancel": "Cancel",
   "confirm": "Confirm",
-
   "error": "Something went wrong",
   "networkError": "Connection error. Check your internet.",
   "invalidCredentials": "Invalid credentials",
@@ -153,7 +142,6 @@
   "emailVerified": "Email verified. You can sign in now.",
   "success": "Successful",
   "sessionExpired": "Your session expired. Sign in again.",
-
   "stepCourt": "Choose court",
   "stepSchedule": "Date and time",
   "stepSummary": "Summary",
@@ -179,7 +167,6 @@
   "slotTaken": "That time is no longer available. Pick another.",
   "minPlayers": "Players",
   "confirmedAt": "Confirmed on",
-
   "notificationSettings": "Notification settings",
   "save": "Save",
   "bookingReminder": "Booking reminder",
@@ -190,24 +177,29 @@
   "channelEmail": "Email",
   "channelPush": "Push notifications",
   "channelInApp": "In-app notifications",
-
   "timeNow": "Now",
   "timeAgoMinutes": "{minutes} min ago",
   "@timeAgoMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "timeAgoHours": "{hours} h ago",
   "@timeAgoHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "timeAgoDays": "{days} d ago",
   "@timeAgoDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "timeYesterday": "Yesterday",
@@ -217,11 +209,12 @@
   "role_gerente": "Manager",
   "role_dueno": "Owner",
   "role_superadmin": "Administrator",
-
   "homeGreeting": "Hello, {name}",
   "@homeGreeting": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "findYourCourt": "Find your court",
@@ -237,8 +230,6 @@
   "reserve": "Book",
   "today": "Today",
   "thisWeek": "This week",
-
-  "paymentMethod": "Payment method",
   "paymentMethodSubtitle": "Choose how you want to pay",
   "payWithCard": "Pay with card",
   "payWithTransfer": "Bank transfer",
@@ -246,7 +237,6 @@
   "cardDescription": "Debit or credit via Stripe",
   "transferDescription": "Make a transfer and upload your receipt",
   "cashDescription": "Pay at the venue when you arrive",
-
   "transferInstructions": "Transfer details",
   "bankName": "Bank",
   "accountNumber": "Account number",
@@ -263,7 +253,9 @@
   "transferRejectedReason": "Reason: {reason}",
   "@transferRejectedReason": {
     "placeholders": {
-      "reason": {"type": "String"}
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "confirmTransfer": "Confirm transfer",
@@ -291,7 +283,6 @@
   "noQuedadas": "No meetups scheduled",
   "noLigas": "No active leagues",
   "noAcademia": "No classes available",
-
   "reserveYourCourt": "Book your court",
   "reserveNow": "Book now",
   "clubContact": "Club contact",
@@ -304,16 +295,46 @@
   "showPassword": "Show password",
   "hidePassword": "Hide password",
   "extraInfo": "Additional information",
-    "stepDate": "Pick a day",
-    "stepDuration": "Duration",
-    "stepStartTime": "Start time",
-    "freeSlotsOnlyHint": "Only times with a free court (based on real occupancy).",
-    "noFreeSlotsForSelection": "No free times for this day and duration. Try another day.",
-    "timeMorning": "Morning",
-    "timeAfternoon": "Afternoon",
-    "timeEvening": "Evening",
-    "freeCourtsCountOne": "{count} free",
-    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
-    "freeCourtsCountOther": "{count} free",
-    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
+  "stepDate": "Pick a day",
+  "stepDuration": "Duration",
+  "stepStartTime": "Start time",
+  "freeSlotsOnlyHint": "Only times with a free court (based on real occupancy).",
+  "noFreeSlotsForSelection": "No free times for this day and duration. Try another day.",
+  "timeMorning": "Morning",
+  "timeAfternoon": "Afternoon",
+  "timeEvening": "Evening",
+  "freeCourtsCountOne": "{count} free",
+  "@freeCourtsCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "freeCourtsCountOther": "{count} free",
+  "@freeCourtsCountOther": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "category_quedada": "Social Match",
+  "category_torneo": "Tournament",
+  "category_liga": "League",
+  "category_academia": "Academy",
+  "category_noticia": "News",
+  "category_evento": "Event",
+  "month_1": "Jan",
+  "month_2": "Feb",
+  "month_3": "Mar",
+  "month_4": "Apr",
+  "month_5": "May",
+  "month_6": "Jun",
+  "month_7": "Jul",
+  "month_8": "Aug",
+  "month_9": "Sep",
+  "month_10": "Oct",
+  "month_11": "Nov",
+  "month_12": "Dec"
 }

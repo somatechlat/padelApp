@@ -2,7 +2,6 @@
   "@@locale": "es",
   "appTitle": "Andes Pádel",
   "appTagline": "Reserva tu cancha de pádel",
-
   "login": "Iniciar sesión",
   "loginSubtitle": "Accede para reservar tu cancha",
   "email": "Email",
@@ -11,7 +10,6 @@
   "noAccount": "¿No tienes cuenta?",
   "registerLink": "Regístrate",
   "forgotPassword": "¿Olvidaste tu contraseña?",
-
   "register": "Crear cuenta",
   "registerSubtitle": "Completa tus datos para registrarte",
   "fullName": "Nombre completo",
@@ -20,22 +18,18 @@
   "registerButton": "Crear cuenta",
   "alreadyHaveAccount": "¿Ya tienes cuenta?",
   "loginLink": "Inicia sesión",
-
   "verify": "Verificar email",
   "verifySubtitle": "Ingresa el código que enviamos a tu email",
   "code": "Código de verificación",
   "verifyButton": "Verificar",
   "resendCode": "Reenviar código",
-
   "resetPassword": "Recuperar contraseña",
   "resetSubtitle": "Ingresa tu email y te enviaremos un código",
   "resetButton": "Enviar código",
-
   "resetConfirm": "Nueva contraseña",
   "resetConfirmSubtitle": "Ingresa el código y tu nueva contraseña",
   "confirmPassword": "Confirmar contraseña",
   "saveButton": "Guardar",
-
   "home": "Inicio",
   "homeWelcome": "Hola",
   "eventsEmpty": "Próximamente nuevas quedadas y eventos.",
@@ -44,9 +38,9 @@
   "birthDate": "Fecha de nacimiento",
   "birthDateRequired": "Selecciona tu fecha de nacimiento",
   "joinEvent": "Me apunto",
-  "eventJoined": "\u00a1Te apuntaste a la quedada!",
+  "eventJoined": "¡Te apuntaste a la quedada!",
   "eventLeft": "Ya no asistes a esta quedada",
-  "eventGoing": "Ya est\u00e1s apuntado",
+  "eventGoing": "Ya estás apuntado",
   "eventFull": "Completo",
   "fieldRequired": "Este campo es obligatorio",
   "fieldRequiredNamed": "El campo {field} es obligatorio",
@@ -82,7 +76,6 @@
   "bookNow": "Reservar ahora",
   "bookCourt": "Reservar cancha",
   "upcomingEvents": "Próximos eventos",
-
   "bookings": "Mis reservas",
   "navBookings": "Reservas",
   "navEvents": "Eventos",
@@ -92,7 +85,6 @@
   "bookingStatus_pending": "Pendiente",
   "bookingStatus_cancelled": "Cancelada",
   "bookingStatus_held": "En espera",
-
   "events": "Eventos",
   "tournaments": "Torneos",
   "noEvents": "No hay eventos publicados",
@@ -112,14 +104,12 @@
   "tournamentStatus_closed": "Cerrado",
   "tournamentStatus_finished": "Finalizado",
   "tournamentStatus_draft": "Borrador",
-
   "notifications": "Notificaciones",
   "noNotifications": "No tienes notificaciones",
   "markRead": "Marcar leída",
   "markAllRead": "Marcar todas leídas",
   "unread": "Sin leer",
   "newBadge": "Nueva",
-
   "profile": "Perfil",
   "role": "Rol",
   "language": "Idioma",
@@ -137,7 +127,6 @@
   "passwordChanged": "Contraseña actualizada. Inicia sesión de nuevo.",
   "cancel": "Cancelar",
   "confirm": "Confirmar",
-
   "error": "Ocurrió un error",
   "networkError": "Error de conexión. Verifica tu internet.",
   "invalidCredentials": "Credenciales inválidas",
@@ -153,7 +142,6 @@
   "emailVerified": "Email verificado. Ya puedes iniciar sesión.",
   "success": "Operación exitosa",
   "sessionExpired": "Tu sesión expiró. Inicia sesión de nuevo.",
-
   "stepCourt": "Elige cancha",
   "stepSchedule": "Fecha y hora",
   "stepSummary": "Resumen",
@@ -179,7 +167,6 @@
   "slotTaken": "Ese horario ya no está disponible. Elige otro.",
   "minPlayers": "Jugadores",
   "confirmedAt": "Confirmada el",
-
   "notificationSettings": "Configuración de notificaciones",
   "save": "Guardar",
   "bookingReminder": "Recordatorio de reserva",
@@ -190,24 +177,29 @@
   "channelEmail": "Email",
   "channelPush": "Notificaciones push",
   "channelInApp": "Notificaciones en la app",
-
   "timeNow": "Ahora",
   "timeAgoMinutes": "Hace {minutes} min",
   "@timeAgoMinutes": {
     "placeholders": {
-      "minutes": {"type": "int"}
+      "minutes": {
+        "type": "int"
+      }
     }
   },
   "timeAgoHours": "Hace {hours} h",
   "@timeAgoHours": {
     "placeholders": {
-      "hours": {"type": "int"}
+      "hours": {
+        "type": "int"
+      }
     }
   },
   "timeAgoDays": "Hace {days} d",
   "@timeAgoDays": {
     "placeholders": {
-      "days": {"type": "int"}
+      "days": {
+        "type": "int"
+      }
     }
   },
   "timeYesterday": "Ayer",
@@ -217,11 +209,12 @@
   "role_gerente": "Gerente",
   "role_dueno": "Dueño",
   "role_superadmin": "Administrador",
-
   "homeGreeting": "Hola, {name}",
   "@homeGreeting": {
     "placeholders": {
-      "name": {"type": "String"}
+      "name": {
+        "type": "String"
+      }
     }
   },
   "findYourCourt": "Busca tu cancha",
@@ -237,8 +230,6 @@
   "reserve": "Reservar",
   "today": "Hoy",
   "thisWeek": "Esta semana",
-
-  "paymentMethod": "Método de pago",
   "paymentMethodSubtitle": "Elige cómo deseas pagar",
   "payWithCard": "Pagar con tarjeta",
   "payWithTransfer": "Transferencia bancaria",
@@ -246,7 +237,6 @@
   "cardDescription": "Débito o crédito vía Stripe",
   "transferDescription": "Realiza una transferencia y sube tu comprobante",
   "cashDescription": "Paga en el establecimiento al llegar",
-
   "transferInstructions": "Datos para transferencia",
   "bankName": "Banco",
   "accountNumber": "Número de cuenta",
@@ -263,7 +253,9 @@
   "transferRejectedReason": "Motivo: {reason}",
   "@transferRejectedReason": {
     "placeholders": {
-      "reason": {"type": "String"}
+      "reason": {
+        "type": "String"
+      }
     }
   },
   "confirmTransfer": "Confirmar transferencia",
@@ -291,7 +283,6 @@
   "noQuedadas": "No hay quedadas programadas",
   "noLigas": "No hay ligas activas",
   "noAcademia": "No hay clases disponibles",
-
   "reserveYourCourt": "Reserva tu cancha",
   "reserveNow": "Reserva ahora",
   "clubContact": "Contacto del club",
@@ -304,16 +295,46 @@
   "showPassword": "Mostrar contraseña",
   "hidePassword": "Ocultar contraseña",
   "extraInfo": "Información adicional",
-    "stepDate": "Elige el día",
-    "stepDuration": "Duración",
-    "stepStartTime": "Hora de inicio",
-    "freeSlotsOnlyHint": "Solo horarios con cancha libre (según ocupación real).",
-    "noFreeSlotsForSelection": "No hay horas libres para este día y duración. Prueba otro día.",
-    "timeMorning": "Mañana",
-    "timeAfternoon": "Tarde",
-    "timeEvening": "Noche",
-    "freeCourtsCountOne": "{count} libre",
-    "@freeCourtsCountOne": {"placeholders": {"count": {"type": "num"}}},
-    "freeCourtsCountOther": "{count} libres",
-    "@freeCourtsCountOther": {"placeholders": {"count": {"type": "num"}}}
+  "stepDate": "Elige el día",
+  "stepDuration": "Duración",
+  "stepStartTime": "Hora de inicio",
+  "freeSlotsOnlyHint": "Solo horarios con cancha libre (según ocupación real).",
+  "noFreeSlotsForSelection": "No hay horas libres para este día y duración. Prueba otro día.",
+  "timeMorning": "Mañana",
+  "timeAfternoon": "Tarde",
+  "timeEvening": "Noche",
+  "freeCourtsCountOne": "{count} libre",
+  "@freeCourtsCountOne": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "freeCourtsCountOther": "{count} libres",
+  "@freeCourtsCountOther": {
+    "placeholders": {
+      "count": {
+        "type": "num"
+      }
+    }
+  },
+  "category_quedada": "Quedada",
+  "category_torneo": "Torneo",
+  "category_liga": "Liga",
+  "category_academia": "Academia",
+  "category_noticia": "Noticia",
+  "category_evento": "Evento",
+  "month_1": "Ene",
+  "month_2": "Feb",
+  "month_3": "Mar",
+  "month_4": "Abr",
+  "month_5": "May",
+  "month_6": "Jun",
+  "month_7": "Jul",
+  "month_8": "Ago",
+  "month_9": "Sep",
+  "month_10": "Oct",
+  "month_11": "Nov",
+  "month_12": "Dic"
 }
