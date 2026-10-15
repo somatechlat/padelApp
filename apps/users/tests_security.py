@@ -42,6 +42,18 @@ class TestTokenRevocation:
 
 
 class TestSecretBootCheck:
+    """Production refuses to start on missing, dev-only or template secrets."""
+
+    REQUIRED = {
+        "SECRET_KEY": "prod-key",
+        "DB_PASSWORD": "db-pass",
+        "EMAIL_HOST": "smtp",
+        "EMAIL_HOST_USER": "u",
+        "EMAIL_HOST_PASSWORD": "p",
+        "STRIPE_SECRET_KEY": "sk_live_of_this_club",
+        "STRIPE_PUBLISHABLE_KEY": "pk_live_of_this_club",
+    }
+
     def test_missing_secret_raises(self):
         from padel.settings._checks import validate_production_secrets
 
@@ -51,24 +63,49 @@ class TestSecretBootCheck:
     def test_dev_secret_rejected(self):
         from padel.settings._checks import validate_production_secrets
 
+        values = {**self.REQUIRED, "SECRET_KEY": "dev-only-x"}
         with pytest.raises(RuntimeError):
-            validate_production_secrets({"SECRET_KEY": "dev-only-x"})
+            validate_production_secrets(values)
 
     def test_valid_secrets_pass(self):
         from padel.settings._checks import validate_production_secrets
 
-        values = {
-            "SECRET_KEY": "prod-key",
-            "DB_NAME": "db",
-            "DB_USER": "u",
-            "DB_PASSWORD": "p",
-            "DB_HOST": "h",
-            "REDIS_URL": "redis://x",
-            "EMAIL_HOST": "smtp",
-            "EMAIL_HOST_USER": "u",
-            "EMAIL_HOST_PASSWORD": "p",
-        }
-        validate_production_secrets(values)
+        validate_production_secrets(dict(self.REQUIRED))
+
+    @pytest.mark.parametrize("field", sorted(REQUIRED))
+    def test_every_secret_is_required(self, field):
+        from padel.settings._checks import validate_production_secrets
+
+        values = {k: v for k, v in self.REQUIRED.items() if k != field}
+        with pytest.raises(RuntimeError):
+            validate_production_secrets(values)
+
+    @pytest.mark.parametrize(
+        ("field", "value"),
+        [
+            ("DB_PASSWORD", "padel_prod_change_me"),
+            ("STRIPE_SECRET_KEY", "sk_test_replace_me"),
+            ("STRIPE_PUBLISHABLE_KEY", "pk_test_replace_me"),
+        ],
+    )
+    def test_template_values_rejected(self, field, value):
+        """A value copied from a template is the shape of a secret, not one."""
+        from padel.settings._checks import validate_production_secrets
+
+        with pytest.raises(RuntimeError):
+            validate_production_secrets({**self.REQUIRED, field: value})
+
+    def test_topology_is_configuration_not_a_secret(self):
+        """DB name/user/host and the redis URL live in settings, not here."""
+        from padel.settings._checks import validate_production_secrets
+
+        values = {k: v for k, v in self.REQUIRED.items() if k != "DB_PASSWORD"}
+        with pytest.raises(RuntimeError):
+            validate_production_secrets(values)
+        # ...and passing them as extra keys changes nothing about the check.
+        validate_production_secrets(
+            {**self.REQUIRED, "DB_NAME": "padel_prod", "DB_USER": "padel", "DB_HOST": "db"}
+        )
 
 
 class TestProductionHostNormalization:

@@ -1,0 +1,6 @@
+# One-off override for the test suite. The long-lived dev backend keeps its
+# 1GiB cap so it cannot eat the laptop, but a full pytest run against Postgres
+# exceeds it and the kernel kills the suite at ~91% (Error 137, cgroup oom_kill).
+services:
+  backend:
+    mem_limit: 3g

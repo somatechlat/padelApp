@@ -2,19 +2,23 @@ SHELL := /bin/bash
 
 .PHONY: up-dev up-test up-prod down-dev down-test down-prod \
 	test-dev test-test lint-dev fltest-dev flcheck seeddemo-dev seeddemo-test \
+	secrets-init journey-dev \
 	up down logs build migrate makemigrations test lint flcheck fltest flbuild flrun flapk seed seeddemo shell bash psql ship-ios ship-android
 
-# ─── Three environments (see docs/DEPLOYMENTS.md) ───────────────────────────
-# dev  → project andespadel      ports 28000+
-# test → project andespadel-test ports 29000+
-# prod → project andespadel-prod ports 34000+
+# ─── Three environments (see docs/DEPLOYMENTS.md) ──────────────────────────
+# dev      → project andespadel          ports 28000+
+# test     → project andespadel-test     ports 29000+
+# prod     → project andespadel-prod     ports 34000+   (the server)
 
-COMPOSE_DEV  := docker compose -p andespadel      -f docker-compose.yml -f docker-compose.dev.yml
-COMPOSE_TEST := docker compose -p andespadel-test -f docker-compose.yml -f docker-compose.test.yml
-COMPOSE_PROD := docker compose -p andespadel-prod -f docker-compose.yml -f docker-compose.prod.yml
+COMPOSE_DEV       := docker compose -p andespadel          -f docker-compose.yml -f docker-compose.dev.yml
+COMPOSE_TEST      := docker compose -p andespadel-test     -f docker-compose.yml -f docker-compose.test.yml
+COMPOSE_PROD      := docker compose -p andespadel-prod     -f docker-compose.yml -f docker-compose.prod.yml
 
-API_DEV  := http://127.0.0.1:28002/api
-API_TEST := http://127.0.0.1:29002/api
+# The suite runs in a throwaway container with a workable memory cap.
+COMPOSE_DEV_TEST  := $(COMPOSE_DEV) -f docker-compose.testsuite.yml
+
+API_DEV       := http://127.0.0.1:28002/api
+API_TEST      := http://127.0.0.1:29002/api
 # Production API. Live host for the app, admin panel and public pages:
 # https://app.andespadelclub.com/api — verified answering, Let's Encrypt cert.
 # The apex/www of andespadelclub.com is a different machine and does NOT serve
@@ -22,10 +26,28 @@ API_TEST := http://127.0.0.1:29002/api
 #   make ship-android API_PROD=https://staging.example.com/api
 API_PROD ?= https://app.andespadelclub.com/api
 
-up-dev:
+SECRETS := docker/runsecrets
+
+# ─── Secrets: one file per value, mounted at /run/secrets ───────────────────
+# Real random values, generated once and never overwritten. Nothing is read
+# from the environment, so `docker inspect` shows no credentials.
+secrets-init:
+	@mkdir -p $(SECRETS)
+	@test -s $(SECRETS)/secret-key || openssl rand -hex 32 > $(SECRETS)/secret-key
+	@test -s $(SECRETS)/db-password || openssl rand -hex 9 > $(SECRETS)/db-password
+	@# Stripe is optional in dev/test: empty files mean "payments disabled",
+	@# which settings read as "" rather than a fake key.
+	@for f in stripe-secret-key stripe-publishable-key stripe-webhook-secret; do \
+		test -e $(SECRETS)/$$f || : > $(SECRETS)/$$f; done
+	@test -e $(SECRETS)/firebase-service-account.json || : > $(SECRETS)/firebase-service-account.json
+	@chmod 600 $(SECRETS)/* 2>/dev/null || true
+	@ls -la $(SECRETS) | sed 's/^/  /'
+
+# ─── Stack control ─────────────────────────────────────────────────────────
+up-dev: secrets-init
 	$(COMPOSE_DEV) up -d
 
-up-test:
+up-test: secrets-init
 	$(COMPOSE_TEST) up -d
 
 up-prod:
@@ -40,11 +62,22 @@ down-test:
 down-prod:
 	$(COMPOSE_PROD) down
 
-test-dev:
-	$(COMPOSE_DEV) exec -T backend pytest apps -q
+# ─── Tests ─────────────────────────────────────────────────────────────────
+# A throwaway container rather than exec into the running one: the suite needs
+# more memory than a long-lived backend should hold, and the test database is
+# created and dropped per run either way.
+test-dev: secrets-init
+	$(COMPOSE_DEV_TEST) run --rm --no-deps -T backend pytest apps -q
 
-test-test:
-	$(COMPOSE_TEST) exec -T backend pytest apps -q
+test-test: secrets-init
+	$(COMPOSE_TEST) -f docker-compose.testsuite.yml run --rm --no-deps -T backend pytest apps -q
+
+# Every customer journey over HTTP, using the API origin Django settings
+# themselves point at. The command runs in the *running* backend container,
+# not a throwaway one: in dev its origin is gunicorn's loopback, which only
+# resolves inside that container.
+journey-dev: secrets-init
+	$(COMPOSE_DEV) exec -T backend python manage.py journey_check
 
 seeddemo-dev:
 	$(COMPOSE_DEV) exec -T backend python manage.py seed_demo

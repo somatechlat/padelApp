@@ -10,7 +10,6 @@ services:
     environment:
       POSTGRES_DB: padel_test
       POSTGRES_USER: padel
-      POSTGRES_PASSWORD: padel_test
     ports:
       - "29000:5432"
 
@@ -28,7 +27,6 @@ services:
       - "29002:8000"
     volumes:
       - .:/app
-      - ./docker/backend:/app/runsecrets:ro
 
   worker:
     container_name: andespadel-test-worker
@@ -37,7 +35,6 @@ services:
       DJANGO_SETTINGS_MODULE: padel.settings.dev
     volumes:
       - .:/app
-      - ./docker/backend:/app/runsecrets:ro
 
   beat:
     container_name: andespadel-test-beat
@@ -46,7 +43,6 @@ services:
       DJANGO_SETTINGS_MODULE: padel.settings.dev
     volumes:
       - .:/app
-      - ./docker/backend:/app/runsecrets:ro
 
   nginx:
     container_name: andespadel-test-nginx

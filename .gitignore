@@ -27,6 +27,8 @@ distribution.cer
 firebase-service-account.json
 AndesPadel-AppStore.ipa
 runsecrets/
+# …except the marker file that documents the directory itself.
+!docker/runsecrets/
 local_test.sqlite3
 mobile/android/build/
 mobile/android/*.hprof

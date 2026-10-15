@@ -1,25 +1,47 @@
+# Names of the mounted files under /run/secrets that production cannot start
+# without. Topology (DB name/user/host, the redis URL) is configuration and
+# lives in the settings modules — only real secrets are listed here.
 REQUIRED_PROD_SECRETS = (
     "SECRET_KEY",
-    "DB_NAME",
-    "DB_USER",
     "DB_PASSWORD",
-    "DB_HOST",
-    "REDIS_URL",
     "EMAIL_HOST",
     "EMAIL_HOST_USER",
     "EMAIL_HOST_PASSWORD",
+    "STRIPE_SECRET_KEY",
+    "STRIPE_PUBLISHABLE_KEY",
 )
+
+# Values that ship as examples in the templates and must never reach a real
+# deployment. They are the shape of a secret, not one, and a box running on
+# them looks healthy right up until it hits Stripe or Postgres.
+PLACEHOLDER_SECRET_VALUES = {
+    "sk_test_replace_me",
+    "pk_test_replace_me",
+    "padel_prod_change_me",
+    "change_me",
+    "replace_me",
+}
 
 
 def validate_production_secrets(values):
-    """Fail fast on blank or dev-only production secrets (constraint C2/C3, NFR-0008)."""
+    """Fail fast on blank, dev-only or placeholder production secrets (C2/C3)."""
     missing = [k for k in REQUIRED_PROD_SECRETS if not values.get(k)]
     if missing:
         raise RuntimeError(
-            f"Missing required secrets in docker/backend/secrets.py (via runsecrets): {', '.join(missing)}"
+            "Missing required secrets. Provision them as Docker secrets before "
+            f"starting (files under /run/secrets): {', '.join(missing)}"
         )
     if str(values.get("SECRET_KEY")).startswith("dev-only-"):
         raise RuntimeError("Production SECRET_KEY must not be the dev placeholder (constraint C2).")
+    placeholder = sorted(
+        k for k, v in values.items() if str(v or "").strip() in PLACEHOLDER_SECRET_VALUES
+    )
+    if placeholder:
+        raise RuntimeError(
+            "These secrets still hold a value copied from a template: "
+            f"{', '.join(placeholder)}. Real values only — provision them under "
+            "/run/secrets (make secrets-init generates random ones)."
+        )
 
 
 def validate_production_host(domain):
@@ -34,16 +56,16 @@ def validate_production_host(domain):
     deliberately NOT stripped: that is the live app-facing name and must be
     kept verbatim.
 
-    The value still has to be supplied in docker/backend/secrets.py (via runsecrets) — nothing in the
-    tree carries a default, so a deploy cannot silently bind to a name someone
-    else now controls. The previous host and its domains are retired.
+    The value still has to be supplied as a mounted secret (``/run/secrets/
+    prod-domain``) — nothing in the tree carries a default, so a deploy cannot
+    silently bind to a name someone else now controls. The previous host and
+    its domains are retired.
     """
     if not domain or not str(domain).strip():
         raise RuntimeError(
-            "PROD_DOMAIN is not set. Put the production hostname in "
-            "docker/backend/secrets.py (via runsecrets) as PROD_DOMAIN before deploying — for "
-            'example PROD_DOMAIN = "andespadelclub.com". Do not reuse a '
-            "retired hostname."
+            "prod-domain is not set. Put the bare production apex in "
+            "/run/secrets/prod-domain before deploying — for example "
+            '"andespadelclub.com". Do not reuse a retired hostname.'
         )
     value = str(domain).strip().lower()
     for scheme in ("https://", "http://"):
@@ -87,7 +109,7 @@ def validate_localprod_secrets(values):
     """
     secret_key = str(values.get("SECRET_KEY") or "")
     if not secret_key:
-        raise RuntimeError("localprod requires SECRET_KEY in docker/backend/secrets.py.")
+        raise RuntimeError("localprod requires /run/secrets/secret-key.")
     if secret_key.startswith("dev-only-"):
         raise RuntimeError(
             "localprod requires a real random SECRET_KEY (the dev placeholder "
@@ -96,7 +118,12 @@ def validate_localprod_secrets(values):
     for name in ("STRIPE_SECRET_KEY", "STRIPE_PUBLISHABLE_KEY"):
         value = str(values.get(name) or "")
         if not value:
-            raise RuntimeError(f"localprod requires {name} in docker/backend/secrets.py.")
+            raise RuntimeError(f"localprod requires /run/secrets/{name.lower().replace('_', '-')}.")
+        if value in PLACEHOLDER_SECRET_VALUES:
+            raise RuntimeError(
+                f"{name} still holds the template value {value!r}. localprod "
+                "runs on real test-mode keys, not placeholders."
+            )
         if value.startswith(("sk_live_", "pk_live_")):
             raise RuntimeError(
                 f"{name} is a LIVE Stripe key. localprod refuses live keys — "

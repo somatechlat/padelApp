@@ -3,7 +3,10 @@
 This is a *separate module* rather than a set of flags on ``prod.py`` on
 purpose. ``prod.py`` stays fail-closed and boring — every conditional in it is
 a chance to ship a relaxed setting to the real server. The relaxed values live
-here so they are reviewable in one file and greppable.
+here so they are reviewable in one file and greppable. It therefore imports
+``_posture`` (the settings both production-shaped modes share) rather than
+``prod`` itself: importing prod would demand a real ``PROD_DOMAIN`` and
+non-empty SMTP credentials, which this mode deliberately does not have.
 
 The two modes differ only in **where things go** (payments, email, push, data)
 and **which host names they answer to**. They do not differ in security
@@ -21,8 +24,8 @@ Restrictions enforced here, so a laptop cannot reach real systems:
 """
 
 from padel.settings._checks import validate_localprod_secrets
-from padel.settings.prod import *  # noqa: F401, F403
-from runsecrets import secrets
+from padel.settings._posture import *  # noqa: F401, F403
+from padel.settings._secrets import read as read_secret
 
 # --- Host -------------------------------------------------------------------
 # Never a real domain. `local.` + `.test` is reserved by RFC 6761 for local
@@ -36,6 +39,14 @@ ALLOWED_HOSTS = [LOCALPROD_DOMAIN, "localhost", "127.0.0.1"]
 PROD_ORIGINS = [f"https://{LOCALPROD_DOMAIN}", "https://localhost"]
 CORS_ALLOWED_ORIGINS = PROD_ORIGINS
 CSRF_TRUSTED_ORIGINS = PROD_ORIGINS
+
+# Base for one-click email links and any absolute URL this mode emits. Add
+# `127.0.0.1 local.andespadel.test` to /etc/hosts to browse the stack by this
+# name; `https://localhost:<nginx port>` works either way.
+SITE_BASE_URL = f"https://{LOCALPROD_DOMAIN}"
+# API_ORIGIN stays at base's gunicorn loopback: 127.0.0.1 is in ALLOWED_HOSTS
+# above, unlike prod's domain-only allowlist, so journey_check can walk the
+# API from inside the container without hairpinning through nginx.
 
 # --- Transport security -----------------------------------------------------
 # Keep the TLS posture from prod.py: Secure cookies and the SSL redirect are
@@ -53,7 +64,7 @@ SECURE_HSTS_PRELOAD = False
 # File-based, not console: console mail vanishes with the request, so a
 # password reset cannot be inspected after the fact.
 EMAIL_BACKEND = "django.core.mail.backends.filebased.EmailBackend"
-EMAIL_FILE_PATH = getattr(secrets, "EMAIL_FILE_PATH", "/app/artifacts/outbox")
+EMAIL_FILE_PATH = "/app/artifacts/outbox"
 
 # No real push. In-app notification rows are still written by the services.
 PUSH_DISABLED = True
@@ -65,8 +76,9 @@ ALLOW_DEMO_SEED = True
 # --- Fail fast on anything that could take real money -----------------------
 validate_localprod_secrets(
     {
-        "SECRET_KEY": getattr(secrets, "SECRET_KEY", ""),
-        "STRIPE_SECRET_KEY": getattr(secrets, "STRIPE_SECRET_KEY", ""),
-        "STRIPE_PUBLISHABLE_KEY": getattr(secrets, "STRIPE_PUBLISHABLE_KEY", ""),
+        "SECRET_KEY": read_secret("secret-key"),
+        "DB_PASSWORD": read_secret("db-password"),
+        "STRIPE_SECRET_KEY": read_secret("stripe-secret-key"),
+        "STRIPE_PUBLISHABLE_KEY": read_secret("stripe-publishable-key"),
     }
 )

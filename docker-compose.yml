@@ -12,9 +12,13 @@ services:
     mem_limit: 512m
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB:-padel}
-      POSTGRES_USER: ${POSTGRES_USER:-padel}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-padel_dev}
+      POSTGRES_DB: padel
+      POSTGRES_USER: padel
+      # The password is a mounted secret, not an env var: env shows up in
+      # `docker inspect` and /proc/*/environ. Postgres reads it from the file.
+      POSTGRES_PASSWORD_FILE: /run/secrets/db-password
+    secrets:
+      - db-password
     volumes:
       - db_data:/var/lib/postgresql/data
     healthcheck:
@@ -52,8 +56,13 @@ services:
       sh -c "python manage.py migrate --noinput &&
              python manage.py runserver 0.0.0.0:8000"
     restart: unless-stopped
-    volumes:
-      - ./docker/backend:/app/runsecrets:ro
+    secrets:
+      - secret-key
+      - db-password
+      - stripe-secret-key
+      - stripe-publishable-key
+      - stripe-webhook-secret
+      - firebase-credentials
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:
@@ -75,8 +84,13 @@ services:
     mem_limit: 512m
     command: celery -A padel worker -l info --concurrency=2
     restart: unless-stopped
-    volumes:
-      - ./docker/backend:/app/runsecrets:ro
+    secrets:
+      - secret-key
+      - db-password
+      - stripe-secret-key
+      - stripe-publishable-key
+      - stripe-webhook-secret
+      - firebase-credentials
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:
@@ -90,8 +104,13 @@ services:
     mem_limit: 256m
     command: celery -A padel beat -l info
     restart: unless-stopped
-    volumes:
-      - ./docker/backend:/app/runsecrets:ro
+    secrets:
+      - secret-key
+      - db-password
+      - stripe-secret-key
+      - stripe-publishable-key
+      - stripe-webhook-secret
+      - firebase-credentials
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:
@@ -136,6 +155,24 @@ services:
 networks:
   padel-net:
     driver: bridge
+
+# One file per secret under ./docker/runsecrets (gitignored; `make secrets-init`
+# generates real random values). Compose mounts each at /run/secrets/<key>,
+# which is where padel.settings._secrets reads them from. Nothing here is an
+# environment variable, so `docker inspect` shows no credentials.
+secrets:
+  secret-key:
+    file: ./docker/runsecrets/secret-key
+  db-password:
+    file: ./docker/runsecrets/db-password
+  stripe-secret-key:
+    file: ./docker/runsecrets/stripe-secret-key
+  stripe-publishable-key:
+    file: ./docker/runsecrets/stripe-publishable-key
+  stripe-webhook-secret:
+    file: ./docker/runsecrets/stripe-webhook-secret
+  firebase-credentials:
+    file: ./docker/runsecrets/firebase-service-account.json
 
 volumes:
   db_data: {}

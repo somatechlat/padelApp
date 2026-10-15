@@ -12,8 +12,6 @@ services:
     environment:
       POSTGRES_DB: padel_prod
       POSTGRES_USER: padel
-      # Override with real password via docker/backend/secrets.py / env on server
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-padel_prod_change_me}
     ports:
       - "34000:5432"
 
@@ -33,6 +31,16 @@ services:
              gunicorn padel.wsgi:application --bind 0.0.0.0:8000 --workers 3"
     environment:
       DJANGO_SETTINGS_MODULE: padel.settings.prod
+    secrets:
+      # Base compose already mounts the common ones (secret_key, db_password,
+      # stripe_*, firebase). These are the production-only values: the SMTP
+      # relay, the From address and the bare apex the host allowlist is
+      # derived from.
+      - email-host
+      - email-host-user
+      - email-host-password
+      - email-from
+      - prod-domain
     ports:
       - "34002:8000"
     healthcheck:
@@ -54,7 +62,6 @@ services:
       retries: 12
       start_period: 40s
     volumes:
-      - ./docker/backend:/app/runsecrets:ro
       - media_data:/app/media
       - static_data:/app/staticfiles
 
@@ -64,8 +71,16 @@ services:
     command: celery -A padel worker -l info
     environment:
       DJANGO_SETTINGS_MODULE: padel.settings.prod
-    volumes:
-      - ./docker/backend:/app/runsecrets:ro
+    secrets:
+      # Base compose already mounts the common ones (secret_key, db_password,
+      # stripe_*, firebase). These are the production-only values: the SMTP
+      # relay, the From address and the bare apex the host allowlist is
+      # derived from.
+      - email-host
+      - email-host-user
+      - email-host-password
+      - email-from
+      - prod-domain
 
   beat:
     container_name: andespadel-prod-beat
@@ -73,8 +88,16 @@ services:
     command: celery -A padel beat -l info
     environment:
       DJANGO_SETTINGS_MODULE: padel.settings.prod
-    volumes:
-      - ./docker/backend:/app/runsecrets:ro
+    secrets:
+      # Base compose already mounts the common ones (secret_key, db_password,
+      # stripe_*, firebase). These are the production-only values: the SMTP
+      # relay, the From address and the bare apex the host allowlist is
+      # derived from.
+      - email-host
+      - email-host-user
+      - email-host-password
+      - email-from
+      - prod-domain
 
   nginx:
     container_name: andespadel-prod-nginx
@@ -89,6 +112,21 @@ services:
 networks:
   padel-net:
     name: andespadel-prod-net
+
+# Production-only secrets. Same mechanism as the base file — one file per
+# value under ./docker/runsecrets, mounted at /run/secrets/<key> — so nothing
+# here is an environment variable and `docker inspect` shows no credentials.
+secrets:
+  email-host:
+    file: ./docker/runsecrets/email-host
+  email-host-user:
+    file: ./docker/runsecrets/email-host-user
+  email-host-password:
+    file: ./docker/runsecrets/email-host-password
+  email-from:
+    file: ./docker/runsecrets/email-from
+  prod-domain:
+    file: ./docker/runsecrets/prod-domain
 
 volumes:
   db_data:

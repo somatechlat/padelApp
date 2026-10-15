@@ -1,13 +1,13 @@
 import logging
 from decimal import Decimal
 
+from django.conf import settings
 from django.db import transaction
 from django.utils.translation import gettext
 
 from apps.notifications.services import NotificationService
 from apps.payments.models import Payment
 from apps.security.services import log_event
-from runsecrets import secrets
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +20,7 @@ class PaymentService:
     def create_intent(booking):
         import stripe
 
-        stripe.api_key = secrets.STRIPE_SECRET_KEY
+        stripe.api_key = settings.STRIPE_SECRET_KEY
         intent = stripe.PaymentIntent.create(
             amount=int(booking.price * 100),
             currency="usd",
@@ -288,7 +288,7 @@ class PaymentService:
         if payment.stripe_payment_intent_id:
             import stripe
 
-            stripe.api_key = secrets.STRIPE_SECRET_KEY
+            stripe.api_key = settings.STRIPE_SECRET_KEY
             stripe.Refund.create(
                 payment_intent=payment.stripe_payment_intent_id,
                 amount=int(amount * 100),

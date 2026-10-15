@@ -1,20 +1,22 @@
 """Base settings for PadelApp (Andes Padel).
 
-Shared by all environments. Secrets (SECRET_KEY, DB credentials, Stripe keys)
-live in ``runsecrets/secrets.py`` (mounted from ``docker/backend`` at runtime)
-and are NOT tracked by git (constraint C2/C3). No secrets are read from
-environment variables.
+Shared by all environments. Configuration — hosts, ports, database names,
+club links, the API origin — lives here and in the per-environment modules.
+Secrets live in one file per value under ``/run/secrets`` (Docker secrets,
+mounted by compose) and are read through ``padel.settings._secrets``. They are
+NOT tracked by git (constraint C2/C3) and are NOT read from environment
+variables, which any process that can run ``docker inspect`` would see.
 """
 
 from pathlib import Path
 
 from django.utils.translation import gettext_lazy as _
 
-from runsecrets import secrets
+from padel.settings._secrets import read as read_secret
 
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
-SECRET_KEY = secrets.SECRET_KEY
+SECRET_KEY = read_secret("secret-key")
 
 DEBUG = False
 ALLOWED_HOSTS: list[str] = []
@@ -85,14 +87,21 @@ WSGI_APPLICATION = "padel.wsgi.application"
 ASGI_APPLICATION = "padel.asgi.application"
 
 # --- Database (PostgreSQL only, constraint C10) ---------------------------
+# Topology, not secrets: name, user, host and port are configuration and
+# belong in settings. Only the password is a secret.
+DB_NAME = "padel"
+DB_USER = "padel"
+DB_HOST = "db"
+DB_PORT = 5432
+
 DATABASES = {
     "default": {
         "ENGINE": "django.db.backends.postgresql",
-        "NAME": secrets.DB_NAME,
-        "USER": secrets.DB_USER,
-        "PASSWORD": secrets.DB_PASSWORD,
-        "HOST": secrets.DB_HOST,
-        "PORT": secrets.DB_PORT,
+        "NAME": DB_NAME,
+        "USER": DB_USER,
+        "PASSWORD": read_secret("db-password"),
+        "HOST": DB_HOST,
+        "PORT": DB_PORT,
     }
 }
 
@@ -130,8 +139,10 @@ USE_TZ = True
 TIME_ZONE = "America/Guayaquil"
 
 # --- Celery / Redis (JWT blacklist + broker) --------------------------------
-CELERY_BROKER_URL = secrets.REDIS_URL
-CELERY_RESULT_BACKEND = secrets.REDIS_URL
+# No credentials on this broker, so the URL is configuration, not a secret.
+REDIS_URL = "redis://redis:6379/0"
+CELERY_BROKER_URL = REDIS_URL
+CELERY_RESULT_BACKEND = REDIS_URL
 CELERY_ACCEPT_CONTENT = ["json"]
 CELERY_TASK_SERIALIZER = "json"
 CELERY_TIMEZONE = "America/Guayaquil"
@@ -156,9 +167,14 @@ CELERY_BEAT_SCHEDULE = {
 
 # --- Push (FCM, open source SDK). Optional: without a service-account file
 # the push channel is silently skipped (in-app + email still work).
-FIREBASE_CREDENTIALS_PATH = getattr(
-    secrets, "FIREBASE_CREDENTIALS_PATH", "/app/runsecrets/firebase-service-account.json"
-)
+FIREBASE_CREDENTIALS_PATH = "/run/secrets/firebase-service-account.json"
+
+# --- Stripe -------------------------------------------------------------------
+# Optional here so a laptop or CI run works with no payment credentials at
+# all; prod and localprod refuse to start without them (see their validation).
+STRIPE_SECRET_KEY = read_secret("stripe-secret-key", default="")
+STRIPE_PUBLISHABLE_KEY = read_secret("stripe-publishable-key", default="")
+STRIPE_WEBHOOK_SECRET = read_secret("stripe-webhook-secret", default="")
 
 # --- JWT (SimpleJWT, rotating + blacklist, constraint F-0072) ----------------
 from datetime import timedelta  # noqa: E402
