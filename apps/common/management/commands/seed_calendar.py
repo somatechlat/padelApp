@@ -29,9 +29,6 @@ from apps.events.models import Event, OpenMatch, Tournament
 from apps.scheduling.services import SlotService
 from apps.users.models import User
 
-OPEN_TIME = time(8, 0)
-CLOSE_TIME = time(22, 0)
-
 COURTS = [
     {
         "name": "Cancha 1",
@@ -206,22 +203,29 @@ class Command(BaseCommand):
             )
             self.stdout.write(f"{'created' if created else 'exists '} court  {court.name}")
 
+            # The seed reproduces the day the club configured, so rows that
+            # already exist are re-synced to it instead of left stale.
+            open_at, close_at = venue.daily_open, venue.daily_close
             for weekday in range(7):
                 schedule, s_created = CourtSchedule.objects.get_or_create(
                     court=court,
                     weekday=weekday,
                     defaults={
-                        "open_time": OPEN_TIME,
-                        "close_time": CLOSE_TIME,
+                        "open_time": open_at,
+                        "close_time": close_at,
                         "is_active": True,
                     },
                 )
-                if not s_created and not schedule.is_active:
+                if not s_created and (
+                    schedule.open_time != open_at
+                    or schedule.close_time != close_at
+                    or not schedule.is_active
+                ):
+                    schedule.open_time = open_at
+                    schedule.close_time = close_at
                     schedule.is_active = True
-                    schedule.save(update_fields=["is_active"])
-            self.stdout.write(
-                f"         schedules 7/7 weekdays {OPEN_TIME:%H:%M}-{CLOSE_TIME:%H:%M}"
-            )
+                    schedule.save()
+            self.stdout.write(f"         schedules 7/7 weekdays {open_at:%H:%M}-{close_at:%H:%M}")
 
         # Generate slots through SlotService so seeded data is byte-identical
         # to what the booking flow reads at runtime.

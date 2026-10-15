@@ -21,7 +21,5 @@ class Command(BaseCommand):
         for e in without_img:
             self.stdout.write(self.style.WARNING(f"  [--] {e.title} (no image — upload in admin)"))
         self.stdout.write(
-            self.style.SUCCESS(
-                f"Events with image: {with_img.count()} / {Event.objects.count()}"
-            )
+            self.style.SUCCESS(f"Events with image: {with_img.count()} / {Event.objects.count()}")
         )

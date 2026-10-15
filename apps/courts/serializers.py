@@ -9,6 +9,8 @@ class ClubInfoSerializer(serializers.ModelSerializer):
     home_section_title = serializers.SerializerMethodField()
     home_greeting_tagline = serializers.SerializerMethodField()
     logo_url = serializers.SerializerMethodField()
+    daily_open = serializers.SerializerMethodField()
+    daily_close = serializers.SerializerMethodField()
 
     class Meta:
         model = Venue
@@ -33,6 +35,8 @@ class ClubInfoSerializer(serializers.ModelSerializer):
             "bank_account_holder",
             "bank_account_code",
             "bank_extra",
+            "daily_open",
+            "daily_close",
             "timezone",
             "currency",
         ]
@@ -40,6 +44,12 @@ class ClubInfoSerializer(serializers.ModelSerializer):
 
     def _lang(self):
         return self.context.get("lang")
+
+    def get_daily_open(self, obj):
+        return f"{obj.daily_open:%H:%M}"
+
+    def get_daily_close(self, obj):
+        return f"{obj.daily_close:%H:%M}"
 
     def get_home_section_title(self, obj):
         return obj.home_section_title_for(self._lang())

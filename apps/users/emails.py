@@ -26,7 +26,6 @@ OUTLINE = "#D8DEE6"
 # Real club data from landing/index.html — keep in sync with the website.
 CLUB_CITY = "Quito, Ecuador"
 CLUB_ADDRESS = "Rodríguez Labandera y Ernesto Albán esquina"
-CLUB_HOURS = "Lunes a Domingo · 08:00 – 22:00"
 CLUB_WHATSAPP = "099 267 6842"
 CLUB_WHATSAPP_URL = "https://wa.me/593992676842"
 CLUB_EMAIL = "andespadelclub@gmail.com"
@@ -48,6 +47,18 @@ def from_email() -> str:
     if "<" in addr:
         return addr
     return f"{FROM_NAME} <{addr}>"
+
+
+def club_hours_text() -> str:
+    """Opening hours for email footers, read from the club's setting.
+
+    Admin > Canchas owns ``Venue.daily_open``/``daily_close``; this renders
+    them so the footer cannot drift from what the app actually sells.
+    """
+    from apps.courts.models import club_hours
+
+    open_at, close_at = club_hours()
+    return f"Lunes a Domingo · {open_at:%H:%M} – {close_at:%H:%M}"
 
 
 def make_token(user_id: int, code: str, purpose: str) -> str:
@@ -102,7 +113,7 @@ def _layout(body: str, title: str) -> str:
                 Andes <span style="color:{ACCENT};">Pádel</span>
               </div>
               <div style="margin-top:6px;font-size:13px;color:#B7C5CE;letter-spacing:0.4px;">
-                Club de pádel · Quito, Ecuador · {CLUB_HOURS}
+                Club de pádel · Quito, Ecuador · {club_hours_text()}
               </div>
             </td>
           </tr>
@@ -120,7 +131,7 @@ def _layout(body: str, title: str) -> str:
               <div style="font-size:12px;color:{MUTED};line-height:1.75;">
                 <strong style="color:{BRAND};">Andes Pádel Club</strong><br>
                 {CLUB_ADDRESS}<br>
-                {CLUB_CITY} · {CLUB_HOURS}<br>
+                {CLUB_CITY} · {club_hours_text()}<br>
                 WhatsApp
                 <a href="{CLUB_WHATSAPP_URL}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_WHATSAPP}</a>
                 &nbsp;·&nbsp;
@@ -246,7 +257,7 @@ def verification_email_html(user, code: str, token: str) -> tuple[str, str]:
 
       <div style="margin:18px 0 4px;font-size:12px;color:{MUTED};line-height:1.7;">
         <strong style="color:{BRAND};">Andes Pádel Club</strong> · {CLUB_CITY}<br>
-        {CLUB_ADDRESS} · {CLUB_HOURS}<br>
+        {CLUB_ADDRESS} · {club_hours_text()}<br>
         WhatsApp {CLUB_WHATSAPP} · {CLUB_EMAIL} · {CLUB_INSTAGRAM}
       </div>
     """
@@ -285,7 +296,7 @@ def password_reset_email_html(user, code: str, token: str) -> tuple[str, str]:
 
       <div style="margin:18px 0 4px;font-size:12px;color:{MUTED};line-height:1.7;">
         <strong style="color:{BRAND};">Andes Pádel Club</strong> · {CLUB_CITY}<br>
-        {CLUB_ADDRESS} · {CLUB_HOURS}<br>
+        {CLUB_ADDRESS} · {club_hours_text()}<br>
         WhatsApp {CLUB_WHATSAPP} · {CLUB_EMAIL} · {CLUB_INSTAGRAM}
       </div>
     """
@@ -360,7 +371,7 @@ def password_reset_form_html(token: str, error: str | None = None) -> str:
           <tr>
             <td style="padding:18px 28px 24px;border-top:1px solid {OUTLINE};text-align:center;">
               <div style="font-size:12px;color:{MUTED};">
-                {CLUB_ADDRESS} · {CLUB_CITY} · {CLUB_HOURS}<br>
+                {CLUB_ADDRESS} · {CLUB_CITY} · {club_hours_text()}<br>
                 <a href="{CLUB_WHATSAPP_URL}" style="color:{BRAND_LIGHT};text-decoration:underline;">WhatsApp {CLUB_WHATSAPP}</a>
                 &nbsp;·&nbsp;
                 <a href="mailto:{CLUB_EMAIL}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_EMAIL}</a>
@@ -433,7 +444,7 @@ def verify_confirm_form_html(token: str) -> str:
           <tr>
             <td style="padding:18px 28px 24px;border-top:1px solid {OUTLINE};text-align:center;">
               <div style="font-size:12px;color:{MUTED};">
-                {CLUB_ADDRESS} · {CLUB_CITY} · {CLUB_HOURS}<br>
+                {CLUB_ADDRESS} · {CLUB_CITY} · {club_hours_text()}<br>
                 <a href="{CLUB_WHATSAPP_URL}" style="color:{BRAND_LIGHT};text-decoration:underline;">WhatsApp {CLUB_WHATSAPP}</a>
                 &nbsp;·&nbsp;
                 <a href="mailto:{CLUB_EMAIL}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_EMAIL}</a>
@@ -482,7 +493,7 @@ def success_page_html(title: str, message: str, next_url: str = CLUB_SITE) -> st
           <tr>
             <td style="padding:18px 28px 24px;border-top:1px solid {OUTLINE};text-align:center;">
               <div style="font-size:12px;color:{MUTED};">
-                {CLUB_ADDRESS} · {CLUB_CITY} · {CLUB_HOURS}<br>
+                {CLUB_ADDRESS} · {CLUB_CITY} · {club_hours_text()}<br>
                 <a href="{CLUB_WHATSAPP_URL}" style="color:{BRAND_LIGHT};text-decoration:underline;">WhatsApp {CLUB_WHATSAPP}</a>
                 &nbsp;·&nbsp;
                 <a href="mailto:{CLUB_EMAIL}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_EMAIL}</a>

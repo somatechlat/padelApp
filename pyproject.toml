@@ -50,3 +50,15 @@ warn_unused_ignores = true
 
 [tool.django-stubs]
 django_settings_module = "padel.settings.dev"
+
+# --- pyright ---------------------------------------------------------------
+# Same scope as black/ruff: the Django code. `mobile/` is excluded because its
+# build tree carries vendored Python (nanopb, swift-protobuf, Flutter helpers)
+# that reports hundreds of errors which are not this project's, and
+# migrations are generated. Point it at the interpreter that has Django/DRF:
+#   npx pyright --pythonpath "$(command -v python3)"
+[tool.pyright]
+include = ["apps", "padel", "tests", "conftest.py", "images"]
+exclude = ["**/migrations/*", "runsecrets", "mobile", "**/build/*", "**/__pycache__"]
+pythonVersion = "3.12"
+typeCheckingMode = "basic"

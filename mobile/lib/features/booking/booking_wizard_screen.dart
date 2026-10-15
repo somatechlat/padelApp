@@ -15,7 +15,9 @@ import 'widgets/when_step.dart';
 /// Reservation wizard.
 ///
 /// Flow (order matters — do not regress):
-///   1. WHEN  — ONE screen: full calendar + duration + schedule (06:00–21:30)
+///   1. WHEN  — ONE screen: full calendar + duration + the free start times
+///              the API reports for that day (the club's own schedule, never
+///              a grid hardcoded here)
 ///   2. COURTS free for that date + time + duration
 ///   3. summary + confirm → payment (transfer / pay-at-venue)
 ///   4. done

@@ -361,6 +361,7 @@ add_bullet("Iluminación LED disponible (sí/no)")
 add_bullet("Precio base por hora")
 add_bullet("Estado: activa, archivada o en mantenimiento")
 add_bullet("Horarios de la cancha (CourtSchedule) — apertura/cierre por día")
+add_bullet("Horario del club — apertura/cierre únicos para todas las canchas")
 
 add_screenshot("06_admin_courts", "Figura 4: Gestión de canchas")
 
@@ -456,7 +457,8 @@ doc.add_paragraph()
 doc.add_paragraph(
     "Nota: Los TimeSlots no se crean manualmente. Se generan automáticamente "
     "cuando un cliente solicita disponibilidad para una fecha, basándose en los "
-    "CourtSchedule de cada cancha (horario de apertura/cierre por día de la semana)."
+    "CourtSchedule de cada cancha (horario de apertura/cierre por día de la semana), "
+    "que a su vez salen del horario del club definido en Canchas."
 )
 
 add_screenshot("09_admin_timeslots", "Figura 7: Gestión de horarios")
@@ -651,7 +653,7 @@ add_bullet("Fecha actual visible en el encabezado")
 add_bullet("Parámetro URL: ?date=YYYY-MM-DD")
 
 doc.add_heading("Vista de cuadrícula:", level=3)
-add_bullet("Filas = Franjas horarias de 30 minutos (06:00 a 24:00)")
+add_bullet("Filas = Franjas horarias de 30 minutos (desde la apertura hasta el cierre del club)")
 add_bullet("Columnas = Canchas activas")
 add_bullet("Cada celda muestra: estado + usuario (si está reservado)")
 

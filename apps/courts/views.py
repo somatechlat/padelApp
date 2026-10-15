@@ -8,7 +8,7 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 
 from apps.courts.lang import resolve_request_lang
-from apps.courts.models import Court, PromoBanner, Venue
+from apps.courts.models import DEFAULT_CLOSE, DEFAULT_OPEN, Court, PromoBanner, Venue
 from apps.courts.serializers import (
     ClubInfoSerializer,
     CourtSerializer,
@@ -53,6 +53,8 @@ class ClubInfoView(generics.RetrieveAPIView):
                     "bank_account_holder": "",
                     "bank_account_code": "",
                     "bank_extra": "",
+                    "daily_open": f"{DEFAULT_OPEN:%H:%M}",
+                    "daily_close": f"{DEFAULT_CLOSE:%H:%M}",
                     "timezone": "",
                     "currency": "USD",
                 }

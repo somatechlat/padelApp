@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 11:52-0500\n"
+"POT-Creation-Date: 2026-10-15 09:22-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -62,7 +62,7 @@ msgstr "Court not available at that time"
 msgid "Las franjas ya no estan disponibles"
 msgstr "Slots are no longer available"
 
-#: apps/bookings/views.py:102 apps/courts/views.py:111
+#: apps/bookings/views.py:102 apps/courts/views.py:113
 msgid "El parametro 'date' es obligatorio"
 msgstr "The 'date' parameter is required"
 
@@ -76,19 +76,29 @@ msgstr "Invalid parameters"
 msgid "Duracion invalida"
 msgstr "Invalid code"
 
-#: apps/courts/models.py:115
+#: apps/courts/models.py:147
 msgid "La imagen del banner es obligatoria."
 msgstr "The banner image is required."
 
-#: apps/courts/models.py:218
-msgid "El horario no puede comenzar antes de las 06:00."
-msgstr ""
+#: apps/courts/models.py:247
+msgid "La hora de cierre debe ser posterior a la de apertura."
+msgstr "The closing time must be later than the opening time."
 
-#: apps/courts/models.py:222
-msgid "El horario no puede terminar despues de las 22:00."
-msgstr ""
+#: apps/courts/models.py:251
+#, python-format
+msgid "El horario no puede comenzar antes de las %(hour)s."
+msgstr "Hours cannot start before %(hour)s."
 
-#: apps/courts/views.py:117
+#: apps/courts/models.py:256
+#, python-format
+msgid "El horario no puede terminar despues de las %(hour)s."
+msgstr "Hours cannot end after %(hour)s."
+
+#: apps/courts/models.py:264
+msgid "Las franjas duran 30 minutos: use horas en punto o y media."
+msgstr "Slots last 30 minutes: use times on the hour or half past."
+
+#: apps/courts/views.py:119
 msgid "Formato de fecha invalido. Use YYYY-MM-DD."
 msgstr "Invalid date format. Use YYYY-MM-DD."
 
@@ -274,7 +284,9 @@ msgstr "Reservation pending payment confirmation"
 msgid ""
 "Your booking has been received. We are reviewing your transfer receipt — you "
 "will get a confirmation once it is approved. Amount: {amount}."
-msgstr "Your booking has been received. We are reviewing your transfer receipt - you will get a confirmation once it is approved. Amount: {amount}."
+msgstr ""
+"Your booking has been received. We are reviewing your transfer receipt - you "
+"will get a confirmation once it is approved. Amount: {amount}."
 
 #: apps/notifications/services.py:114
 msgid "Transfer confirmed"
@@ -383,7 +395,8 @@ msgstr "Password changed"
 #: apps/notifications/services.py:161
 msgid ""
 "Your password was changed. If this was not you, contact support immediately."
-msgstr "Your password was changed. If this was not you, contact support immediately."
+msgstr ""
+"Your password was changed. If this was not you, contact support immediately."
 
 #: apps/notifications/services.py:164
 msgid "Account suspended"
@@ -391,7 +404,8 @@ msgstr "Account suspended"
 
 #: apps/notifications/services.py:165
 msgid "Your account has been suspended. Contact the club for more information."
-msgstr "Your account has been suspended. Contact the club for more information."
+msgstr ""
+"Your account has been suspended. Contact the club for more information."
 
 #: apps/notifications/services.py:168
 msgid "Account activated"

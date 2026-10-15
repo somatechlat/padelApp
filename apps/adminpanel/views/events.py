@@ -86,9 +86,11 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
 
         from apps.notifications.tasks import notify_task
 
-        for uid in get_user_model().objects.filter(
-            status="active", is_active=True
-        ).values_list("id", flat=True):
+        for uid in (
+            get_user_model()
+            .objects.filter(status="active", is_active=True)
+            .values_list("id", flat=True)
+        ):
             notify_task.delay(
                 uid,
                 "event_published",
@@ -149,9 +151,11 @@ class EventsAdminView(StaffRequiredMixin, TemplateView):
 
             from apps.notifications.tasks import notify_task
 
-            for uid in get_user_model().objects.filter(
-                status="active", is_active=True
-            ).values_list("id", flat=True):
+            for uid in (
+                get_user_model()
+                .objects.filter(status="active", is_active=True)
+                .values_list("id", flat=True)
+            ):
                 notify_task.delay(
                     uid,
                     "event_published",

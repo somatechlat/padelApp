@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2026-10-14 11:52-0500\n"
+"POT-Creation-Date: 2026-10-15 09:22-0500\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -61,7 +61,7 @@ msgstr "La cancha no está disponible en ese horario"
 msgid "Las franjas ya no estan disponibles"
 msgstr "Las franjas ya no están disponibles"
 
-#: apps/bookings/views.py:102 apps/courts/views.py:111
+#: apps/bookings/views.py:102 apps/courts/views.py:113
 msgid "El parametro 'date' es obligatorio"
 msgstr "El parametro 'date' es obligatorio"
 
@@ -75,19 +75,29 @@ msgstr "Parametros invalidos"
 msgid "Duracion invalida"
 msgstr "Código inválido"
 
-#: apps/courts/models.py:115
+#: apps/courts/models.py:147
 msgid "La imagen del banner es obligatoria."
 msgstr "La imagen del banner es obligatoria."
 
-#: apps/courts/models.py:218
-msgid "El horario no puede comenzar antes de las 06:00."
-msgstr ""
+#: apps/courts/models.py:247
+msgid "La hora de cierre debe ser posterior a la de apertura."
+msgstr "La hora de cierre debe ser posterior a la de apertura."
 
-#: apps/courts/models.py:222
-msgid "El horario no puede terminar despues de las 22:00."
-msgstr ""
+#: apps/courts/models.py:251
+#, python-format
+msgid "El horario no puede comenzar antes de las %(hour)s."
+msgstr "El horario no puede comenzar antes de las %(hour)s."
 
-#: apps/courts/views.py:117
+#: apps/courts/models.py:256
+#, python-format
+msgid "El horario no puede terminar despues de las %(hour)s."
+msgstr "El horario no puede terminar despues de las %(hour)s."
+
+#: apps/courts/models.py:264
+msgid "Las franjas duran 30 minutos: use horas en punto o y media."
+msgstr "Las franjas duran 30 minutos: use horas en punto o y media."
+
+#: apps/courts/views.py:119
 msgid "Formato de fecha invalido. Use YYYY-MM-DD."
 msgstr "Formato de fecha invalido. Use YYYY-MM-DD."
 
@@ -272,7 +282,9 @@ msgstr "Reserva pendiente de confirmacion de pago"
 msgid ""
 "Your booking has been received. We are reviewing your transfer receipt — you "
 "will get a confirmation once it is approved. Amount: {amount}."
-msgstr "Tu reserva ha sido recibida. Estamos revisando tu comprobante de transferencia - recibiras una confirmacion una vez aprobada. Monto: {amount}."
+msgstr ""
+"Tu reserva ha sido recibida. Estamos revisando tu comprobante de "
+"transferencia - recibiras una confirmacion una vez aprobada. Monto: {amount}."
 
 #: apps/notifications/services.py:114
 msgid "Transfer confirmed"
@@ -383,7 +395,8 @@ msgstr "Contrasena cambiada"
 #: apps/notifications/services.py:161
 msgid ""
 "Your password was changed. If this was not you, contact support immediately."
-msgstr "Tu contrasena fue cambiada. Si no fuiste tu, contacta soporte de inmediato."
+msgstr ""
+"Tu contrasena fue cambiada. Si no fuiste tu, contacta soporte de inmediato."
 
 #: apps/notifications/services.py:164
 msgid "Account suspended"
@@ -399,7 +412,8 @@ msgstr "Cuenta activada"
 
 #: apps/notifications/services.py:169
 msgid "Your account has been activated. You can now log in and book courts."
-msgstr "Tu cuenta ha sido activada. Ya puedes iniciar sesion y reservar canchas."
+msgstr ""
+"Tu cuenta ha sido activada. Ya puedes iniciar sesion y reservar canchas."
 
 #: apps/payments/services.py:129
 #, python-brace-format
@@ -408,7 +422,8 @@ msgstr "El pago #{payment_id} ya fue procesado."
 
 #: apps/payments/services.py:226
 msgid "Solo se puede cobrar en efectivo"
-msgstr "Tu cuenta ha sido activada. Ya puedes iniciar sesion y reservar canchas."
+msgstr ""
+"Tu cuenta ha sido activada. Ya puedes iniciar sesion y reservar canchas."
 
 #: apps/payments/services.py:228
 #, fuzzy

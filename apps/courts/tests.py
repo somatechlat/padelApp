@@ -1,6 +1,8 @@
+from datetime import time as dtime
 from datetime import timedelta
 
 import pytest
+from django.core.exceptions import ValidationError
 
 from apps.courts.models import PromoBanner, Venue, resolve_i18n
 
@@ -157,3 +159,63 @@ class TestCourtSchedule:
                 court=court, weekday=wd, open_time="08:00", close_time="22:00"
             )
         assert CourtSchedule.objects.filter(court=court).count() == 7
+
+
+class TestClubHoursAreASetting:
+    """The club day lives on the Venue and every schedule is validated to it.
+
+    Nothing about 06:00/22:00 may be baked into a model: these tests change
+    the hours and expect the rules to move with them.
+    """
+
+    def test_shipped_default_is_0600_to_2200(self, venue):
+        from apps.courts.models import club_hours
+
+        assert venue.hours_label == "06:00 – 22:00"
+        assert club_hours() == (venue.daily_open, venue.daily_close)
+        assert f"{venue.daily_open:%H:%M}" == "06:00"
+        assert f"{venue.daily_close:%H:%M}" == "22:00"
+
+    def test_hours_are_changeable(self, venue):
+        from apps.courts.models import club_hours
+
+        venue.daily_open = dtime(7, 0)
+        venue.daily_close = dtime(23, 0)
+        venue.save()
+        venue.refresh_from_db()
+        assert club_hours() == (dtime(7, 0), dtime(23, 0))
+        assert venue.hours_label == "07:00 – 23:00"
+
+    def test_schedule_must_stay_inside_the_club_hours(self, court, venue):
+        from apps.courts.models import CourtSchedule
+
+        venue.daily_close = dtime(21, 0)
+        venue.save()
+
+        with pytest.raises(ValidationError) as exc:
+            CourtSchedule(court=court, weekday=0, open_time="06:00", close_time="22:00").save()
+        assert "21:00" in str(exc.value)  # the message quotes the live setting
+
+        CourtSchedule(court=court, weekday=0, open_time="06:00", close_time="21:00").save()
+        assert CourtSchedule.objects.filter(court=court).count() == 1
+
+    def test_widening_the_club_hours_unlocks_the_new_range(self, court, venue):
+        from apps.courts.models import CourtSchedule
+
+        venue.daily_open = dtime(5, 0)
+        venue.save()
+        CourtSchedule(court=court, weekday=0, open_time="05:00", close_time="22:00").save()
+        assert CourtSchedule.objects.filter(court=court).count() == 1
+
+    def test_closing_before_opening_is_rejected(self, court):
+        from apps.courts.models import CourtSchedule
+
+        with pytest.raises(ValidationError):
+            CourtSchedule(court=court, weekday=0, open_time="22:00", close_time="06:00").save()
+
+    def test_hours_off_the_half_hour_are_rejected(self, court):
+        """Every court must share one 30-min grid, or bookings can overlap."""
+        from apps.courts.models import CourtSchedule
+
+        with pytest.raises(ValidationError):
+            CourtSchedule(court=court, weekday=0, open_time="06:15", close_time="22:00").save()

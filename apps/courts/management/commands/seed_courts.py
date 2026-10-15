@@ -1,7 +1,7 @@
 from django.core.management.base import BaseCommand
 
 from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
-from apps.courts.models import Court, CourtSchedule
+from apps.courts.models import Court, CourtSchedule, club_hours
 
 
 class Command(BaseCommand):
@@ -10,6 +10,7 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         venue = seed_club_profile()
         seed_promo_banners()
+        open_at, close_at = club_hours()
         created_courts = 0
         for name, court_type, price in (
             ("Cancha Ambacar", Court.CourtType.TECHADA, "12.00"),
@@ -23,15 +24,17 @@ class Command(BaseCommand):
             )
             if created:
                 created_courts += 1
-            if court.schedules.filter(is_active=True).count() == 0:
-                for weekday in range(7):
-                    CourtSchedule.objects.update_or_create(
-                        court=court,
-                        weekday=weekday,
-                        defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
-                    )
+            # Synced every run: the seed reproduces the hours the club
+            # configured (Venue.daily_open/daily_close), never its own copy.
+            for weekday in range(7):
+                CourtSchedule.objects.update_or_create(
+                    court=court,
+                    weekday=weekday,
+                    defaults={"open_time": open_at, "close_time": close_at, "is_active": True},
+                )
         self.stdout.write(
             self.style.SUCCESS(
-                f"Seeded venue (club profile + banners), {created_courts} courts, schedules for all courts."
+                f"Seeded venue (club profile + banners), {created_courts} courts, "
+                f"schedules {open_at:%H:%M}-{close_at:%H:%M} for all courts."
             )
         )

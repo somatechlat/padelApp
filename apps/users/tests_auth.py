@@ -112,6 +112,7 @@ class TestVerify:
         assert bad_code.status_code == missing.status_code == status.HTTP_400_BAD_REQUEST
         # Both must say the same thing — one via "detail", the other via
         # "non_field_errors" (serializer validate).  Compare the text only.
+
         def _msg(data):
             if "detail" in data:
                 return str(data["detail"])

@@ -185,9 +185,7 @@ class TestVerifyEmailThrottle:
             VerificationCode.objects.create(user=user, purpose="email_verify")
             got_429 = False
             for _ in range(15):
-                resp = api_client.post(
-                    "/api/auth/verify/", {"email": user.email, "code": "000000"}
-                )
+                resp = api_client.post("/api/auth/verify/", {"email": user.email, "code": "000000"})
                 if resp.status_code == 429:
                     got_429 = True
                     break

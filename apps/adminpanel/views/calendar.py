@@ -11,8 +11,9 @@ from django.views.generic import TemplateView
 from apps.adminpanel.mixins import StaffRequiredMixin
 from apps.bookings.models import Booking
 from apps.bookings.services import BookingService
-from apps.courts.models import Court
+from apps.courts.models import Court, club_hours
 from apps.scheduling.models import TimeSlot
+from apps.scheduling.services import SlotService
 from apps.security.services import log_event
 
 User = get_user_model()
@@ -30,6 +31,11 @@ class CalendarView(StaffRequiredMixin, TemplateView):
 
         courts = Court.objects.filter(status="active").order_by("name")
         ctx["courts"] = courts
+        # Generate first: the grid is built from the club's current hours and
+        # from what the courts' schedules actually imply for this day, not
+        # from rows left over by an earlier schedule.
+        for court in courts:
+            SlotService.generate_day(court, day)
         slots = TimeSlot.objects.filter(date=day).order_by("start")
         grid = {}
         for s in slots:
@@ -38,9 +44,21 @@ class CalendarView(StaffRequiredMixin, TemplateView):
         by_start = {}
         for b in bookings:
             by_start.setdefault(b.start_time, []).append(b)
+        open_at, close_at = club_hours()
+        ctx["slot_open"] = open_at
+        ctx["slot_close"] = close_at
+        open_minutes = open_at.hour * 60 + open_at.minute
+        close_minutes = close_at.hour * 60 + close_at.minute
+        # Narrowing the club hours must not hide a booking that was already
+        # sold outside the new window: stretch the grid over both.
+        for b in bookings:
+            start_minutes = b.start_time.hour * 60 + b.start_time.minute
+            end_minutes = start_minutes + (b.duration_minutes or 0)
+            open_minutes = min(open_minutes, start_minutes)
+            close_minutes = max(close_minutes, end_minutes)
         ctx["rows"] = []
-        minutes = 6 * 60
-        while minutes < 24 * 60:
+        minutes = open_minutes
+        while minutes < close_minutes:
             time = dt_time(minutes // 60, minutes % 60)
             cells = []
             for court in courts:

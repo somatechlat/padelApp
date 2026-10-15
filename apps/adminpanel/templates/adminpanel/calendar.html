@@ -37,7 +37,7 @@
         </select>
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">HORA DE INICIO</label>
-        <input type="time" name="start_time" value="08:00" required>
+        <input type="time" name="start_time" value="{{ slot_open|time:'H:i' }}" required>
 
         <label style="font-size: 12px; font-weight: 700; color: var(--text-muted);">DURACION (MINUTOS)</label>
         <select name="duration">

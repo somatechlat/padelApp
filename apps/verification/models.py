@@ -77,7 +77,5 @@ class VerificationCodeService:
             ).update(verified_at=timezone.now())
             return updated == 1
         # F() keeps the increment correct under concurrent attempts.
-        VerificationCode.objects.filter(pk=instance.pk).update(
-            attempts=models.F("attempts") + 1
-        )
+        VerificationCode.objects.filter(pk=instance.pk).update(attempts=models.F("attempts") + 1)
         return False

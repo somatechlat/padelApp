@@ -1,9 +1,18 @@
+from datetime import time as dtime
+
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 DEFAULT_LANG = "es"
+
+# Club operating hours. These are the shipped default AND the fallback used
+# before a Venue row exists — the live value is Venue.daily_open/daily_close,
+# edited from Admin > Canchas, so nothing about the club day is hardcoded
+# anywhere else in the system.
+DEFAULT_OPEN = dtime(6, 0)
+DEFAULT_CLOSE = dtime(22, 0)
 
 
 def resolve_i18n(data, lang=None, fallback_lang=DEFAULT_LANG):
@@ -65,12 +74,22 @@ class Venue(models.Model):
     bank_account_code = models.CharField(max_length=80, blank=True, default="")
     bank_extra = models.CharField(max_length=255, blank=True, default="")
 
+    # Operating hours of the club: ONE admin setting for every court.
+    # Admin > Canchas > "Horario del club" rewrites these together with each
+    # court's CourtSchedule rows, so availability is never hardcoded.
+    daily_open = models.TimeField(default=DEFAULT_OPEN)
+    daily_close = models.TimeField(default=DEFAULT_CLOSE)
+
     class Meta:
         verbose_name = "sede"
         verbose_name_plural = "sedes"
 
     def __str__(self):
         return self.name
+
+    @property
+    def hours_label(self):
+        return f"{self.daily_open:%H:%M} – {self.daily_close:%H:%M}"
 
     def home_section_title_for(self, lang=None, fallback_lang=DEFAULT_LANG):
         return resolve_i18n(self.home_section_title_i18n, lang, fallback_lang)
@@ -85,6 +104,19 @@ class Venue(models.Model):
         if request is not None:
             return request.build_absolute_uri(url)
         return url
+
+
+def club_hours():
+    """(open, close) that rule every court, read from the admin setting.
+
+    Slot generation, the admin calendar and validation of a CourtSchedule all
+    ask for this instead of carrying their own copy of the day. Returns the
+    shipped default on a database with no Venue row yet (fresh install).
+    """
+    venue = Venue.objects.first()
+    if venue is None:
+        return DEFAULT_OPEN, DEFAULT_CLOSE
+    return venue.daily_open or DEFAULT_OPEN, venue.daily_close or DEFAULT_CLOSE
 
 
 class PromoBanner(models.Model):
@@ -209,18 +241,26 @@ class CourtSchedule(models.Model):
         ]
 
     def clean(self):
-        from datetime import time as dtime
+        from apps.scheduling.services import SLOT_MINUTES
 
-        earliest = dtime(6, 0)
-        latest = dtime(22, 0)
-        if self.open_time < earliest:
+        if self.close_time <= self.open_time:
+            raise ValidationError(_("La hora de cierre debe ser posterior a la de apertura."))
+        open_at, close_at = club_hours()
+        if self.open_time < open_at:
             raise ValidationError(
-                _("El horario no puede comenzar antes de las 06:00.")
+                _("El horario no puede comenzar antes de las %(hour)s.")
+                % {"hour": open_at.strftime("%H:%M")}
             )
-        if self.close_time > latest:
+        if self.close_time > close_at:
             raise ValidationError(
-                _("El horario no puede terminar despues de las 22:00.")
+                _("El horario no puede terminar despues de las %(hour)s.")
+                % {"hour": close_at.strftime("%H:%M")}
             )
+        # The whole grid is 30-min cells counted from the opening time, so a
+        # :15 boundary would shift this court's cells off every other court's
+        # and let two bookings overlap the same physical half hour.
+        if self.open_time.minute % SLOT_MINUTES or self.close_time.minute % SLOT_MINUTES:
+            raise ValidationError(_("Las franjas duran 30 minutos: use horas en punto o y media."))
 
     def save(self, *args, **kwargs):
         self.full_clean()

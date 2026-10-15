@@ -158,7 +158,9 @@ MESSAGE_TEMPLATES = {
     ),
     "password_change": (
         gettext_noop("Password changed"),
-        gettext_noop("Your password was changed. If this was not you, contact support immediately."),
+        gettext_noop(
+            "Your password was changed. If this was not you, contact support immediately."
+        ),
     ),
     "account_suspended": (
         gettext_noop("Account suspended"),
