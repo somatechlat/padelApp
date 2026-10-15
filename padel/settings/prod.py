@@ -49,6 +49,9 @@ _raw_from = getattr(secrets, "EMAIL_FROM", EMAIL_HOST_USER)
 DEFAULT_FROM_EMAIL = _raw_from if "<" in _raw_from else f"Andes Pádel <{_raw_from}>"
 # One-click verification / reset links in transactional email.
 SITE_BASE_URL = f"https://app.{PROD_DOMAIN}"
+# ALLOWED_HOSTS below is a domain allowlist with no loopback, so in-container
+# API walks (journey_check) must speak to the public origin instead.
+API_ORIGIN = SITE_BASE_URL
 
 # --- Fail-fast secret check (constraint C2/C3, NFR-0008) --------------------
 validate_production_secrets(

@@ -65,13 +65,19 @@ class Command(BaseCommand):
     help = "Exercise every customer journey over HTTP and report pass/fail."
 
     def add_arguments(self, parser):
-        # The API origin is a Django setting, not a literal: SITE_BASE_URL is
-        # per-environment (nginx in dev, the PROD_DOMAIN origin in prod), so
-        # the in-container default always points at the running stack.
-        parser.add_argument("--base", default=f"{settings.SITE_BASE_URL}/api")
+        # Paths below already start with /api/, so the base is a bare origin.
+        # It is a Django setting, not a literal: commands run in the backend
+        # container, so this is gunicorn's loopback in dev and the public
+        # origin in prod (whose ALLOWED_HOSTS has no loopback).
+        parser.add_argument("--base", default=settings.API_ORIGIN)
 
     def handle(self, *args, **options):
-        self.base = options["base"].rstrip("/")
+        raw = options["base"].rstrip("/")
+        # Every path below already starts with /api/, which is the convention
+        # tests/journey_check.py does NOT use (it takes a .../api base). Accept
+        # either form: a pasted /api URL must not become /api/api/... and 404
+        # on every leg.
+        self.base = raw[:-4] if raw.endswith("/api") else raw
         # The base URL is operator-supplied and every request below is built from
         # it, so refuse anything that is not plain HTTP(S) before the first
         # urlopen. Without this a typo'd or injected --base could point the

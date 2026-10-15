@@ -205,6 +205,14 @@ DEFAULT_FROM_EMAIL = "Andes Pádel <no-reply@andespadelclub.com>"
 # every absolute link the backend emits — templates must not spell out hosts.
 SITE_BASE_URL = "http://127.0.0.1:28003"
 
+# Origin (scheme://host[:port], no path) for management commands that walk the
+# API. They run inside the backend container, where gunicorn answers on 8000 —
+# the host port SITE_BASE_URL uses (nginx) does not exist there. Dev accepts the
+# loopback Host because ALLOWED_HOSTS is ["*"], and localprod keeps 127.0.0.1 in
+# its allowlist; only prod, whose allowlist is domain-only, re-points it at the
+# public origin (see prod.py).
+API_ORIGIN = "http://127.0.0.1:8000"
+
 # --- Club profile used by outbound email ---------------------------------------
 # Display values mirror landing/index.html. Settings own them so a deployment
 # changes one place: prod inherits these and only swaps SITE_BASE_URL above.
