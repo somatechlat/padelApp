@@ -11,6 +11,7 @@ secrets, which is intentional fail-closed behaviour and must not be relaxed
 for a unit test.
 """
 
+from django.conf import settings
 from django.test import SimpleTestCase
 
 
@@ -100,3 +101,43 @@ class DeriveProdHostsTests(SimpleTestCase):
         self.assertIn("https://app.andespadelclub.com", origins)
         for origin in origins:
             self.assertTrue(origin.startswith("https://"), f"{origin} must be https")
+
+
+class RunningStackConsistencyTests(SimpleTestCase):
+    """The settings this container actually runs must agree with themselves.
+
+    ``prod.py`` once rebound ``DB_NAME`` after ``base.py`` had already built
+    the ``DATABASES`` dict out of it, so production booted and crash-looped
+    asking Postgres for a database named ``padel`` while the volume held
+    ``padel_prod`` — the same star-import trap as the ``SITE_BASE_URL``
+    derivation in ``apps/users/emails.py``.
+
+    This checks the live settings module, not a simulation of it: whatever
+    module the container is running, the dict must match the scalars it was
+    supposed to be built from. Fabricating secrets to import ``prod`` in a
+    test would only prove the fabrication works; this catches the real bug in
+    whichever environment actually runs.
+    """
+
+    def test_database_dict_matches_the_topology_scalars(self):
+        # Django's setup_databases patches this very dict in place with the
+        # test database's name (test_<name>), so the name check accepts both
+        # forms — anything else means the dict and the scalar it was built
+        # from have drifted, which is the production outage this guards.
+        name = settings.DATABASES["default"]["NAME"]
+        self.assertIn(name, {settings.DB_NAME, f"test_{settings.DB_NAME}"})
+        self.assertEqual(settings.DATABASES["default"]["USER"], settings.DB_USER)
+        self.assertEqual(settings.DATABASES["default"]["HOST"], settings.DB_HOST)
+        self.assertEqual(str(settings.DATABASES["default"]["PORT"]), str(settings.DB_PORT))
+
+    def test_database_is_the_real_postgres_not_a_substitute(self):
+        self.assertIn("postgresql", settings.DATABASES["default"]["ENGINE"])
+
+    def test_firebase_path_points_at_the_mounted_secret(self):
+        # docker-compose.yml mounts this secret with target
+        # firebase-service-account.json; rename either side alone and the
+        # first push notification dies on FileNotFoundError.
+        self.assertTrue(
+            settings.FIREBASE_CREDENTIALS_PATH.startswith("/run/secrets/"),
+            settings.FIREBASE_CREDENTIALS_PATH,
+        )

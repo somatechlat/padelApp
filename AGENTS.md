@@ -35,8 +35,8 @@ padelApp/
 ├── Makefile                   ← all entry points (see §5)
 │
 ├── padel/                     ← Django project (settings, urls, celery, wsgi)
-│   └── settings/              ← base / dev / prod / prod_local / local_sqlite
-│                                _checks.py  fail-fast secret + host validation
+│   └── settings/              ← base / dev / prod / prod_local /
+│                                _posture / _secrets / _checks
 │
 ├── apps/                      ← 14 Django apps
 │   ├── HTTP apps (views/urls/serializers):
@@ -144,7 +144,9 @@ padel/settings/
   base.py       # INSTALLED_APPS, DRF/JWT/Celery/i18n. TIME_ZONE=America/Guayaquil
   dev.py        # DEBUG, CELERY_TASK_ALWAYS_EAGER
   prod.py       # HSTS/SSL + validate_production_secrets()
-  local_sqlite.py  # overlay for docker-less tests
+  prod_local.py # production-shaped laptop run (no real destinations)
+  _posture.py   # security settings both production-shaped modes share
+  _secrets.py   # reads /run/secrets/*, fail-closed
   _checks.py    # fail-fast secret validation
 ```
 
@@ -495,7 +497,7 @@ fallback; device locale is deliberately ignored.
 | Google Play personal accounts | A **personal** (not organization) dev account needs a 14-day closed test with ~12 testers before production. |
 | `images/generate_manual.py` | Regenerates `Manual_Usuario_AndesPadel.docx`. RBAC wording in it must match `apps/adminpanel/admin_base.py`. |
 | `journey_check --base` | The **management command** builds `base + path` where every path starts with `/api/`, so its base is a bare origin; `tests/journey_check.py` is the opposite and takes a `.../api` base. The command now strips a pasted trailing `/api`, but know which of the two you are running. Its default is `settings.API_ORIGIN` — gunicorn's loopback in dev, the public origin in prod (no loopback in that allowlist). |
-| `make test-dev` dying at ~91% with `Error 137` | Not an assertion failure — the backend container is capped at 1GiB and pytest's Postgres run exceeds it (cgroup `oom_kill` increments). The sqlite host run (`pytest --ds=padel.settings.local_sqlite apps -q`) is 315 green; for the full in-Docker suite write a throwaway override with `services: {backend: {mem_limit: 3g}}` and run `docker compose -p andespadel ... run --rm --no-deps -T backend pytest apps -q`. |
+| `make test-dev` dying at ~91% with `Error 137` | Not an assertion failure — the backend container was capped at 1GiB and pytest's Postgres run exceeds it (cgroup `oom_kill` increments). `make test-dev` runs through `docker-compose.testsuite.yml`, which gives the throwaway test container 3g. **There is no SQLite path**: the suite runs against Postgres or it does not count. |
 | `docker exec -T` | `-T` is a **compose** flag. Plain `docker exec` has `-i`/`-t`; passing `-T` fails with "unknown shorthand flag: 'T'". |
 | Secrets mounted at the wrong path | Compose mounts a secret at `/run/secrets/<key name>`, not at the filename. Key the secret `db-password` (dashed) or it lands as `/run/secrets/db_password` and settings raise at boot. |
 | `Secret 'secret-key' is missing or empty` with the file present | The mount keeps the host's mode: `0600 root:root` is unreadable by the container's uid 1000, and `read()` used to swallow the EACCES like a missing file. `chmod 644` the files, keep the dir `0700`. macOS never shows this — Docker Desktop remaps ownership. |

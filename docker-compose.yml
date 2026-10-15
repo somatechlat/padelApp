@@ -62,7 +62,10 @@ services:
       - stripe-secret-key
       - stripe-publishable-key
       - stripe-webhook-secret
-      - firebase-credentials
+      # Target matches FIREBASE_CREDENTIALS_PATH in settings; the secret's
+      # key name is only the label compose knows it by.
+      - source: firebase-credentials
+        target: firebase-service-account.json
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:
@@ -90,7 +93,10 @@ services:
       - stripe-secret-key
       - stripe-publishable-key
       - stripe-webhook-secret
-      - firebase-credentials
+      # Target matches FIREBASE_CREDENTIALS_PATH in settings; the secret's
+      # key name is only the label compose knows it by.
+      - source: firebase-credentials
+        target: firebase-service-account.json
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:
@@ -110,7 +116,10 @@ services:
       - stripe-secret-key
       - stripe-publishable-key
       - stripe-webhook-secret
-      - firebase-credentials
+      # Target matches FIREBASE_CREDENTIALS_PATH in settings; the secret's
+      # key name is only the label compose knows it by.
+      - source: firebase-credentials
+        target: firebase-service-account.json
     environment:
       DJANGO_SETTINGS_MODULE: ${DJANGO_SETTINGS_MODULE:-padel.settings.dev}
     depends_on:

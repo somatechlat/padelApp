@@ -20,9 +20,9 @@ half-provisioned box refuses to serve instead of quietly starting with a
 default — which is exactly how production ended up running on the
 ``padel_prod_change_me`` password that lived as a compose default.
 
-``SECRETS_DIR`` is a path, not a secret: it exists so host-side tooling (the
-sqlite test run, a one-off inspection) can read the same files the containers
-see.
+``SECRETS_DIR`` is a path, not a secret: it exists so host-side tooling (a
+one-off inspection, a management command run outside a container) can read the
+same files the containers see.
 """
 
 from __future__ import annotations

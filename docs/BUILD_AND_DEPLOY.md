@@ -65,7 +65,6 @@ Every environment gets its secrets the same way: compose mounts one file per val
 | `padel/settings/base.py` | Shared. `TIME_ZONE=America/Guayaquil`, `LANGUAGE_CODE=es`, Celery, DRF/JWT, i18n |
 | `padel/settings/dev.py` | `DEBUG=True`, `ALLOWED_HOSTS=["*"]`, open CORS, `CELERY_TASK_ALWAYS_EAGER=True` |
 | `padel/settings/prod.py` | `DEBUG=False`, host allowlist, SSL/HSTS, secret validation |
-| `padel/settings/local_sqlite.py` | Overlay for docker-less tests |
 | `padel/settings/_checks.py` | Fail-fast production secret validation |
 
 Prod `ALLOWED_HOSTS` is derived from `PROD_DOMAIN` in `settings/secrets.py` and is **required** — the module refuses to import without it. Test env uses `padel.settings.dev` — there is no separate test settings module.
