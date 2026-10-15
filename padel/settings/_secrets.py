@@ -42,6 +42,19 @@ def read(name: str, default: str | None = None) -> str:
     """
     try:
         value = (SECRETS_DIR / name).read_text().strip()
+    except FileNotFoundError:
+        value = ""
+    except PermissionError as exc:
+        # Compose mounts file secrets with the host's mode intact, so a 0600
+        # file created by root is unreadable by the container's uid 1000 —
+        # and it looks identical to a missing file if OSError is swallowed
+        # wholesale. Say which it is: the fix is `chmod 644` on the file with
+        # the directory kept 0700, not reprovisioning a secret that is there.
+        raise RuntimeError(
+            f"Secret {name!r} exists in {SECRETS_DIR} but is not readable by "
+            f"uid {os.getuid()}. The mount preserves the host's file mode; "
+            f"chmod 644 that file (keep the directory 0700)."
+        ) from exc
     except OSError:
         value = ""
     if value:

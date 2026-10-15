@@ -45,7 +45,13 @@ secrets-init:
 	@for f in stripe-secret-key stripe-publishable-key stripe-webhook-secret; do \
 		test -e $(SECRETS)/$$f || : > $(SECRETS)/$$f; done
 	@test -e $(SECRETS)/firebase-service-account.json || : > $(SECRETS)/firebase-service-account.json
-	@chmod 600 $(SECRETS)/* 2>/dev/null || true
+	@# Compose mounts file secrets with the host's mode intact, and the app
+	@# reads them as uid 1000 — a 0600 root-owned file is unreadable in the
+	@# container (macOS hides this because Docker Desktop remaps ownership).
+	@# So the files are 0644 and the DIRECTORY carries the protection: 0700
+	@# means nothing on the host can reach them without being the owner.
+	@chmod 700 $(SECRETS)
+	@find $(SECRETS) -maxdepth 1 -type f -exec chmod 644 {} + 2>/dev/null || true
 	@ls -la $(SECRETS) | sed 's/^/  /'
 
 # ─── Stack control ─────────────────────────────────────────────────────────
@@ -122,7 +128,8 @@ secrets-localprod: secrets-init
 			*replace_me*) echo "✗ $(SECRETS)/$$f holds the template value."; exit 1;; \
 		esac; \
 	done
-	@chmod 600 $(SECRETS)/* 2>/dev/null || true
+	@chmod 700 $(SECRETS)
+	@find $(SECRETS) -maxdepth 1 -type f -exec chmod 644 {} + 2>/dev/null || true
 
 # Self-signed certificate for the TLS terminator. SANs cover the name in
 # settings (local.andespadel.test) and the loopback forms, so a browser on the
