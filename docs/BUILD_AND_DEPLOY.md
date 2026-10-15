@@ -145,20 +145,18 @@ Access points on dev:
 
 ## Production deploy (compose)
 
-On the server (path `/opt/padelapp` per current runbook):
+**The authoritative runbook is `docs/DEPLOY.md`**: the topology on both
+sides, every setting that differs from a laptop, the step-by-step commands,
+the verification checklist and rollback. Its facts were taken from the live
+box. Read it before touching the server.
+
+Migrate and collectstatic are not separate steps — the backend container's
+command runs migrate on start, and the image serves collected static.
 
 ```bash
-docker compose -p andespadel-prod \
-  -f docker-compose.yml -f docker-compose.prod.yml \
-  up -d
-
-docker compose -p andespadel-prod \
-  -f docker-compose.yml -f docker-compose.prod.yml \
-  exec backend python manage.py migrate
-
-docker compose -p andespadel-prod \
-  -f docker-compose.yml -f docker-compose.prod.yml \
-  exec backend python manage.py collectstatic --no-input
+ssh root@140.82.15.48 'cd /opt/padelapp && git merge --ff-only origin/main'
+ssh root@140.82.15.48 'cd /opt/padelapp && docker compose -p andespadel-prod \
+  -f docker-compose.yml -f docker-compose.prod.yml up -d --build backend worker beat'
 ```
 
 Or simply `make up-prod` / `make down-prod` from a checkout with the Makefile.

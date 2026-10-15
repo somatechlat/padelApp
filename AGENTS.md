@@ -509,9 +509,10 @@ fallback; device locale is deliberately ignored.
 
 Trust levels as of 2026-10-04:
 
-- **Current:** `README.md`, `docs/DEPLOYMENTS.md`, `docs/BUILD_AND_DEPLOY.md`,
-  `docs/SECURITY.md`, `TESTING_GUIDE.md`, `mobile/README.md`, `store/README.md`,
-  this file.
+- **Current:** `README.md`, `docs/DEPLOY.md` (production vs laptop: topology,
+  deploy runbook, verification), `docs/DEPLOYMENTS.md`,
+  `docs/BUILD_AND_DEPLOY.md`, `docs/SECURITY.md`, `TESTING_GUIDE.md`,
+  `mobile/README.md`, `store/README.md`, this file.
 - **Historical:** `docs/DEPLOYMENT_PLAN.md`, `docs/plans/`, `docs/srs/`.
 
 **Production domain: `andespadelclub.com`** (operator-supplied 2026-09-29).
@@ -543,6 +544,12 @@ Confine changes to `/opt/padelapp`, the `padelapp` vhost and the
 
 `make up-prod` still works but **confirm with the operator before deploying** —
 the code is wired to this host, and a deploy overwrites a live service.
+
+**`docs/DEPLOY.md` is the source of truth for production vs laptop**:
+topology, the two nginx layers and what each assumes, every setting that
+differs, the deploy runbook, verification and rollback. Its facts were taken
+from the live box, not remembered. Read it before running anything against
+the server.
 
 When you change a port, a make target, a URL, or add an API route, update
 `docs/DEPLOYMENTS.md` and this file in the same commit.
