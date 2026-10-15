@@ -123,6 +123,15 @@ These are the rules that bite. Breaking them is a bug, not a style choice.
 6. **Do not commit directly to `main` without being asked.** Branch first.
 7. **Python side: `ruff check .` and `flake8 apps padel` must pass.**
    Flutter side: `flutter analyze` must report **No issues found!**
+8. **Configuration lives in `padel/settings/*.py` — not in env vars, not in
+   literals in app code.** Env is for system-wide things only
+   (`DJANGO_SETTINGS_MODULE`, the DB/Redis URLs, the `BACKEND_IMAGE` tag).
+   Every absolute URL the backend emits is derived from `SITE_BASE_URL` (per
+   environment; prod derives it from `PROD_DOMAIN`) and the `CLUB_*` block in
+   `base.py`; commands that walk the API read `API_ORIGIN`. `apps/users/emails.py`
+   hardcoded the club's WhatsApp, Instagram, maps and site URLs until 2026-10-15
+   — which meant a dev box mailed production links. Do not put a host back in
+   there.
 
 ---
 
@@ -278,7 +287,12 @@ Port map within each env: `N000` db, `N001` redis, `N002` backend/API,
 - `compose.prod.yml` / `compose.server.yml` (legacy, unused) were **deleted**
   2026-09-29. The live prod overlay is `docker-compose.prod.yml`.
 - **`localprod`** is the production-shaped stack for a laptop:
-  `padel.settings.prod_local` + `docker-compose.localprod.yml`. Same security
+  `padel.settings.prod_local` + `docker-compose.localprod.yml`. **The compose
+  half is not in the repo** (verified 2026-10-15: never committed, no Makefile
+  target), so the documented stack cannot be started as written, and
+  `prod_local` itself refuses to import until `docker/backend/secrets.py`
+  carries SMTP-shaped values — it inherits `prod.py`'s fail-closed
+  `validate_production_secrets()` before it gets to relax anything. Same security
   posture as prod (`DEBUG=False`, gunicorn, secure cookies, TLS), only the
   destinations differ (test Stripe keys enforced, file-based email, push off,
   demo data). It refuses `sk_live_`/`pk_live_` at import. HSTS is deliberately
@@ -442,6 +456,9 @@ fallback; device locale is deliberately ignored.
 | Google Play AAB vs APK | Play rejects APKs for new apps. `make ship-android` builds the AAB. |
 | Google Play personal accounts | A **personal** (not organization) dev account needs a 14-day closed test with ~12 testers before production. |
 | `images/generate_manual.py` | Regenerates `Manual_Usuario_AndesPadel.docx`. RBAC wording in it must match `apps/adminpanel/admin_base.py`. |
+| `journey_check --base` | The **management command** builds `base + path` where every path starts with `/api/`, so its base is a bare origin; `tests/journey_check.py` is the opposite and takes a `.../api` base. The command now strips a pasted trailing `/api`, but know which of the two you are running. Its default is `settings.API_ORIGIN` — gunicorn's loopback in dev, the public origin in prod (no loopback in that allowlist). |
+| `make test-dev` dying at ~91% with `Error 137` | Not an assertion failure — the backend container is capped at 1GiB and pytest's Postgres run exceeds it (cgroup `oom_kill` increments). The sqlite host run (`pytest --ds=padel.settings.local_sqlite apps -q`) is 315 green; for the full in-Docker suite write a throwaway override with `services: {backend: {mem_limit: 3g}}` and run `docker compose -p andespadel ... run --rm --no-deps -T backend pytest apps -q`. |
+| A key missing from a Django setting | `CLUB_SITE`/`CLUB_PRIVACY` are **not** settings — they are derived in `apps/users/emails.py` from `settings.SITE_BASE_URL`, because prod re-assigns `SITE_BASE_URL` after `from base import *` and any copy in `base.py` would go stale. Asking `settings.CLUB_SITE` raises `AttributeError`. |
 
 ---
 
