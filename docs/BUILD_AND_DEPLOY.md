@@ -56,7 +56,7 @@ If a Docker Flutter/Gradle cache is corrupt, remove the matching `*_gradle_home`
 
 Non-root usernames differ on purpose: `app` in `Dockerfile.dev`, `appuser` in `Dockerfile.prod`.
 
-Dev/test mount `./docker/backend` as `/app/runsecrets` (read-only). Prod secrets live on the server under `/opt/padelapp/docker/backend/secrets.py` and are validated at startup by `padel/settings/prod.py` / `_checks.py`.
+Every environment gets its secrets the same way: compose mounts one file per value from `./docker/runsecrets/` (locally) or `/opt/padelapp/docker/runsecrets/` (server) at `/run/secrets/<name>`, and `padel/settings/_secrets.py` reads them. Nothing is an environment variable, so `docker inspect` shows no credentials. `make secrets-init` generates the local files; values are validated at startup by `padel/settings/prod.py` / `_checks.py`, which also reject values copied from a template.
 
 ## Django settings
 

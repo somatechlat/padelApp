@@ -1,0 +1,117 @@
+# LOCALPROD overlay — project andespadel-localprod, host ports 35000+
+# Usage:
+#   make up-localprod          # generates secrets + self-signed cert, builds, starts
+#
+# The production-shaped laptop run: same image (Dockerfile.prod), same gunicorn,
+# same Secure cookies and TLS redirect as the server — only the destinations
+# differ. Settings are padel.settings.prod_local, which refuses live Stripe
+# keys, forces file-based email and answers only to local.andespadel.test.
+#
+# Source is NOT bind-mounted here, exactly like prod: the code that runs is the
+# code baked into the image, so a stale checkout cannot masquerade as a build.
+
+name: andespadel-localprod
+
+services:
+  db:
+    container_name: andespadel-localprod-db
+    environment:
+      POSTGRES_DB: padel_localprod
+      POSTGRES_USER: padel
+    ports:
+      - "35000:5432"
+
+  redis:
+    container_name: andespadel-localprod-redis
+    ports:
+      - "35001:6379"
+
+  backend:
+    container_name: andespadel-localprod-backend
+    image: ${BACKEND_IMAGE:-andespadel-backend:localprod}
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    command: >
+      sh -c "python manage.py migrate --noinput &&
+             gunicorn padel.wsgi:application --bind 0.0.0.0:8000 --workers 2"
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod_local
+    ports:
+      - "35002:8000"
+    healthcheck:
+      # 127.0.0.1 is in prod_local's ALLOWED_HOSTS (unlike prod's domain-only
+      # list), so the probe can stay on the loopback. The scheme header is
+      # still required or SECURE_SSL_REDIRECT bounces it to https, which
+      # gunicorn cannot answer.
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import urllib.request as u; u.urlopen(u.Request('http://127.0.0.1:8000/api/courts/', headers={'Host': 'local.andespadel.test', 'X-Forwarded-Proto': 'https'}), timeout=5)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
+    volumes:
+      - media_data:/app/media
+      - static_data:/app/staticfiles
+      # prod_local writes email to files instead of an SMTP relay, so a
+      # password reset can be read after the fact without reaching a customer.
+      - ./artifacts/outbox:/app/artifacts/outbox
+
+  worker:
+    container_name: andespadel-localprod-worker
+    image: ${BACKEND_IMAGE:-andespadel-backend:localprod}
+    command: celery -A padel worker -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod_local
+    volumes:
+      - ./artifacts/outbox:/app/artifacts/outbox
+
+  beat:
+    container_name: andespadel-localprod-beat
+    image: ${BACKEND_IMAGE:-andespadel-backend:localprod}
+    command: celery -A padel beat -l info
+    environment:
+      DJANGO_SETTINGS_MODULE: padel.settings.prod_local
+    volumes:
+      - ./artifacts/outbox:/app/artifacts/outbox
+
+  nginx:
+    container_name: andespadel-localprod-nginx
+    image: nginx:1.27-alpine
+    mem_limit: 256m
+    restart: unless-stopped
+    ports:
+      - "35003:443"
+    volumes:
+      - ./docker/nginx/nginx.localprod.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/runsecrets/tls:/etc/nginx/tls:ro
+      - ./landing:/usr/share/nginx/html/landing:ro
+      - static_data:/static:ro
+      - media_data:/media:ro
+    depends_on:
+      backend:
+        condition: service_healthy
+    networks:
+      - padel-net
+
+  flutter:
+    container_name: andespadel-localprod-flutter
+    environment:
+      API_BASE_URL: https://localhost:35003/api
+
+networks:
+  padel-net:
+    name: andespadel-localprod-net
+
+volumes:
+  db_data:
+    name: andespadel-localprod_db_data
+  media_data:
+    name: andespadel-localprod_media_data
+  static_data:
+    name: andespadel-localprod_static_data

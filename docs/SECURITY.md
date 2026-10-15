@@ -157,7 +157,7 @@ status write, so an over-amount refund never reaches Stripe.
    prod; Flutter: route through `friendlyErrorMessage`). Exception text leaks
    schema, paths and sometimes values.
 5. **Secrets never enter the repo.** `.gitignore` covers Firebase config,
-   keystores, `*.ipa`/`*.apk`, service accounts, `runsecrets/`. If you find one
+   keystores, `*.ipa`/`*.apk`, service accounts, `docker/runsecrets/`. If you find one
    tracked, `git rm --cached` it and say so in the commit message.
 
 ---

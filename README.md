@@ -40,7 +40,7 @@ make seeddemo-dev    # demo data; password Andes12345!
 make flrun           # Flutter against http://127.0.0.1:28002/api
 ```
 
-API base URL default in `mobile/lib/core/api_client.dart` is `http://127.0.0.1:28002/api`. Release builds must pass `--dart-define=API_BASE_URL=https://app.andespadelclub.com/api`. The domain is `andespadelclub.com`. It is not a settings fallback — `padel.settings.prod` still reads `PROD_DOMAIN` from `runsecrets` and refuses to import without it. **Production is live** at `app.andespadelclub.com` (`140.82.15.48`); confirm with the operator before deploying.
+API base URL default in `mobile/lib/core/api_client.dart` is `http://127.0.0.1:28002/api`. Release builds must pass `--dart-define=API_BASE_URL=https://app.andespadelclub.com/api`. The domain is `andespadelclub.com`. It is not a settings fallback — `padel.settings.prod` still reads the `prod-domain` secret from `/run/secrets` and refuses to import without it. **Production is live** at `app.andespadelclub.com` (`140.82.15.48`); confirm with the operator before deploying.
 
 ## Tests and lint
 
