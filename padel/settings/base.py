@@ -201,7 +201,21 @@ SPECTACULAR_SETTINGS = {
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
 DEFAULT_FROM_EMAIL = "Andes Pádel <no-reply@andespadelclub.com>"
 # Public origin used to build one-click verification / reset links in emails.
+# prod.py re-derives this from PROD_DOMAIN, so it is the single source for
+# every absolute link the backend emits — templates must not spell out hosts.
 SITE_BASE_URL = "http://127.0.0.1:28003"
+
+# --- Club profile used by outbound email ---------------------------------------
+# Display values mirror landing/index.html. Settings own them so a deployment
+# changes one place: prod inherits these and only swaps SITE_BASE_URL above.
+CLUB_CITY = "Quito, Ecuador"
+CLUB_ADDRESS = "Rodríguez Labandera y Ernesto Albán esquina"
+CLUB_WHATSAPP = "099 267 6842"
+CLUB_WHATSAPP_URL = "https://wa.me/593992676842"
+CLUB_EMAIL = "andespadelclub@gmail.com"
+CLUB_INSTAGRAM = "@andespadelec"
+CLUB_INSTAGRAM_URL = "https://instagram.com/andespadelec"
+CLUB_MAPS_URL = "https://maps.google.com/?q=Rodriguez+Labandera+y+Ernesto+Alban+Quito+Ecuador"
 
 # --- Media / static ------------------------------------------------------------
 MEDIA_URL = "/media/"

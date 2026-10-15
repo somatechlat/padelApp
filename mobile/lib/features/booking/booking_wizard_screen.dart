@@ -49,6 +49,18 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
   bool _loadingStarts = false;
   List<Map<String, dynamic>> _starts = [];
 
+  /// Courts a customer may book. `/courts/` also carries archived and
+  /// maintenance rows — those must never reach the picker, and no status
+  /// or "available" badge is ever shown on the ones that do.
+  List<Map<String, dynamic>> get _bookableCourtsList => [
+        for (final raw in _allCourts ?? <dynamic>[])
+          if (raw is Map && raw['status'] == 'active')
+            Map<String, dynamic>.from(raw),
+      ];
+
+  /// The same list as a count: the denominator of the slot availability meter.
+  int get _bookableCourts => _bookableCourtsList.length;
+
   @override
   void initState() {
     super.initState();
@@ -115,7 +127,10 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
     });
     try {
       if (_allCourts == null) await _loadAllCourts();
-      final courts = _allCourts ?? [];
+      // Only bookable courts are candidates; a court that is archived, in
+      // maintenance or otherwise not free for the whole duration simply does
+      // not appear in the next step.
+      final courts = _bookableCourtsList;
       final needed = (_duration / kSlotMinutes).ceil();
       final results = await Future.wait(courts.map((raw) async {
         final c = Map<String, dynamic>.from(raw as Map);
@@ -351,6 +366,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           start: _start,
           starts: _starts,
           loadingStarts: _loadingStarts,
+          totalCourts: _bookableCourts,
           onMonthChanged: _onMonthChanged,
           onDateSelected: _onDateSelected,
           onDurationSelected: _onDurationSelected,

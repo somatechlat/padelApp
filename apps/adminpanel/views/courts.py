@@ -171,7 +171,7 @@ class CourtsAdminView(StaffRequiredMixin, TemplateView):
             open_time = datetime.strptime(open_str, "%H:%M").time()
             close_time = datetime.strptime(close_str, "%H:%M").time()
         except ValueError:
-            messages.error(request, "Horario invalido. Use HH:MM (ej. 06:00).")
+            messages.error(request, "Horario invalido. Use el formato HH:MM.")
             return
         if close_time <= open_time:
             messages.error(request, "La hora de cierre debe ser posterior a la de apertura.")

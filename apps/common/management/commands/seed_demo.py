@@ -10,7 +10,7 @@ from django.utils import timezone
 from apps.bookings.models import Booking
 from apps.bookings.services import BookingService
 from apps.common.seed_helpers import seed_club_profile, seed_promo_banners
-from apps.courts.models import Court, CourtSchedule
+from apps.courts.models import Court, CourtSchedule, club_hours
 from apps.events.models import Event, NewsPost, Tournament
 from apps.notifications.models import Notification
 
@@ -89,11 +89,14 @@ class Command(BaseCommand):
             if was_created:
                 created["courts"] += 1
             if court.schedules.filter(is_active=True).count() == 0:
+                # The club's hours, never a literal: a seeded court opens when
+                # the owner says the club opens.
+                open_at, close_at = club_hours()
                 for weekday in range(7):
                     CourtSchedule.objects.update_or_create(
                         court=court,
                         weekday=weekday,
-                        defaults={"open_time": "06:00", "close_time": "22:00", "is_active": True},
+                        defaults={"open_time": open_at, "close_time": close_at, "is_active": True},
                     )
 
         now = timezone.now()

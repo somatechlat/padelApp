@@ -23,17 +23,23 @@ SURFACE = "#FFFFFF"
 MUTED = "#5B6472"
 OUTLINE = "#D8DEE6"
 
-# Real club data from landing/index.html — keep in sync with the website.
-CLUB_CITY = "Quito, Ecuador"
-CLUB_ADDRESS = "Rodríguez Labandera y Ernesto Albán esquina"
-CLUB_WHATSAPP = "099 267 6842"
-CLUB_WHATSAPP_URL = "https://wa.me/593992676842"
-CLUB_EMAIL = "andespadelclub@gmail.com"
-CLUB_INSTAGRAM = "@andespadelec"
-CLUB_INSTAGRAM_URL = "https://instagram.com/andespadelec"
-CLUB_MAPS_URL = "https://maps.google.com/?q=Rodriguez+Labandera+y+Ernesto+Alban+Quito+Ecuador"
-CLUB_SITE = "https://app.andespadelclub.com"
-CLUB_PRIVACY = "https://app.andespadelclub.com/privacy"
+# Club data and every absolute URL come from settings — nothing hard-coded in
+# the templates. SITE_BASE_URL is per-environment (dev localhost, prod the
+# PROD_DOMAIN origin), so links follow the deployment instead of pointing every
+# mailbox at production from a dev box.
+CLUB_CITY = settings.CLUB_CITY
+CLUB_ADDRESS = settings.CLUB_ADDRESS
+CLUB_WHATSAPP = settings.CLUB_WHATSAPP
+CLUB_WHATSAPP_URL = settings.CLUB_WHATSAPP_URL
+CLUB_EMAIL = settings.CLUB_EMAIL
+CLUB_INSTAGRAM = settings.CLUB_INSTAGRAM
+CLUB_INSTAGRAM_URL = settings.CLUB_INSTAGRAM_URL
+CLUB_MAPS_URL = settings.CLUB_MAPS_URL
+CLUB_SITE = settings.SITE_BASE_URL
+CLUB_PRIVACY = f"{settings.SITE_BASE_URL}/privacy"
+
+# Host shown as the anchor text where the link is just "the site".
+CLUB_SITE_LABEL = CLUB_SITE.split("://", 1)[-1]
 
 SALT_VERIFY = "andes.email-verify"
 SALT_RESET = "andes.password-reset"
@@ -43,7 +49,7 @@ FROM_NAME = "Andes Pádel"
 
 
 def from_email() -> str:
-    addr = getattr(settings, "DEFAULT_FROM_EMAIL", None) or "reservas@andespadelclub.com"
+    addr = settings.DEFAULT_FROM_EMAIL or settings.CLUB_EMAIL
     if "<" in addr:
         return addr
     return f"{FROM_NAME} <{addr}>"
@@ -140,7 +146,7 @@ def _layout(body: str, title: str) -> str:
                 &nbsp;·&nbsp;
                 <a href="{CLUB_MAPS_URL}" style="color:{BRAND_LIGHT};text-decoration:underline;">Cómo llegar</a>
                 &nbsp;·&nbsp;
-                <a href="{CLUB_SITE}" style="color:{BRAND_LIGHT};text-decoration:underline;">app.andespadelclub.com</a>
+                <a href="{CLUB_SITE}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_SITE_LABEL}</a>
               </div>
               <div style="margin-top:14px;font-size:12px;color:{MUTED};line-height:1.7;">
                 Estás recibiendo este correo porque se creó una cuenta o se solicitó un cambio

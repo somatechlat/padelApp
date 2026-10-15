@@ -17,6 +17,7 @@ class BookingWhenStep extends StatelessWidget {
     required this.start,
     required this.starts,
     required this.loadingStarts,
+    required this.totalCourts,
     required this.onMonthChanged,
     required this.onDateSelected,
     required this.onDurationSelected,
@@ -31,6 +32,9 @@ class BookingWhenStep extends StatelessWidget {
   final Duration? start;
   final List<Map<String, dynamic>> starts;
   final bool loadingStarts;
+
+  /// Active courts in the club, for the availability meter on each slot.
+  final int totalCourts;
   final ValueChanged<DateTime> onMonthChanged;
   final ValueChanged<DateTime> onDateSelected;
   final ValueChanged<int> onDurationSelected;
@@ -80,10 +84,7 @@ class BookingWhenStep extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.sm),
         if (loadingStarts)
-          const Padding(
-            padding: EdgeInsets.all(AppSpacing.lg),
-            child: Center(child: CircularProgressIndicator()),
-          )
+          const BookingSlotsSkeleton()
         else if (starts.isEmpty)
           _EmptyStartsBox(theme: theme, l10n: l10n)
         else
@@ -92,6 +93,7 @@ class BookingWhenStep extends StatelessWidget {
             starts: starts,
             selectedStart: start,
             onStartSelected: onStartSelected,
+            totalCourts: totalCourts,
           ),
         const SizedBox(height: AppSpacing.xl),
         FilledButton(

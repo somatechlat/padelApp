@@ -35,6 +35,24 @@ services:
       DJANGO_SETTINGS_MODULE: padel.settings.prod
     ports:
       - "34002:8000"
+    healthcheck:
+      # The inherited probe sends Host: 127.0.0.1, which prod answers with a
+      # 400 — ALLOWED_HOSTS is the domain allowlist, not a loopback — so the
+      # backend has always reported unhealthy while serving fine. A plain http
+      # probe would then be bounced to https by SECURE_SSL_REDIRECT. The Host
+      # is read from Django settings at probe time: no env var and no literal
+      # domain in this file, and prod.py is the only place a host is decided.
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "from django.conf import settings; import urllib.request as u; h = next((x for x in settings.ALLOWED_HOSTS if x.startswith('app.')), settings.ALLOWED_HOSTS[0]); u.urlopen(u.Request('http://127.0.0.1:8000/api/courts/', headers={'Host': h, 'X-Forwarded-Proto': 'https'}), timeout=5)",
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 40s
     volumes:
       - ./docker/backend:/app/runsecrets:ro
       - media_data:/app/media

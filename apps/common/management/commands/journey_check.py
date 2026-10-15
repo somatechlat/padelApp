@@ -17,6 +17,7 @@ import urllib.request
 from datetime import timedelta
 from urllib.parse import urlsplit
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 from django.utils import timezone
 
@@ -64,7 +65,10 @@ class Command(BaseCommand):
     help = "Exercise every customer journey over HTTP and report pass/fail."
 
     def add_arguments(self, parser):
-        parser.add_argument("--base", default="http://127.0.0.1:28002/api")
+        # The API origin is a Django setting, not a literal: SITE_BASE_URL is
+        # per-environment (nginx in dev, the PROD_DOMAIN origin in prod), so
+        # the in-container default always points at the running stack.
+        parser.add_argument("--base", default=f"{settings.SITE_BASE_URL}/api")
 
     def handle(self, *args, **options):
         self.base = options["base"].rstrip("/")

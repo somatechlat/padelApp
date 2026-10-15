@@ -33,7 +33,10 @@ abstract final class BookDim {
   static const double courtTitleSize = 17;
   static const double courtSubtitleSize = 14;
   static const double tileRadius = 10;
-  static const double timeGridChildAspect = 2.4;
+
+  /// Tall enough for the three-line slot tile (time · free count · meter) at
+  /// phone widths — 2.4 clipped the meter on 375pt screens.
+  static const double timeGridChildAspect = 1.85;
   static const int timeGridColumns = 3;
   static const double timeGridSpacing = 8;
   static const double calendarDayInset = 2;
