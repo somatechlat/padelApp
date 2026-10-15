@@ -25,12 +25,26 @@ Restrictions enforced here, so a laptop cannot reach real systems:
 
 from padel.settings._checks import validate_localprod_secrets
 from padel.settings._posture import *  # noqa: F401, F403
+
+# Explicit for the DATABASES update below — it arrives via the star-import.
+from padel.settings._posture import DATABASES  # noqa: E402
 from padel.settings._secrets import read as read_secret
 
 # --- Host -------------------------------------------------------------------
 # Never a real domain. `local.` + `.test` is reserved by RFC 6761 for local
 # names and cannot be resolved on the public internet.
 LOCALPROD_DOMAIN = "local.andespadel.test"
+
+# --- Database ----------------------------------------------------------------
+# Mirrors docker-compose.localprod.yml's POSTGRES_DB. base.py built DATABASES
+# from its own ("padel") during the star-import above, so the dict must be
+# updated directly — rebinding DB_NAME alone would leave this mode connecting
+# to a database the localprod volume never created.
+DB_NAME = "padel_localprod"
+DB_USER = "padel"
+DB_HOST = "db"
+DB_PORT = 5432
+DATABASES["default"].update(NAME=DB_NAME, USER=DB_USER, HOST=DB_HOST, PORT=DB_PORT)
 
 # prod.py derives these from PROD_DOMAIN; here we answer to the local names
 # only, so a stray browser on the laptop cannot reach this stack by a real

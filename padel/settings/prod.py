@@ -9,6 +9,10 @@ from padel.settings._checks import (  # noqa: E402
     validate_production_secrets,
 )
 from padel.settings._posture import *  # noqa: F401, F403
+
+# Explicit for the update below: DATABASES arrives via the star-import, and
+# F405 cannot see through that.
+from padel.settings._posture import DATABASES  # noqa: E402
 from padel.settings._secrets import read as read_secret
 
 # Stored as the bare apex so the www/app forms are derived once, here.
@@ -27,6 +31,11 @@ DB_NAME = "padel_prod"
 DB_USER = "padel"
 DB_HOST = "db"
 DB_PORT = 5432
+# base.py already built DATABASES from its own values during the star-import
+# above — rebinding the scalars does NOT rebuild the dict, the same trap as
+# SITE_BASE_URL in apps/users/emails.py. Mirror them here or production
+# connects asking for a database named "padel" and crashes on boot.
+DATABASES["default"].update(NAME=DB_NAME, USER=DB_USER, HOST=DB_HOST, PORT=DB_PORT)
 
 # --- Email -------------------------------------------------------------------
 # SMTP here, not console or file: this is the environment that must deliver.
