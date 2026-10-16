@@ -7,12 +7,12 @@ import 'package:padel_app/core/theme/app_theme.dart';
 
 /// WCAG 2.1 relative luminance.
 double _luminance(Color c) {
-  double channel(int v) {
-    final s = v / 255.0;
+  // `Color.r/.g/.b` are already 0.0–1.0, so no /255 here.
+  double channel(double s) {
     return s <= 0.03928 ? s / 12.92 : math.pow((s + 0.055) / 1.055, 2.4).toDouble();
   }
 
-  return 0.2126 * channel(c.red) + 0.7152 * channel(c.green) + 0.0722 * channel(c.blue);
+  return 0.2126 * channel(c.r) + 0.7152 * channel(c.g) + 0.0722 * channel(c.b);
 }
 
 /// WCAG contrast ratio between two opaque colours (1.0 … 21.0).

@@ -2,7 +2,7 @@ name: padel_app
 description: "Andes Padel — reservas de canchas, torneos y eventos."
 publish_to: 'none'
 
-version: 1.0.0+12
+version: 1.0.0+13
 
 environment:
   sdk: ^3.6.1
