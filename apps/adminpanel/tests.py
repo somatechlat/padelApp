@@ -328,12 +328,8 @@ class TestSettingsClubAdmin:
             "bank_extra",
             "home_section_title_es",
             "home_section_title_en",
-            "home_section_title_pt",
-            "home_section_title_ca",
             "home_greeting_tagline_es",
             "home_greeting_tagline_en",
-            "home_greeting_tagline_pt",
-            "home_greeting_tagline_ca",
         ):
             assert f'name="{name}"' in content, f"settings.html missing field {name}"
 
@@ -359,12 +355,8 @@ class TestSettingsClubAdmin:
                 "bank_extra": "Cuenta corriente",
                 "home_section_title_es": "Reserva tu cancha",
                 "home_section_title_en": "Book your court",
-                "home_section_title_pt": "Reserve sua quadra",
-                "home_section_title_ca": "Reserva la teva pista",
                 "home_greeting_tagline_es": "Bienvenido",
                 "home_greeting_tagline_en": "Welcome",
-                "home_greeting_tagline_pt": "Bem-vindo",
-                "home_greeting_tagline_ca": "Benvingut",
             },
         )
         assert resp.status_code == 302
@@ -571,8 +563,6 @@ class TestBannersAdminCRUD:
             "image",
             "title_es",
             "title_en",
-            "title_pt",
-            "title_ca",
             "subtitle_es",
             "link_type",
             "link_url",

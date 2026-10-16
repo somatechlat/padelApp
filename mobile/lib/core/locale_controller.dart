@@ -19,6 +19,14 @@ class LocaleController extends ChangeNotifier {
   /// Club default. Never follow the device locale.
   static const fallbackCode = 'es';
 
+  /// Languages the app actually ships. Must match
+  /// `AppLocalizations.supportedLocales`.
+  ///
+  /// This is load-bearing: the generated `AppLocalizations` lookup *throws*
+  /// for a locale with no translation class, so a `pt`/`ca` left in storage
+  /// from before those languages were dropped would crash the app on launch.
+  static const supportedCodes = {'es', 'en'};
+
   final TokenStorage _storage;
 
   /// Starts as Spanish. Never null — a null locale lets Flutter fall back to
@@ -38,16 +46,19 @@ class LocaleController extends ChangeNotifier {
     } catch (_) {
       stored = null;
     }
-    // Only a Profile pick may change the language. Anything else stays Spanish.
-    if (stored != null && stored.isNotEmpty && stored != fallbackCode) {
+    // Only a Profile pick may change the language, and only to a language we
+    // still ship. Anything else stays Spanish.
+    if (stored != null && supportedCodes.contains(stored)) {
       _locale = Locale(stored);
-    } else if (stored == fallbackCode) {
     }
     notifyListeners();
   }
 
   /// Apply a language chosen in Profile. This is the ONLY public setter.
   Future<void> setLanguage(String code) async {
+    // The picker only offers supported languages, but guard anyway: persisting
+    // an unsupported code would make `load()` fall back on the next launch.
+    if (!supportedCodes.contains(code)) return;
     try {
       await _storage.write(_key, code);
     } catch (_) {

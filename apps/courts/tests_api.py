@@ -98,13 +98,22 @@ class TestClubAPI:
         assert resp.data["home_section_title"] == "Book your court"
         assert resp.data["home_greeting_tagline"] == "Book your padel court"
 
+        # `ca` is no longer in settings.LANGUAGES (es/en only). The fixture
+        # still carries a Catalan title on purpose: if resolve_request_lang
+        # ever leaked that tag again, this assertion would fail.
         resp = api_client.get("/api/club/", {"lang": "ca"})
-        assert resp.data["home_section_title"] == "Reserva la teva pista"
+        assert resp.data["home_section_title"] == "Reserva tu cancha"
 
     def test_club_titles_resolved_by_accept_language(self, api_client, venue):
+        resp = api_client.get("/api/club/", HTTP_ACCEPT_LANGUAGE="en-US,en;q=0.9")
+        assert resp.status_code == status.HTTP_200_OK
+        assert resp.data["home_section_title"] == "Book your court"
+
+        # Portuguese is not shipped any more: an unsupported Accept-Language
+        # falls back to the club default instead of leaking into the UI.
         resp = api_client.get("/api/club/", HTTP_ACCEPT_LANGUAGE="pt-BR,pt;q=0.9")
         assert resp.status_code == status.HTTP_200_OK
-        assert resp.data["home_section_title"] == "Reserve sua quadra"
+        assert resp.data["home_section_title"] == "Reserva tu cancha"
 
     def test_club_default_lang_is_es(self, api_client, venue):
         resp = api_client.get("/api/club/")

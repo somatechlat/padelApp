@@ -214,10 +214,12 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                     Icon(
                       _iconFor(n['event_type'] as String?),
                       size: 28,
+                      // Read rows are de-emphasised, but a 40% alpha washes
+                      // out to 2.3:1 on a white card and 3.4:1 on the dark
+                      // one — under the 3:1 an icon needs. The muted token
+                      // gives 5.98:1 light / 6.56:1 dark.
                       color: read
-                          ? Theme.of(context).colorScheme.onSurface.withValues(
-                                alpha: 0.4,
-                              )
+                          ? AppColors.mutedFor(Theme.of(context).brightness)
                           : Theme.of(context).colorScheme.primary,
                     ),
                     if (!read)

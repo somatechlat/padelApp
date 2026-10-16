@@ -26,6 +26,15 @@ abstract final class AppColors {
   static const textMuted = Color(0xFF5B6472);
   static const outline = Color(0xFFD8DEE6);
 
+  /// De-emphasised foreground for [brightness], used anywhere a row needs to
+  /// recede without disappearing.
+  ///
+  /// This exists as a helper rather than `onSurface.withValues(alpha: 0.4)`,
+  /// which only reached 2.3:1 on white and 3.4:1 in dark — under the 3:1 an
+  /// icon needs. These tokens measure 5.98:1 (light) and 6.56:1 (dark).
+  static Color mutedFor(Brightness brightness) =>
+      brightness == Brightness.dark ? textMutedDark : textMuted;
+
   // ── Dark mode ──
   static const backgroundDark = Color(0xFF001219);
   static const surfaceDark = Color(0xFF001F2E);
@@ -57,6 +66,15 @@ abstract final class AppTheme {
     final brandBg = isDark ? AppColors.brandLight : AppColors.brand;
     final readable = isDark ? AppColors.brandLight : AppColors.brandReadable;
     final navSelected = isDark ? AppColors.accent : AppColors.brand;
+    // The selected bottom-nav label/icon sits ON the indicator pill, so the
+    // pair has to move together. Measured with WCAG relative luminance:
+    //   lemon #CEDC29 on pale-lime #E8EFB0 = 1.25:1   (dark mode, invisible)
+    //   white on pale-lime                  = 1.21:1   (dark chips, invisible)
+    //   navy #002F48 on pale-lime           = 11.60:1  (light mode, kept)
+    //   brandDeep on lemon                  = 11.64:1  (dark mode, new)
+    // Anything here must clear 4.5:1 for text, 3:1 for icons.
+    final navIndicator = isDark ? AppColors.accent : AppColors.accentSoft;
+    final navSelectedFg = isDark ? AppColors.brandDeep : navSelected;
     final scheme = ColorScheme.fromSeed(
       seedColor: AppColors.brand,
       brightness: brightness,
@@ -172,7 +190,7 @@ abstract final class AppTheme {
       ),
       chipTheme: ChipThemeData(
         backgroundColor: scheme.surface,
-        selectedColor: AppColors.accentSoft,
+        selectedColor: isDark ? AppColors.brandLight : AppColors.accentSoft,
         side: BorderSide(color: outline),
         shape: const StadiumBorder(),
         labelStyle: TextStyle(color: onSurface),
@@ -184,7 +202,7 @@ abstract final class AppTheme {
       navigationBarTheme: NavigationBarThemeData(
         backgroundColor: scheme.surface,
         surfaceTintColor: Colors.transparent,
-        indicatorColor: AppColors.accentSoft,
+        indicatorColor: navIndicator,
         height: 72,
         labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
         labelTextStyle: WidgetStateProperty.resolveWith((states) {
@@ -194,13 +212,13 @@ abstract final class AppTheme {
             fontSize: 12,
             height: 1.15,
             fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-            color: selected ? navSelected : muted,
+            color: selected ? navSelectedFg : muted,
             overflow: TextOverflow.ellipsis,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final selected = states.contains(WidgetState.selected);
-          return IconThemeData(color: selected ? navSelected : muted);
+          return IconThemeData(color: selected ? navSelectedFg : muted);
         }),
       ),
       snackBarTheme: SnackBarThemeData(

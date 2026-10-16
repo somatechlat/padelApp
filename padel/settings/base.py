@@ -128,8 +128,6 @@ LANGUAGE_CODE = "es"
 LANGUAGES = [
     ("es", _("Espanol")),
     ("en", _("English")),
-    ("pt", _("Portugues")),
-    ("ca", _("Catalan")),
 ]
 LOCALE_PATHS = [BASE_DIR / "locale"]
 USE_I18N = True

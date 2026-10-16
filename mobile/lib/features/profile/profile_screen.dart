@@ -15,8 +15,6 @@ class ProfileScreen extends StatelessWidget {
   static const _languages = [
     ('es', 'Español'),
     ('en', 'English'),
-    ('pt', 'Português'),
-    ('ca', 'Català'),
   ];
 
   Future<void> _confirmLogout(BuildContext context) async {

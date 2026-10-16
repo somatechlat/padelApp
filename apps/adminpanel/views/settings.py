@@ -172,7 +172,7 @@ class SettingsAdminView(FinanceRequiredMixin, TemplateView):
     def _apply_club_i18n_fields(request, venue):
         section = dict(venue.home_section_title_i18n or {})
         greeting = dict(venue.home_greeting_tagline_i18n or {})
-        for lang in ("es", "en", "pt", "ca"):
+        for lang in ("es", "en"):
             if f"home_section_title_{lang}" in request.POST:
                 section[lang] = request.POST.get(f"home_section_title_{lang}", "").strip()
             if f"home_greeting_tagline_{lang}" in request.POST:

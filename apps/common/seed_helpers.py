@@ -23,14 +23,10 @@ CLUB_DEFAULTS = {
     "home_section_title_i18n": {
         "es": "Reserva tu cancha",
         "en": "Book your court",
-        "pt": "Reserve sua quadra",
-        "ca": "Reserva la teva pista",
     },
     "home_greeting_tagline_i18n": {
         "es": "Reserva tu cancha de pádel",
         "en": "Book your padel court",
-        "pt": "Reserve sua quadra de pádel",
-        "ca": "Reserva la teva pista de pàdel",
     },
     "bank_name": "Banco Pichincha",
     "bank_account_number": "21001234567890",
@@ -45,14 +41,10 @@ BANNER_SEEDS = [
         "title_i18n": {
             "es": "Torneo de Verano",
             "en": "Summer Tournament",
-            "pt": "Torneio de Verão",
-            "ca": "Torneig d'Estiu",
         },
         "subtitle_i18n": {
             "es": "Inscripciones abiertas",
             "en": "Registration open",
-            "pt": "Inscrições abertas",
-            "ca": "Inscripcions obertes",
         },
         "link_type": PromoBanner.LinkType.EVENT,
         "link_url": "",
@@ -63,14 +55,10 @@ BANNER_SEEDS = [
         "title_i18n": {
             "es": "Quedadas de Pádel",
             "en": "Padel Meetups",
-            "pt": "Encontros de Pádel",
-            "ca": "Trobades de Pàdel",
         },
         "subtitle_i18n": {
             "es": "Cada semana",
             "en": "Every week",
-            "pt": "Toda semana",
-            "ca": "Cada setmana",
         },
         "link_type": PromoBanner.LinkType.NONE,
         "link_url": "",
@@ -81,14 +69,10 @@ BANNER_SEEDS = [
         "title_i18n": {
             "es": "Academia Andes",
             "en": "Andes Academy",
-            "pt": "Academia Andes",
-            "ca": "Acadèmia Andes",
         },
         "subtitle_i18n": {
             "es": "Clases y entrenamiento",
             "en": "Lessons and training",
-            "pt": "Aulas e treino",
-            "ca": "Classes i entrenament",
         },
         "link_type": PromoBanner.LinkType.NONE,
         "link_url": "",
@@ -99,14 +83,10 @@ BANNER_SEEDS = [
         "title_i18n": {
             "es": "Ligas Internas",
             "en": "Internal Leagues",
-            "pt": "Ligas Internas",
-            "ca": "Lligues Internes",
         },
         "subtitle_i18n": {
             "es": "Temporada en curso",
             "en": "Season in progress",
-            "pt": "Temporada em andamento",
-            "ca": "Temporada en curs",
         },
         "link_type": PromoBanner.LinkType.NONE,
         "link_url": "",

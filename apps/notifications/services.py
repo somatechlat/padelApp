@@ -11,6 +11,7 @@ from apps.notifications.models import (
     Notification,
     NotificationPreference,
 )
+from apps.users.emails import notification_email_html
 
 TRANSACTIONAL_EVENTS = {
     "booking_confirmed",
@@ -221,6 +222,7 @@ class NotificationService:
                     settings.DEFAULT_FROM_EMAIL,
                     [user.email],
                     fail_silently=False,
+                    html_message=notification_email_html(title, body),
                 )
             except Exception:
                 logging.getLogger(__name__).exception(
@@ -303,6 +305,7 @@ class NotificationService:
                     settings.DEFAULT_FROM_EMAIL,
                     [venue.booking_alert_email],
                     fail_silently=False,
+                    html_message=notification_email_html(title, body),
                 )
             except Exception:
                 logging.getLogger(__name__).exception(

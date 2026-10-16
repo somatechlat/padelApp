@@ -21,7 +21,7 @@ def validate_image_upload(uploaded, field_label="imagen"):
 
 def i18n_from_post(request, prefix):
     data = {}
-    for lang in ("es", "en", "pt", "ca"):
+    for lang in ("es", "en"):
         value = (request.POST.get(f"{prefix}_{lang}") or "").strip()
         if value:
             data[lang] = value

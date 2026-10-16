@@ -404,30 +404,60 @@ cd mobile
 
 ## 6. i18n rules
 
-Four locales everywhere: **es, en, ca, pt**. Spanish is the default and the
-fallback; device locale is deliberately ignored.
+**Two locales: es, en.** Catalan and Portuguese were removed everywhere on
+2026-10-16 at the operator's request (ARBs, `settings.LANGUAGES`, the profile
+picker, `locale/`, admin i18n fields). Treat that as a product decision, not a
+cleanup: removing a language later is a migration, because stored
+`language_code` values and i18n dicts keep referencing it. Spanish is the
+default and the fallback; device locale is deliberately ignored.
 
 ### Flutter
 
-- ARBs live in `mobile/lib/core/l10n/app_{es,en,ca,pt}.arb`.
+- ARBs live in `mobile/lib/core/l10n/app_{es,en}.arb`.
 - `mobile/l10n.yaml` sets `template-arb-file: app_es.arb`.
-- **Adding a key means adding it to all four ARBs in the same change.** Because
-  the template is `app_es.arb`, a key missing from `ca`/`pt` compiles fine and
-  shows **Spanish** to those users. This has already shipped once — the entire
-  payment flow was Spanish for Catalan/Portuguese users.
+- **Adding a key means adding it to both ARBs in the same change.** Because the
+  template is `app_es.arb`, a key missing from `app_en.arb` compiles fine and
+  shows **Spanish** to English users. This has already shipped once — the entire
+  payment flow was Spanish for non-Spanish users.
 - After editing ARBs run `flutter gen-l10n` and commit the regenerated
-  `app_localizations*.dart`.
-- Language endonyms in the profile picker (`Español`, `English`, `Português`,
-  `Català`) are intentional and are **not** a translation miss.
+  `app_localizations*.dart`. **`gen-l10n` does not delete stale
+  `app_localizations_<locale>.dart`** — with the ARB gone the class still
+  compiles and just sits there. Remove it by hand.
+- `LocaleController.supportedCodes` must stay in sync with
+  `AppLocalizations.supportedLocales`. The generated lookup **throws** for an
+  unsupported locale, so a `pt` left in secure storage from before the cull
+  would crash on launch; the controller ignores any stored code outside that
+  set, and `setLanguage` refuses one.
+- Language endonyms in the profile picker (`Español`, `English`) are
+  intentional and are **not** a translation miss.
 
 ### Django
 
-- Catalogs in `locale/{es,en,ca,pt}/LC_MESSAGES/django.{po,mo}`.
+- Catalogs in `locale/{es,en}/LC_MESSAGES/django.{po,mo}`.
+- `settings.LANGUAGES` is `es`/`en` only. `resolve_request_lang()` reads it, so
+  `?lang=ca` and `Accept-Language: pt` now fall back to Spanish — that is the
+  contract, and `apps/courts/tests_api.py` pins it with a fixture that still
+  carries Catalan on purpose, so a leak would fail the test.
 - Wrap user-visible strings: `gettext as _` in views,
   `gettext_lazy as _` in models.
 - Source strings are Spanish. After adding one:
-  `python3 -m django makemessages -l es -l en -l ca -l pt`, translate the empty
+  `python3 -m django makemessages -l es -l en`, translate the empty
   `msgstr`, then `msgfmt -o <po> <mo>`. Commit both `.po` and `.mo`.
+- **`msgfmt` silently drops `fuzzy` and empty-`msgstr` entries from the `.mo`.**
+  The catalogue then looks translated in git while `gettext()` hands back the
+  source string at runtime. `locale/es` shipped exactly that way — 17 fuzzy +
+  2 empty — so Spanish users received English notifications, and the stale
+  fuzzy `msgstr` were *wrong* (`Payment failed` → "Pago recibido", `Transfer
+  rejected` → "Transferencia confirmada"). Un-flagging them would have shipped
+  opposite-meaning messages; they needed real translations. After any
+  `msgmerge`/`makemessages`, run
+  `msgfmt --statistics -o /dev/null <po>` and require **0 fuzzy, 0 untranslated**
+  before deploying. `apps/notifications/tests.py` asserts every
+  `MESSAGE_TEMPLATES` msgid is present in the compiled catalogue for both locales.
+- Emails are multipart: `apps/notifications/services.py` passes
+  `html_message=notification_email_html(...)`, built on the same branded
+  `apps/users/emails.py` shell the auth mails use. A notification mail without
+  an HTML part is a regression.
 - **msgid must match the source byte-for-byte**, accents included. A catalog
   entry of `Credenciales invalidas` does not match code that calls
   `_("Credenciales inválidas")`.

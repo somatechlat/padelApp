@@ -97,7 +97,20 @@ def _reset_url(token: str) -> str:
     return f"{settings.SITE_BASE_URL}{path}?token={token}"
 
 
-def _layout(body: str, title: str) -> str:
+# Footer disclaimer under every transactional email. A default keeps the auth
+# mails worded exactly as they always have while notification mails get wording
+# that fits them -- they are not about creating an account.
+DEFAULT_FOOTER_NOTE = (
+    "Est\u00e1s recibiendo este correo porque se cre\u00f3 una cuenta o se solicit\u00f3 un cambio "
+    "con tu direcci\u00f3n en Andes P\u00e1del."
+)
+NOTIFICATION_FOOTER_NOTE = (
+    "Est\u00e1s recibiendo este correo porque tienes una cuenta en Andes P\u00e1del y "
+    "activaste los avisos de reservas, pagos y torneos."
+)
+
+
+def _layout(body: str, title: str, note: str = DEFAULT_FOOTER_NOTE) -> str:
     return f"""\
 <!DOCTYPE html>
 <html lang="es">
@@ -149,8 +162,7 @@ def _layout(body: str, title: str) -> str:
                 <a href="{CLUB_SITE}" style="color:{BRAND_LIGHT};text-decoration:underline;">{CLUB_SITE_LABEL}</a>
               </div>
               <div style="margin-top:14px;font-size:12px;color:{MUTED};line-height:1.7;">
-                Estás recibiendo este correo porque se creó una cuenta o se solicitó un cambio
-                con tu dirección en Andes Pádel.<br>
+                {note}<br>
                 <a href="{CLUB_PRIVACY}" style="color:{BRAND_LIGHT};text-decoration:underline;">Política de privacidad</a>
                 &nbsp;·&nbsp;
                 <a href="{CLUB_PRIVACY}" style="color:{BRAND_LIGHT};text-decoration:underline;">Términos del servicio</a>
@@ -204,6 +216,32 @@ def _steps(items: list[str]) -> str:
         for i in items
     )
     return f'<ol style="margin:0 0 18px;padding-left:20px;">{rows}</ol>'
+
+
+def notification_email_html(title: str, body: str) -> str:
+    """Branded HTML body for a transactional notification.
+
+    ``title``/``body`` are arbitrary localized strings produced by
+    ``NotificationService._localize``, so both are escaped and the body keeps
+    its line breaks (booking details come as multi-line text).
+    """
+    safe_title = html_escape((title or "").strip()) or "Notificaci\u00f3n"
+    safe_body = html_escape((body or "").strip())
+    content = f"""
+      <div style="font-size:13px;color:{MUTED};letter-spacing:0.5px;text-transform:uppercase;font-weight:700;">
+        Notificaci\u00f3n
+      </div>
+      <h1 style="margin:10px 0 16px;font-size:24px;line-height:1.3;color:{BRAND};font-weight:800;">
+        {safe_title}
+      </h1>
+      <div style="background:{BG};border-left:4px solid {ACCENT};border-radius:0 12px 12px 0;padding:18px 20px;margin:0 0 8px;">
+        <p style="margin:0;font-size:15px;color:{BRAND};line-height:1.7;white-space:pre-wrap;">{safe_body}</p>
+      </div>
+      <p style="margin:16px 0 4px;font-size:13px;color:{MUTED};line-height:1.6;">
+        Consulta tus reservas y todos tus avisos en la app de <strong>Andes P\u00e1del</strong>.
+      </p>
+    """
+    return _layout(content, safe_title, note=NOTIFICATION_FOOTER_NOTE)
 
 
 def verification_email_html(user, code: str, token: str) -> tuple[str, str]:

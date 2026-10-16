@@ -234,3 +234,64 @@ class TestLocalizedMessages:
 
         n = Notification.objects.get(user=user, event_type="booking_reminder")
         assert "C1" in n.body
+
+    @pytest.mark.parametrize("lang", ["es", "en"])
+    def test_every_template_msgid_is_compiled_into_the_catalogue(self, lang):
+        """The compiled .mo must cover every notification string.
+
+        Tripwire for a shipped regression: locale/es carried 17 `fuzzy`
+        entries and 2 empty msgstr. msgfmt drops fuzzy and empty entries when
+        building the .mo, so gettext() silently returned the English source
+        and Spanish users got English notifications -- a cash booking stored
+        title 'Pay at the venue'. The stale fuzzy msgstr were also *wrong*
+        ('Payment failed' -> 'Pago recibido'), so the fix had to be real
+        translations, not merely dropping the flag.
+        """
+        import gettext as pygettext
+        from pathlib import Path
+
+        from django.conf import settings
+
+        from apps.notifications.services import MESSAGE_TEMPLATES
+
+        mo = Path(settings.LOCALE_PATHS[0]) / lang / "LC_MESSAGES" / "django.mo"
+        assert mo.exists(), f"missing compiled catalogue: {mo}"
+        with mo.open("rb") as fh:
+            # GNUTranslations has no public catalog accessor on every CPython
+            # build; _catalog is the parsed msgid -> msgstr mapping either way.
+            catalog = pygettext.GNUTranslations(fh)._catalog
+        missing = sorted(
+            {
+                msgid
+                for title, body in MESSAGE_TEMPLATES.values()
+                for msgid in (title, body)
+                if msgid not in catalog
+            }
+        )
+        assert not missing, (
+            f"{lang}: {len(missing)} notification strings are absent from the "
+            f"compiled catalogue and would ship untranslated: {missing}"
+        )
+
+    def test_notification_email_carries_the_branded_html_alternative(self, user, mailoutbox):
+        """Transactional mail must be multipart: plain text + branded HTML.
+
+        send_mail() was called without `html_message`, so every notification
+        arrived as raw unformatted text.
+        """
+        from apps.notifications.services import NotificationService
+
+        NotificationService.notify(
+            user,
+            "booking_confirmed",
+            data={"court": "C1", "date": "2026-08-15", "time": "10:00", "booking_id": 1},
+        )
+        assert len(mailoutbox) == 1
+        mail = mailoutbox[0]
+        assert mail.alternatives, "notification email has no HTML alternative"
+        payload, mimetype = mail.alternatives[0]
+        assert mimetype == "text/html"
+        assert "<!DOCTYPE html>" in payload
+        assert "Andes" in payload
+        assert "Reserva confirmada" in payload
+        assert mail.body.strip(), "the plain-text part must be kept"
