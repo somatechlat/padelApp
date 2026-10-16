@@ -167,3 +167,34 @@ class TestPaymentSafetyBounds:
             with pytest.raises(ValueError):
                 PaymentService.record_cash_on_arrival(booking, booking.price)
         assert Payment.objects.count() == before
+
+    def test_cash_on_arrival_is_idempotent(self, confirmed_booking):
+        """A double-tap on "Pagar en el establecimiento" must not pay twice.
+
+        PaymentMethodScreen had no submitting state, so on a slow network the
+        customer tapped again while the first request was still in flight.
+        Production booking #20 collected six cash payments and the player was
+        sent six "Pago en el establecimiento" notices from a single
+        reservation. confirm_transfer and refund already refuse to run twice;
+        the cash-on-arrival path needs the same guarantee, because no client
+        change can promise a single tap (retries, flaky networks, two devices).
+        """
+        from apps.notifications.models import Notification
+        from apps.payments.models import Payment
+        from apps.payments.services import PaymentService
+
+        first = PaymentService.record_cash_on_arrival(
+            confirmed_booking, confirmed_booking.price
+        )
+        second = PaymentService.record_cash_on_arrival(
+            confirmed_booking, confirmed_booking.price
+        )
+
+        assert second.id == first.id, "the repeat tap must hand back the existing payment"
+        assert Payment.objects.filter(booking=confirmed_booking).count() == 1
+        assert (
+            Notification.objects.filter(
+                user=confirmed_booking.user, event_type="payment_cash_on_arrival"
+            ).count()
+            == 1
+        )

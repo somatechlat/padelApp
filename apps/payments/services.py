@@ -157,19 +157,38 @@ class PaymentService:
         payment stays open until staff collects it, the booking is confirmed up
         front and admins get an immediate alert.
         """
+        # The app cannot promise a single tap: on a slow network a repeat tap
+        # looks exactly like "nothing happened yet". So a repeat request returns
+        # the payment that already exists instead of charging the player and
+        # notifying them again — production booking #20 collected six cash
+        # payments from one reservation this way. The booking row is locked so
+        # two racing taps cannot both pass the check, the same guarantee
+        # confirm_transfer already gives.
+        from apps.bookings.models import Booking
+
         with transaction.atomic():
+            locked = Booking.objects.select_for_update().get(pk=booking.pk)
+            already_paid = (
+                Payment.objects.filter(booking=locked, method=Payment.Method.CASH)
+                .exclude(status=Payment.Status.REFUNDED)
+                .order_by("id")
+                .first()
+            )
+            if already_paid is not None:
+                return already_paid
             payment = Payment.objects.create(
-                booking=booking,
-                user=booking.user,
+                booking=locked,
+                user=locked.user,
                 method=Payment.Method.CASH,
                 amount=amount,
                 currency="USD",
                 status=Payment.Status.PENDING if on_arrival else Payment.Status.CAPTURED,
             )
-            if on_arrival and booking.status == "pending_payment":
+            if on_arrival and locked.status == "pending_payment":
                 # If the booking cannot be confirmed (cancelled in a race, say),
                 # roll back so there is no orphan Payment row left behind.
-                booking.transition_to("confirmed")
+                locked.transition_to("confirmed")
+            booking.status = locked.status
         log_event(
             booking.user,
             "payment.cash_on_arrival" if on_arrival else "payment.cash_recorded",
