@@ -635,8 +635,9 @@ Ordered by cost of ignoring it. Paid down on 2026-09-29; what remains:
 |---|---|
 | App Store Connect app | **AndesPadel**, id `6806321664` |
 | Bundle id | `com.andes.padel.padelApp` |
-| Version / build | 1.0 / **9** (`mobile/pubspec.yaml` `1.0.0+9`) |
-| Status | **1.0 / build 9 ready** — build attached 2026-10-07; click Submit for Review (API key cannot CREATE submissions) |
+| Version / build | 1.0 / **13** (`mobile/pubspec.yaml` `1.0.0+13`) |
+| Status | **1.0 / build 13 submitted for review 2026-10-16** — `WAITING_FOR_REVIEW`, release after approval. Builds 1–12 all expired (TestFlight builds expire ~90 days after upload). |
+| Android | `1.0.0+13` (`versionCode 13`) live on the landing page: `https://app.andespadelclub.com/padelapp.apk`. Prior build kept as `padelapp.apk.prev`. |
 | Age rating | 4+ (only `userGeneratedContent` flagged) |
 | Primary category | Sports (secondary: Health & Fitness) |
 | Price | Free — no Paid Apps agreement, no banking/tax needed |
@@ -716,8 +717,27 @@ Play listing permanently.
 - **Asset upload:** the returned `uploadOperations` URLs are **pre-signed S3**.
   Sending `Authorization` breaks the signature — use only the given headers.
 - **Submit for Review:** the API refuses `CREATE` on
-  `appStoreVersionSubmissions` for an **App Manager** key. Admin role, or a
-  click in the web UI.
+  `appStoreVersionSubmissions` (403 "Allowed operation is: DELETE") — **even
+  for an Admin key**. Use the newer `reviewSubmissions` resource instead:
+  `POST /v1/reviewSubmissions` (platform + app) → `POST /v1/reviewSubmissionItems`
+  (relationship to the `appStoreVersion`) → `PATCH /v1/reviewSubmissions/{id}`
+  with `{"attributes":{"submitted":true}}`. Used for builds 12 and 13 on
+  2026-10-16.
+- **Changing the build of a version that is `WAITING_FOR_REVIEW`** returns 409
+  `ENTITY_ERROR.RELATIONSHIP.INVALID.INVALID_STATE`. You must withdraw the
+  submission first, attach the new build, then resubmit. Withdrawing is
+  **not** possible through the resource that created it — `reviewSubmissions`
+  allows only `CREATE, GET_COLLECTION, GET_INSTANCE, UPDATE`, and `PATCH
+  {"submitted":false}` is rejected ("submitted must be set to true if
+  present"); deleting an item gives "Item was already submitted". The one call
+  that does work is the **legacy** one:
+  `DELETE /v1/appStoreVersionSubmissions/{versionId}` (204) — it flips the
+  `reviewSubmission` to `CANCELING` and the version to `DEVELOPER_REJECTED`
+  after ~30–60s, at which point the build can be swapped. Done twice on
+  2026-10-16 (build 12 → 13).
+- **Builds cannot be deleted.** `DELETE /v1/builds/{id}` → 403 ("Allowed
+  operations are: GET_COLLECTION, GET_INSTANCE, UPDATE"). They simply expire
+  (~90 days) and fall out of TestFlight on their own.
 - **Android:** no upload tooling in this repo. Drag the AAB into Play Console,
   or use the Play Developer API with a service-account JSON.
 
