@@ -246,6 +246,18 @@ class AppLocalizationsEn extends AppLocalizations {
   String get bookingStatus_held => 'On hold';
 
   @override
+  String get bookingStatus_pendingPayment => 'Awaiting payment';
+
+  @override
+  String get bookingStatus_inProgress => 'In progress';
+
+  @override
+  String get bookingStatus_completed => 'Completed';
+
+  @override
+  String get bookingStatus_noShow => 'No-show';
+
+  @override
   String get events => 'Events';
 
   @override
@@ -455,6 +467,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get selectSlot => 'Select an available time';
 
   @override
+  String get labelDate => 'Date';
+
+  @override
+  String get labelHour => 'Time';
+
+  @override
   String get noAvailableSlots => 'No available times for that date';
 
   @override
@@ -482,8 +500,7 @@ class AppLocalizationsEn extends AppLocalizations {
   String get paymentSuccess => 'Booking confirmed!';
 
   @override
-  String get paymentPending =>
-      'Booking confirmed. Your payment is pending confirmation.';
+  String get paymentPending => 'Your payment has not been completed yet.';
 
   @override
   String get paymentError => 'Payment could not be processed. Try again.';

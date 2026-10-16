@@ -80,6 +80,8 @@ class BookingCourtStep extends StatelessWidget {
               theme: theme,
               l10n: l10n,
               court: c,
+              duration: duration,
+              price: entry['price'] as String?,
               selected: selected,
               onTap: () => onCourtSelected(c),
             );
@@ -128,6 +130,8 @@ class _CourtTile extends StatelessWidget {
     required this.theme,
     required this.l10n,
     required this.court,
+    required this.duration,
+    required this.price,
     required this.selected,
     required this.onTap,
   });
@@ -135,6 +139,8 @@ class _CourtTile extends StatelessWidget {
   final ThemeData theme;
   final AppLocalizations l10n;
   final Map<String, dynamic> court;
+  final int duration;
+  final String? price;
   final bool selected;
   final VoidCallback onTap;
 
@@ -155,8 +161,11 @@ class _CourtTile extends StatelessWidget {
         child: ListTile(
           contentPadding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+          // Selection is carried by the leading mark and the card border, so
+          // the trailing slot is free for the price — the one number the
+          // customer is deciding on.
           leading: Icon(
-            Icons.sports_tennis_outlined,
+            selected ? Icons.check_circle : Icons.sports_tennis_outlined,
             size: 28,
             color: theme.colorScheme.primary,
           ),
@@ -168,16 +177,46 @@ class _CourtTile extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           subtitle: Text(
-            '${court['court_type']} · \$${court['price_base']} ${l10n.perHour}',
+            '$duration ${l10n.durationMin} · ${l10n.total}',
             style: const TextStyle(fontSize: BookDim.courtSubtitleSize),
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
           ),
-          trailing: selected
-              ? Icon(Icons.check_circle, color: theme.colorScheme.primary)
-              : const Icon(Icons.chevron_right),
+          trailing: _PriceTag(price: price),
           onTap: onTap,
         ),
+      ),
+    );
+  }
+}
+
+/// Price for this court at the chosen date and start time.
+///
+/// Deliberately not a court's static `price_base`: the club charges per
+/// franja horaria, so the same court quotes a different amount at 07:00 than
+/// at 19:00. While the quote is in flight the slot shows a spinner rather
+/// than a number the court may not honour.
+class _PriceTag extends StatelessWidget {
+  const _PriceTag({required this.price});
+
+  final String? price;
+
+  @override
+  Widget build(BuildContext context) {
+    if (price == null) {
+      return const SizedBox(
+        width: 18,
+        height: 18,
+        child: CircularProgressIndicator(strokeWidth: 2),
+      );
+    }
+    return Text(
+      '\$$price',
+      textAlign: TextAlign.end,
+      style: TextStyle(
+        fontSize: BookDim.courtTitleSize,
+        fontWeight: FontWeight.w700,
+        color: Theme.of(context).colorScheme.primary,
       ),
     );
   }

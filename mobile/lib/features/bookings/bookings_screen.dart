@@ -46,10 +46,19 @@ class _BookingsScreenState extends State<BookingsScreen> {
     switch (status) {
       case 'confirmed':
         return (l10n.bookingStatus_confirmed, AppColors.success);
+      // `pending_payment` is what the API actually returns while the booking
+      // is waiting for cash/transfer; `pending` is kept as a defensive alias.
+      case 'pending_payment':
       case 'pending':
-        return (l10n.bookingStatus_pending, AppColors.warning);
+        return (l10n.bookingStatus_pendingPayment, AppColors.warning);
+      case 'in_progress':
+        return (l10n.bookingStatus_inProgress, scheme.primary);
+      case 'completed':
+        return (l10n.bookingStatus_completed, AppColors.brandLight);
       case 'cancelled':
         return (l10n.bookingStatus_cancelled, AppColors.danger);
+      case 'no_show':
+        return (l10n.bookingStatus_noShow, AppColors.danger);
       case 'held':
         return (l10n.bookingStatus_held, scheme.primary);
       default:
@@ -129,7 +138,8 @@ class _BookingsScreenState extends State<BookingsScreen> {
         itemBuilder: (context, i) {
           final b = bookings[i] as Map<String, dynamic>;
           final status = (b['status'] as String?) ?? '';
-          final cancellable = status == 'confirmed' || status == 'pending';
+          final cancellable =
+              status == 'confirmed' || status == 'pending_payment';
           final (label, color) = _status(context, status);
           return Padding(
             padding: const EdgeInsets.only(bottom: AppSpacing.sm),

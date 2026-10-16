@@ -10,13 +10,16 @@ class PriceRuleAdmin(RoleGatedAdmin):
         "name",
         "venue",
         "zone",
-        "day_of_week",
+        "day_scope_display",
         "court_type",
+        "start_time",
+        "end_time",
+        "price",
         "multiplier",
         "priority",
         "active",
     )
-    list_filter = ("zone", "active", "venue")
+    list_filter = ("zone", "scope", "active", "venue")
     search_fields = ("name",)
 
 

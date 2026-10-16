@@ -1,6 +1,8 @@
+from datetime import datetime
 from decimal import Decimal
 
 from django.contrib import messages
+from django.core.exceptions import ValidationError
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import TemplateView
 
@@ -10,6 +12,92 @@ from apps.courts.models import Venue
 from apps.policies.models import CancellationPolicy
 from apps.pricing.models import Holiday, PriceRule
 from apps.security.services import log_event
+
+
+def _parse_time(raw):
+    """Blank -> None. 'HH:MM' or 'HH:MM:SS' from <input type="time">, else raise."""
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    for fmt in ("%H:%M:%S", "%H:%M"):
+        try:
+            return datetime.strptime(raw, fmt).time()
+        except ValueError:
+            pass
+    raise ValueError(raw)
+
+
+def _parse_amount(raw):
+    """Blank -> None. Anything unparseable or negative raises, so no default is applied."""
+    raw = (raw or "").strip()
+    if not raw:
+        return None
+    try:
+        amount = Decimal(raw)
+    except ArithmeticError:
+        raise ValueError(raw) from None
+    if not amount.is_finite() or amount < 0:
+        raise ValueError(raw) from None
+    return amount
+
+
+def _read_pricerule(request):
+    """Read the price-rule form into a dict. Raises ValueError carrying a user message.
+
+    A rule states a day, a time window, and exactly one way of expressing its price:
+    an absolute hourly amount, or a multiplier over the court's base price.
+    """
+    name = (request.POST.get("name") or "").strip()
+    if not name:
+        raise ValueError("El nombre de la regla es obligatorio.")
+
+    scope = request.POST.get("scope") or PriceRule.Scope.ALL
+    if scope not in PriceRule.Scope.values:
+        raise ValueError("El ambito de dias no es valido.")
+
+    day_raw = (request.POST.get("day_of_week") or "").strip()
+    if day_raw:
+        try:
+            day_of_week = int(day_raw)
+        except ValueError:
+            day_of_week = -1
+        if day_of_week not in (0, 1, 2, 3, 4, 5, 6):
+            raise ValueError("El dia especificado no es valido.")
+    else:
+        day_of_week = None
+
+    try:
+        start_time = _parse_time(request.POST.get("start_time"))
+        end_time = _parse_time(request.POST.get("end_time"))
+        price = _parse_amount(request.POST.get("price"))
+        multiplier = _parse_amount(request.POST.get("multiplier"))
+        priority = int((request.POST.get("priority") or "").strip() or 10)
+    except (ValueError, ArithmeticError):
+        raise ValueError("Horario, precio, multiplicador o prioridad invalidos.") from None
+
+    if (start_time is None) != (end_time is None):
+        raise ValueError("Indique la hora de inicio y la hora de fin, o ninguna de las dos.")
+    if start_time and end_time and start_time >= end_time:
+        raise ValueError("La hora de fin debe ser posterior a la hora de inicio.")
+    if price is None and multiplier is None:
+        raise ValueError("Indique el precio por hora o el multiplicador.")
+    if price is not None and multiplier is not None:
+        raise ValueError("Indique el precio por hora o el multiplicador, no ambos.")
+    if priority < 0:
+        raise ValueError("La prioridad no puede ser negativa.")
+
+    return {
+        "name": name,
+        "zone": request.POST.get("zone") or PriceRule.Zone.VALLE,
+        "scope": scope,
+        "day_of_week": day_of_week,
+        "court_type": request.POST.get("court_type") or None,
+        "start_time": start_time,
+        "end_time": end_time,
+        "price": price,
+        "multiplier": multiplier,
+        "priority": priority,
+    }
 
 
 class SettingsAdminView(FinanceRequiredMixin, TemplateView):
@@ -150,42 +238,37 @@ class SettingsAdminView(FinanceRequiredMixin, TemplateView):
         log_event(request.user, "admin.policy_delete", "CancellationPolicy", int(policy_id))
 
     def _action_create_pricerule(self, request):
-        name = request.POST.get("name", "")
-        zone = request.POST.get("zone", "valle")
-        court_type = request.POST.get("court_type") or None
         try:
-            multiplier = Decimal(request.POST.get("multiplier", "1.000"))
-            priority = int(request.POST.get("priority", 10))
-        except (ValueError, TypeError, ArithmeticError):
-            messages.error(request, "Multiplicador o prioridad invalidos.")
+            fields = _read_pricerule(request)
+            rule = PriceRule(venue=self._venue(), **fields)
+            rule.full_clean()
+        except ValueError as exc:
+            messages.error(request, str(exc))
             return
-        PriceRule.objects.create(
-            venue=self._venue(),
-            name=name,
-            zone=zone,
-            court_type=court_type,
-            multiplier=multiplier,
-            priority=priority,
-        )
-        messages.success(request, f"Regla '{name}' creada.")
-        log_event(request.user, "admin.pricerule_create", "PriceRule", 0)
+        except ValidationError as exc:
+            messages.error(request, " ".join(exc.messages))
+            return
+        rule.save()
+        messages.success(request, f"Regla '{rule.name}' creada.")
+        log_event(request.user, "admin.pricerule_create", "PriceRule", rule.id)
 
     def _action_edit_pricerule(self, request):
-        r = get_object_or_404(PriceRule, id=request.POST.get("pricerule_id"))
+        rule = get_object_or_404(PriceRule, id=request.POST.get("pricerule_id"))
         try:
-            multiplier = Decimal(request.POST.get("multiplier", str(r.multiplier)))
-            priority = int(request.POST.get("priority", r.priority))
-        except (ValueError, TypeError, ArithmeticError):
-            messages.error(request, "Multiplicador o prioridad invalidos.")
+            fields = _read_pricerule(request)
+        except ValueError as exc:
+            messages.error(request, str(exc))
             return
-        r.name = request.POST.get("name", r.name)
-        r.zone = request.POST.get("zone", r.zone)
-        r.court_type = request.POST.get("court_type") or None
-        r.multiplier = multiplier
-        r.priority = priority
-        r.save()
-        messages.success(request, f"Regla '{r.name}' actualizada.")
-        log_event(request.user, "admin.pricerule_edit", "PriceRule", r.id)
+        for key, value in fields.items():
+            setattr(rule, key, value)
+        try:
+            rule.full_clean()
+        except ValidationError as exc:
+            messages.error(request, " ".join(exc.messages))
+            return
+        rule.save()
+        messages.success(request, f"Regla '{rule.name}' actualizada.")
+        log_event(request.user, "admin.pricerule_edit", "PriceRule", rule.id)
 
     def _action_delete_pricerule(self, request):
         pricerule_id = request.POST.get("pricerule_id")

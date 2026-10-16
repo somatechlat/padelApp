@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import datetime, time, timedelta
+from decimal import Decimal
 
 import pytest
 from django.contrib.auth import get_user_model
@@ -10,6 +11,7 @@ from apps.bookings.models import Booking
 from apps.courts.models import Court, PromoBanner, Venue, resolve_i18n
 from apps.payments.admin import PaymentAdmin
 from apps.payments.models import Payment
+from apps.pricing.models import PriceRule
 from apps.security.models import AuditLog
 from apps.security.services import log_event
 
@@ -405,6 +407,154 @@ class TestSettingsClubAdmin:
         venue.refresh_from_db()
         assert venue.home_section_title_i18n == {"es": "Reserva tu cancha"}
         assert venue.home_greeting_tagline_i18n == {"es": "Hola"}
+
+
+class TestPriceRuleAdmin:
+    """Every number a price rule carries is typed by the operator into this form."""
+
+    def _band(self, **overrides):
+        payload = {
+            "action": "create_pricerule",
+            "name": "Franja noche",
+            "zone": "pico",
+            "scope": "weekdays",
+            "day_of_week": "",
+            "court_type": "",
+            "start_time": "17:00",
+            "end_time": "23:00",
+            "price": "32.00",
+            "multiplier": "",
+            "priority": "20",
+        }
+        payload.update(overrides)
+        return payload
+
+    def test_settings_renders_band_fields(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        content = client.get("/adminpanel/settings/").content.decode()
+        for name in (
+            'name="start_time"',
+            'name="end_time"',
+            'name="price"',
+            'name="scope"',
+            'name="day_of_week"',
+        ):
+            assert name in content, f"settings.html missing field {name}"
+
+    def test_settings_lists_price_rule_rows(self, client, staff_user, venue):
+        """Renders a real row of each flavour; a bad filter here is a 500 in the panel."""
+        PriceRule.objects.create(
+            venue=venue,
+            name="Por precio",
+            zone="pico",
+            scope="weekdays",
+            start_time=time(17, 0),
+            end_time=time(23, 0),
+            price="32.00",
+        )
+        PriceRule.objects.create(venue=venue, name="Por multiplicador", multiplier="1.50")
+        client.force_login(staff_user)
+        resp = client.get("/adminpanel/settings/")
+        assert resp.status_code == 200
+        content = resp.content.decode()
+        assert "Por precio" in content
+        assert "Por multiplicador" in content
+        assert "32.00" in content
+        assert "x1.5" in content
+        assert "17:00 – 23:00" in content
+        assert "Entre semana" in content
+        assert "Todo el día" in content
+        assert "openEditPriceRule(" in content
+
+    def test_create_band_with_absolute_price(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        resp = client.post("/adminpanel/settings/", self._band())
+        assert resp.status_code == 302
+        rule = PriceRule.objects.get(name="Franja noche")
+        assert rule.price == Decimal("32.00")
+        assert rule.multiplier is None
+        assert rule.start_time == time(17, 0)
+        assert rule.end_time == time(23, 0)
+        assert rule.scope == "weekdays"
+        assert AuditLog.objects.filter(action="admin.pricerule_create").exists()
+
+    def test_create_band_with_multiplier_and_no_window(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        resp = client.post(
+            "/adminpanel/settings/",
+            self._band(
+                name="Todo el día",
+                scope="all",
+                start_time="",
+                end_time="",
+                price="",
+                multiplier="1.50",
+            ),
+        )
+        assert resp.status_code == 302
+        rule = PriceRule.objects.get(name="Todo el día")
+        assert rule.multiplier == Decimal("1.50")
+        assert rule.price is None
+        assert rule.start_time is None
+        assert rule.end_time is None
+
+    def test_price_and_multiplier_together_are_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(multiplier="1.50"))
+        assert not PriceRule.objects.exists()
+
+    def test_neither_price_nor_multiplier_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(price="", multiplier=""))
+        assert not PriceRule.objects.exists()
+
+    def test_half_a_window_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(end_time=""))
+        assert not PriceRule.objects.exists()
+
+    def test_end_before_start_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(start_time="23:00", end_time="17:00"))
+        assert not PriceRule.objects.exists()
+
+    def test_unparseable_price_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(price="treinta"))
+        assert not PriceRule.objects.exists()
+
+    def test_negative_price_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(price="-5.00"))
+        assert not PriceRule.objects.exists()
+
+    def test_missing_name_is_rejected(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band(name="   "))
+        assert not PriceRule.objects.exists()
+
+    def test_edit_updates_the_band(self, client, staff_user, venue):
+        client.force_login(staff_user)
+        client.post("/adminpanel/settings/", self._band())
+        rule = PriceRule.objects.get(name="Franja noche")
+        resp = client.post(
+            "/adminpanel/settings/",
+            self._band(
+                action="edit_pricerule",
+                pricerule_id=str(rule.id),
+                name="Franja noche",
+                scope="weekend",
+                start_time="18:00",
+                end_time="23:00",
+                price="45.00",
+            ),
+        )
+        assert resp.status_code == 302
+        rule.refresh_from_db()
+        assert rule.price == Decimal("45.00")
+        assert rule.start_time == time(18, 0)
+        assert rule.scope == "weekend"
+        assert AuditLog.objects.filter(action="admin.pricerule_edit").exists()
 
 
 class TestBannersAdminCRUD:

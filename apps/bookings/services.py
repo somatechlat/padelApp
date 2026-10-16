@@ -17,7 +17,7 @@ MAX_HOLDS_PER_USER = 5
 class BookingService:
     @staticmethod
     def preview(court, day, start_time, duration_minutes):
-        return TariffService.compute(court, day, duration_minutes)
+        return TariffService.compute(court, day, duration_minutes, start_time)
 
     @staticmethod
     def hold(user, court, day, start_time, duration_minutes, players=4):
@@ -57,7 +57,7 @@ class BookingService:
             if any(s.status != TimeSlot.Status.AVAILABLE for s in locked):
                 raise ValueError(_("La cancha no esta disponible en ese horario"))
 
-            price = TariffService.compute(court, day, duration_minutes)
+            price = TariffService.compute(court, day, duration_minutes, start_time)
             booking = Booking.objects.create(
                 user=user,
                 court=court,

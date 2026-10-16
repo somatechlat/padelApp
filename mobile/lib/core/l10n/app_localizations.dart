@@ -570,6 +570,30 @@ abstract class AppLocalizations {
   /// **'En espera'**
   String get bookingStatus_held;
 
+  /// No description provided for @bookingStatus_pendingPayment.
+  ///
+  /// In es, this message translates to:
+  /// **'Pendiente de pago'**
+  String get bookingStatus_pendingPayment;
+
+  /// No description provided for @bookingStatus_inProgress.
+  ///
+  /// In es, this message translates to:
+  /// **'En curso'**
+  String get bookingStatus_inProgress;
+
+  /// No description provided for @bookingStatus_completed.
+  ///
+  /// In es, this message translates to:
+  /// **'Completada'**
+  String get bookingStatus_completed;
+
+  /// No description provided for @bookingStatus_noShow.
+  ///
+  /// In es, this message translates to:
+  /// **'No asistió'**
+  String get bookingStatus_noShow;
+
   /// No description provided for @events.
   ///
   /// In es, this message translates to:
@@ -978,6 +1002,18 @@ abstract class AppLocalizations {
   /// **'Selecciona una hora disponible'**
   String get selectSlot;
 
+  /// No description provided for @labelDate.
+  ///
+  /// In es, this message translates to:
+  /// **'Fecha'**
+  String get labelDate;
+
+  /// No description provided for @labelHour.
+  ///
+  /// In es, this message translates to:
+  /// **'Hora'**
+  String get labelHour;
+
   /// No description provided for @noAvailableSlots.
   ///
   /// In es, this message translates to:
@@ -1035,7 +1071,7 @@ abstract class AppLocalizations {
   /// No description provided for @paymentPending.
   ///
   /// In es, this message translates to:
-  /// **'Reserva confirmada. Tu pago está pendiente de confirmación.'**
+  /// **'Tu pago está pendiente de efectuarse.'**
   String get paymentPending;
 
   /// No description provided for @paymentError.

@@ -126,6 +126,10 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       _courtsFree = [];
     });
     try {
+      // Resolve the client once, before the first `await`: reading `context`
+      // after an async gap is the race `use_build_context_synchronously`
+      // guards against (the widget can be disposed while slots load).
+      final api = context.read<ApiClient>();
       if (_allCourts == null) await _loadAllCourts();
       // Only bookable courts are candidates; a court that is archived, in
       // maintenance or otherwise not free for the whole duration simply does
@@ -135,7 +139,7 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
       final results = await Future.wait(courts.map((raw) async {
         final c = Map<String, dynamic>.from(raw as Map);
         try {
-          final data = await context.read<ApiClient>().get(
+          final data = await api.get(
             '/courts/${c['id']}/availability/',
             query: {'date': _fmtDate(_date)},
           );
@@ -160,7 +164,25 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
           // A court with no slot rows at all is closed / not bookable that day.
           if (slots.isEmpty) ok = false;
           if (!ok) return null;
-          return <String, dynamic>{'court': c};
+          // Quote the price for THIS court at THIS start time. The club prices
+          // by franja horaria, so a court's static `price_base` is not the
+          // amount the customer would actually pay — only the server knows.
+          String? price;
+          try {
+            final preview = await api.post(
+              '/bookings/preview/',
+              data: {
+                'court': c['id'],
+                'date': _fmtDate(_date),
+                'start_time': fmtBookTime(start),
+                'duration_minutes': _duration,
+              },
+            );
+            price = '${preview['price']}';
+          } catch (_) {
+            price = null; // never block court selection on a quote failure
+          }
+          return <String, dynamic>{'court': c, 'price': price};
         } catch (_) {
           return null;
         }
@@ -435,9 +457,9 @@ class _BookingWizardScreenState extends State<BookingWizardScreen> {
                     maxLines: 2,
                     overflow: TextOverflow.ellipsis),
                 const SizedBox(height: AppSpacing.sm),
-                _row(l10n.selectDate,
+                _row(l10n.labelDate,
                     DateFormat('EEEE, d MMM', l10n.localeName).format(_date)),
-                if (_start != null) _row(l10n.selectSlot, fmtBookTime(_start!)),
+                if (_start != null) _row(l10n.labelHour, fmtBookTime(_start!)),
                 _row(l10n.duration, '$_duration ${l10n.durationMin}'),
                 const Divider(height: AppSpacing.lg),
                 Row(

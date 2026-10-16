@@ -246,6 +246,18 @@ class AppLocalizationsPt extends AppLocalizations {
   String get bookingStatus_held => 'Em espera';
 
   @override
+  String get bookingStatus_pendingPayment => 'Aguardando pagamento';
+
+  @override
+  String get bookingStatus_inProgress => 'Em andamento';
+
+  @override
+  String get bookingStatus_completed => 'Concluída';
+
+  @override
+  String get bookingStatus_noShow => 'Não compareceu';
+
+  @override
   String get events => 'Eventos';
 
   @override
@@ -454,6 +466,12 @@ class AppLocalizationsPt extends AppLocalizations {
   String get selectSlot => 'Selecione um horário disponível';
 
   @override
+  String get labelDate => 'Data';
+
+  @override
+  String get labelHour => 'Hora';
+
+  @override
   String get noAvailableSlots => 'Não há horários disponíveis para essa data';
 
   @override
@@ -481,8 +499,7 @@ class AppLocalizationsPt extends AppLocalizations {
   String get paymentSuccess => 'Reserva confirmada!';
 
   @override
-  String get paymentPending =>
-      'Reserva confirmada. Seu pagamento está pendente de confirmação.';
+  String get paymentPending => 'Seu pagamento está pendente de ser efetuado.';
 
   @override
   String get paymentError =>

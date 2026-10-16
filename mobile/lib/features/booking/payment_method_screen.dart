@@ -118,9 +118,8 @@ class PaymentMethodScreen extends StatelessWidget {
         data: {'method': 'cash', 'amount': amount},
       );
       if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(l10n.cashDescription)),
-        );
+        // No confirmation copy here: the wizard's done step is the single
+        // message both payment methods share (see `paymentPending`).
         Navigator.of(context).pop(true);
       }
     } catch (e) {
