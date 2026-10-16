@@ -115,7 +115,12 @@ class CalendarView(StaffRequiredMixin, TemplateView):
     def _action_cancel_booking(self, request):
         booking = get_object_or_404(Booking, id=request.POST.get("booking_id"))
         try:
-            booking.transition_to("cancelled")
+            # BookingService.cancel, not booking.transition_to: the service is
+            # what frees the BookingSlot/TimeSlot rows and tells the customer.
+            # Calling transition_to directly flipped the status but left the
+            # court still marked booked, so the slot stayed unbookable, and the
+            # player was never told their reservation had been cancelled.
+            BookingService.cancel(booking)
             messages.success(request, f"Reserva de {booking.user.email} cancelada.")
             log_event(request.user, "admin.booking_cancel", "Booking", booking.id)
         except ValueError as exc:

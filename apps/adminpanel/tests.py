@@ -1071,3 +1071,94 @@ class TestAdminPanelRoleScoping:
         assert resp.status_code == 302
         banner.refresh_from_db()
         assert banner.sort_order == 1
+
+
+class TestAdminCalendarCancelFreesSlots:
+    """Cancelling from the panel must free the court, not just flip a status.
+
+    `_action_cancel_booking` called `booking.transition_to("cancelled")`
+    directly: the status changed and nothing else happened. The TimeSlot rows
+    stayed BOOKED so the hour stayed unbookable for every other customer, the
+    BookingSlot rows were left behind, and the player was never told their
+    reservation was cancelled. The very same file already carried a comment
+    about this exact mistake in `_action_mark_noshow`; the cancel path beside
+    it was never fixed. It had not been exercised in production yet, so the
+    audit log holds zero `admin.booking_cancel` events.
+    """
+
+    def test_panel_cancel_frees_slots_and_notifies(self, client, staff_users, court):
+        from django.contrib.auth import get_user_model as gum
+
+        from apps.bookings.services import BookingService
+        from apps.courts.models import CourtSchedule
+        from apps.notifications.models import Notification
+        from apps.scheduling.models import TimeSlot
+
+        User = gum()
+        customer = User.objects.create_user(
+            email="cust-cancel@test.com", password="pass12345", role="cliente"
+        )
+        day = (timezone.now() + timedelta(days=2)).date()
+        CourtSchedule.objects.get_or_create(
+            court=court,
+            weekday=day.weekday(),
+            defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
+        )
+
+        booking = BookingService.hold(customer, court, day, "10:00", 60)
+        BookingService.confirm(booking)
+        assert TimeSlot.objects.filter(
+            court=court, date=day, status=TimeSlot.Status.BOOKED
+        ).exists()
+
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/calendar/",
+            {"action": "cancel_booking", "booking_id": booking.id, "date": str(day)},
+        )
+        assert resp.status_code == 302
+
+        booking.refresh_from_db()
+        assert booking.status == "cancelled"
+
+        still_booked = TimeSlot.objects.filter(
+            court=court, date=day, status=TimeSlot.Status.BOOKED
+        )
+        assert not still_booked.exists(), (
+            "panel cancel left the court marked booked, so the hour can never be "
+            "rebooked by another customer"
+        )
+        assert booking.slots.count() == 0, "BookingSlot rows were left behind"
+        assert Notification.objects.filter(
+            user=customer, event_type="booking_cancelled"
+        ).exists(), "the player was never told their reservation was cancelled"
+
+    def test_panel_cancel_of_already_cancelled_is_refused(self, client, staff_users, court):
+        """A second cancel must fail loudly rather than raise a 500."""
+        from django.contrib.auth import get_user_model as gum
+
+        from apps.bookings.services import BookingService
+        from apps.courts.models import CourtSchedule
+
+        User = gum()
+        customer = User.objects.create_user(
+            email="cust-twice@test.com", password="pass12345", role="cliente"
+        )
+        day = (timezone.now() + timedelta(days=2)).date()
+        CourtSchedule.objects.get_or_create(
+            court=court,
+            weekday=day.weekday(),
+            defaults={"open_time": "08:00", "close_time": "22:00", "is_active": True},
+        )
+        booking = BookingService.hold(customer, court, day, "12:00", 60)
+        BookingService.confirm(booking)
+        BookingService.cancel(booking)
+
+        client.force_login(staff_users["recepcionista"])
+        resp = client.post(
+            "/adminpanel/calendar/",
+            {"action": "cancel_booking", "booking_id": booking.id, "date": str(day)},
+        )
+        assert resp.status_code == 302
+        booking.refresh_from_db()
+        assert booking.status == "cancelled"
